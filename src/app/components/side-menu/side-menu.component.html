@@ -1,0 +1,25 @@
+<ion-menu menuId="mainMenu" contentId="main-content" type="push" side="start">
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>MHC</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content>
+    <ion-list>
+
+      <ion-menu-toggle auto-hide="true">
+        <ion-item routerLink="/dashboard" routerDirection="root">
+          Patient Dashboard
+        </ion-item>
+      </ion-menu-toggle>
+
+      <ion-menu-toggle auto-hide="true">
+        <ion-item routerLink="/auth/login" routerDirection="root">
+          Logout (temp)
+        </ion-item>
+      </ion-menu-toggle>
+
+    </ion-list>
+  </ion-content>
+</ion-menu>
