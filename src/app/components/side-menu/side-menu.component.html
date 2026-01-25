@@ -1,25 +1,35 @@
 <ion-menu menuId="mainMenu" contentId="main-content" type="push" side="start">
   <ion-header>
     <ion-toolbar>
-      <ion-title>MHC</ion-title>
+      <ion-title>{{ clinicName }}</ion-title>
     </ion-toolbar>
   </ion-header>
 
   <ion-content>
-    <ion-list>
+    <ng-container *ngFor="let section of visibleSections">
+      <div class="sec-title">{{ section.title }}</div>
 
-      <ion-menu-toggle auto-hide="true">
-        <ion-item routerLink="/dashboard" routerDirection="root">
-          Patient Dashboard
+      <ion-list lines="full">
+        <ion-item button *ngFor="let item of section.items" (click)="go(item.url)">
+          <ion-icon slot="start" [name]="item.icon || 'chevron-forward-outline'"></ion-icon>
+
+          <ion-label>
+            {{ item.title }}
+          </ion-label>
+
+          <!-- notifications dot -->
+          <span *ngIf="item.showDot" class="dot"></span>
         </ion-item>
-      </ion-menu-toggle>
+      </ion-list>
+    </ng-container>
 
-      <ion-menu-toggle auto-hide="true">
-        <ion-item routerLink="/auth/login" routerDirection="root">
-          Logout (temp)
-        </ion-item>
-      </ion-menu-toggle>
+    <div class="divider"></div>
 
+    <ion-list lines="none">
+      <ion-item button (click)="logout()">
+        <ion-icon slot="start" name="log-out-outline"></ion-icon>
+        <ion-label>Logout</ion-label>
+      </ion-item>
     </ion-list>
   </ion-content>
 </ion-menu>

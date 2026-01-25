@@ -1,0 +1,177 @@
+/* Background same light-blue */
+.login-bg {
+  --background: #eef5ff;
+}
+
+.login-wrap {
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 28px 18px;
+}
+
+/* Brand center */
+.brand {
+  text-align: center;
+  margin-bottom: 18px;
+
+  .brand-icon {
+    width: 56px;
+    height: 56px;
+    margin: 0 auto 12px;
+    border-radius: 999px;
+    background: #2563eb;
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 26px;
+  }
+
+  .brand-title {
+    font-size: 34px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.4px;
+  }
+
+  .brand-sub {
+    margin-top: 6px;
+    font-size: 16px;
+    color: #64748b;
+  }
+}
+
+/* Card */
+.login-card {
+  width: 520px;
+  max-width: 92vw;
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 14px 40px rgba(2, 6, 23, 0.12);
+}
+
+/* Role tabs container (pill) */
+.role-tabs {
+  background: #f1f5f9;
+  border-radius: 12px;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+/* Role tab buttons */
+.role-btn {
+  border: 0;
+  background: transparent;
+  border-radius: 10px;
+  padding: 12px 10px;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+}
+
+.role-btn.active {
+  background: #fff;
+  color: #2563eb;
+  box-shadow: 0 10px 22px rgba(2, 6, 23, 0.08);
+}
+
+/* Form labels + inputs */
+.form {
+  padding: 4px 6px;
+}
+
+.lbl {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 12px 0 8px;
+}
+
+/* Input exact */
+.inp {
+  width: 100%;
+  height: 46px;
+  border-radius: 10px;
+  border: 1px solid #dbeafe;
+  background: #fff;
+  padding: 0 14px;
+  font-size: 15px;
+  outline: none;
+  color: #0f172a;
+}
+
+.inp::placeholder {
+  color: #94a3b8;
+}
+
+.inp:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
+
+/* Remember + forgot row */
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 14px 0 16px;
+}
+
+.remember {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #334155;
+  font-size: 14px;
+}
+
+.chk {
+  width: 16px;
+  height: 16px;
+}
+
+.forgot {
+  border: 0;
+  background: transparent;
+  color: #2563eb;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Error */
+.err {
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 13px;
+  margin: 0 0 10px;
+}
+
+/* Sign button exact big */
+.sign-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 10px;
+  border: 0;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 800;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.sign-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+/* Mobile spacing */
+@media (max-width: 520px) {
+  .brand .brand-title {
+    font-size: 28px;
+  }
+}

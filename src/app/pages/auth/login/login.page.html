@@ -1,7 +1,51 @@
-<ion-content class="ion-padding">
-  <h2>Login</h2>
+<ion-content class="login-bg">
+  <div class="login-wrap">
+    <div class="brand">
+      <div class="brand-icon">
+        <ion-icon name="medkit-outline"></ion-icon>
+      </div>
 
-  <ion-button expand="block" (click)="goDashboard()">
-    Login (Temp)
-  </ion-button>
+      <div class="brand-title">Mariam Health Care</div>
+      <div class="brand-sub">Patient Management System</div>
+    </div>
+
+    <div class="login-card">
+      <!-- Role tabs -->
+      <div class="role-tabs">
+        <button type="button" class="role-btn" [class.active]="role==='Doctor'" (click)="setRole('Doctor')">
+          Doctor
+        </button>
+        <button type="button" class="role-btn" [class.active]="role==='Receptionist'" (click)="setRole('Receptionist')">
+          Receptionist
+        </button>
+      </div>
+
+      <div class="form">
+        <label class="lbl">Username</label>
+        <input
+          class="inp"
+          [(ngModel)]="username"
+          [placeholder]="role === 'Doctor' ? 'Enter Doctor ID' : 'Enter Receptionist ID'"
+        />
+
+        <label class="lbl">Password</label>
+        <input class="inp" type="password" [(ngModel)]="password" placeholder="Enter password" />
+
+        <div class="meta-row">
+          <label class="remember">
+            <input class="chk" type="checkbox" [(ngModel)]="remember" />
+            <span>Remember me</span>
+          </label>
+
+          <button type="button" class="forgot" (click)="forgotPassword()">Forgot password?</button>
+        </div>
+
+        <div class="err" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+        <button class="sign-btn" type="button" (click)="login()" [disabled]="loading">
+          {{ loading ? 'Signing In...' : 'Sign In' }}
+        </button>
+      </div>
+    </div>
+  </div>
 </ion-content>
