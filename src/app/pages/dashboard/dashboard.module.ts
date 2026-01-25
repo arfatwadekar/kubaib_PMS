@@ -4,11 +4,12 @@ import { IonicModule } from '@ionic/angular';
 import { RouterModule, Routes } from '@angular/router';
 
 import { DashboardPage } from './dashboard.page';
+import { FormsModule } from '@angular/forms';
 
 const routes: Routes = [{ path: '', component: DashboardPage }];
 
 @NgModule({
   declarations: [DashboardPage],
-  imports: [CommonModule, IonicModule, RouterModule.forChild(routes)],
+  imports: [CommonModule, IonicModule, FormsModule,RouterModule.forChild(routes)],
 })
 export class DashboardPageModule {}

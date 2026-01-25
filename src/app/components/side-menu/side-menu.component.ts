@@ -7,13 +7,13 @@ type MenuItem = {
   title: string;
   url: string;
   icon?: string;
-  showDot?: boolean; // notifications dot
+  showDot?: boolean;
 };
 
 type MenuSection = {
   title: string;
   items: MenuItem[];
-  roles: UserRole[]; // who can see this section
+  roles: UserRole[];
 };
 
 @Component({
@@ -25,7 +25,6 @@ type MenuSection = {
 export class SideMenuComponent {
   clinicName = 'Mariam Health Care';
 
-  // ✅ Define menu once, filter by role
   private sections: MenuSection[] = [
     {
       title: 'PATIENT',
@@ -38,7 +37,7 @@ export class SideMenuComponent {
     },
     {
       title: 'MEDICINE INVENTORY',
-      roles: ['Doctor'], // ❗ doctor only (change if receptionist should access)
+      roles: ['Doctor'],
       items: [
         { title: 'Medicine Dashboard', url: '/medicines', icon: 'medkit-outline' },
         { title: 'Create Medicine', url: '/medicines/create', icon: 'add-circle-outline' },
@@ -46,7 +45,7 @@ export class SideMenuComponent {
     },
     {
       title: 'COMMUNICATION',
-      roles: ['Doctor'], // ❗ doctor only
+      roles: ['Doctor'],
       items: [
         { title: 'Notifications', url: '/notifications', icon: 'notifications-outline', showDot: true },
         { title: 'Announcements', url: '/announcements', icon: 'megaphone-outline' },
@@ -55,8 +54,10 @@ export class SideMenuComponent {
     },
     {
       title: 'REPORTS',
-      roles: ['Doctor', 'Receptionist'], // ✅ both can view/edit reports per PRD
-      items: [{ title: 'Reports', url: '/reports', icon: 'bar-chart-outline' }],
+      roles: ['Doctor', 'Receptionist'],
+      items: [
+        { title: 'Reports', url: '/reports', icon: 'bar-chart-outline' },
+      ],
     },
   ];
 
@@ -71,10 +72,12 @@ export class SideMenuComponent {
   }
 
   get visibleSections(): MenuSection[] {
-    return this.sections.filter((s) => s.roles.includes(this.role));
+    return this.sections.filter(section =>
+      section.roles.includes(this.role)
+    );
   }
 
-  async go(url: string) {
+  async navigate(url: string) {
     await this.menuCtrl.close('mainMenu');
     this.router.navigateByUrl(url);
   }

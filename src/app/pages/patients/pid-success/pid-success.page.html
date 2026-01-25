@@ -1,0 +1,31 @@
+<ion-content class="success-wrap">
+  <div class="card">
+
+    <div class="icon">
+      <ion-icon name="checkmark-outline"></ion-icon>
+    </div>
+
+    <h2>PID Successfully Created!</h2>
+    <p>Patient profile has been registered in the system.</p>
+
+    <div class="info-box">
+      <div class="row">
+        <span>PATIENT ID</span>
+        <b>{{ pid }}</b>
+      </div>
+      <div class="row">
+        <span>DATE OF REGISTRATION</span>
+        <b>{{ today | date:'dd/MM/yyyy' }}</b>
+      </div>
+      <div class="row">
+        <span>REGISTERED BY</span>
+        <b>{{ registeredBy }}</b>
+      </div>
+    </div>
+
+    <ion-button expand="block" (click)="goDashboard()">
+      Return to Dashboard
+    </ion-button>
+
+  </div>
+</ion-content>
