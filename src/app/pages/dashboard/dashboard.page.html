@@ -3,6 +3,7 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
+
     <ion-title>Patient Dashboard</ion-title>
 
     <ion-buttons slot="end">
@@ -22,17 +23,17 @@
           <ion-icon name="search-outline" class="mhc-search__ic"></ion-icon>
           <input
             class="mhc-search__inp"
-            placeholder="Search Appointments"
+            placeholder="Search PID / Name / Phone"
             [(ngModel)]="searchText"
             (keyup.enter)="onSearch()"
           />
         </div>
 
-        <button class="mhc-btn mhc-btn--primary" (click)="onSearch()">
+        <button class="mhc-btn mhc-btn--primary" type="button" (click)="onSearch()">
           Search
         </button>
 
-        <button class="mhc-btn mhc-btn--ghost" (click)="clearSearch()">
+        <button class="mhc-btn mhc-btn--ghost" type="button" (click)="clearSearch()">
           <ion-icon name="funnel-outline"></ion-icon>
           Clear
         </button>
@@ -51,7 +52,11 @@
       </div>
 
       <div class="mhc-tbody" *ngIf="!loading">
-        <div class="mhc-tr" *ngFor="let r of filtered">
+        <div
+          class="mhc-tr"
+          *ngFor="let r of filtered"
+          (click)="openPatient(r)"
+        >
           <div class="mhc-td mhc-td--pid">{{ r._pid }}</div>
           <div class="mhc-td">{{ r._name }}</div>
           <div class="mhc-td">{{ r._phone }}</div>
@@ -62,13 +67,17 @@
           </div>
 
           <div class="mhc-td">
-            <span class="mhc-pill" [ngClass]="pillClass(r.status)">
-              {{ pillLabel(r.status) }}
+            <span class="mhc-pill" [ngClass]="pillClass(r)">
+              {{ pillLabel(r) }}
             </span>
           </div>
 
           <div class="mhc-td mhc-td--actions">
-            <button class="mhc-gear" (click)="openActions($event, r)">
+            <button
+              class="mhc-gear"
+              type="button"
+              (click)="openActions($event, r)"
+            >
               <ion-icon name="settings-outline"></ion-icon>
             </button>
           </div>
@@ -85,7 +94,7 @@
     </div>
   </div>
 
-  <!-- ✅ Dropdown like screenshot -->
+  <!-- ✅ Dropdown / Popover -->
   <ion-popover
     class="mhc-popover"
     [isOpen]="actionOpen"
@@ -94,30 +103,25 @@
   >
     <ng-template>
       <div class="mhc-pop">
-        <div
-          class="mhc-pop__item"
-          [class.active]="selectedRow?.status === 'TODAYS_APPOINTMENT'"
-          (click)="setStatus('TODAYS_APPOINTMENT')"
-        >
-          <ion-icon name="checkmark-circle-outline" class="mhc-pop__check"></ion-icon>
-          <span>Today’s<br />Appointment</span>
+        <div class="mhc-pop__head">
+          <div class="mhc-pop__title">Status</div>
         </div>
 
-        <div
-          class="mhc-pop__item"
-          [class.active]="selectedRow?.status === 'PENDING_CONSULTATION'"
-          (click)="setStatus('PENDING_CONSULTATION')"
-        >
-          <span>Pending Consultation</span>
-        </div>
+        <!-- UI-only items (API integration later) -->
+        <button class="mhc-pop__item" type="button" (click)="closeActions()">
+          <ion-icon name="checkmark-circle-outline" class="mhc-pop__ic"></ion-icon>
+          <span>Mark as Today’s Appointment</span>
+        </button>
 
-        <div
-          class="mhc-pop__item"
-          [class.active]="selectedRow?.status === 'IN_PATIENT'"
-          (click)="setStatus('IN_PATIENT')"
-        >
-          <span>In Patient</span>
-        </div>
+        <button class="mhc-pop__item" type="button" (click)="closeActions()">
+          <ion-icon name="hourglass-outline" class="mhc-pop__ic"></ion-icon>
+          <span>Mark as Pending Consultation</span>
+        </button>
+
+        <button class="mhc-pop__item" type="button" (click)="closeActions()">
+          <ion-icon name="bed-outline" class="mhc-pop__ic"></ion-icon>
+          <span>Mark as In Patient</span>
+        </button>
       </div>
     </ng-template>
   </ion-popover>

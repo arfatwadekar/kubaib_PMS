@@ -1,0 +1,69 @@
+<div class="table-wrapper">
+
+  <!-- HEADER -->
+  <ion-grid class="thead" *ngIf="columns.length">
+    <ion-row>
+      <ion-col
+        *ngFor="let c of columns; trackBy: trackByIndex"
+        class="th"
+        [style.maxWidth]="c.width || null"
+        [style.flex]="c.width ? '0 0 ' + c.width : '1 1 0'"
+        [class.center]="c.align === 'center'"
+        [class.end]="c.align === 'end'"
+      >
+        {{ c.label }}
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- LOADING -->
+  <div class="loading" *ngIf="loading">
+    Loading...
+  </div>
+
+  <!-- BODY -->
+  <ion-grid class="tbody" *ngIf="!loading">
+    <ion-row class="tr" *ngFor="let r of rows; trackBy: trackByIndex">
+
+      <ion-col
+        *ngFor="let c of columns; trackBy: trackByIndex"
+        class="td"
+        [style.maxWidth]="c.width || null"
+        [style.flex]="c.width ? '0 0 ' + c.width : '1 1 0'"
+        [class.center]="c.align === 'center'"
+        [class.end]="c.align === 'end'"
+      >
+        <!-- normal cell -->
+        <ng-container *ngIf="c.key !== 'actions'">
+          {{ r[c.key] }}
+        </ng-container>
+
+        <!-- action cell -->
+        <ng-container *ngIf="c.key === 'actions'">
+          <ng-container
+            *ngTemplateOutlet="rowTemplate; context: { $implicit: r }"
+          ></ng-container>
+        </ng-container>
+      </ion-col>
+
+    </ion-row>
+
+    <div class="empty" *ngIf="rows.length === 0">
+      {{ emptyText }}
+    </div>
+  </ion-grid>
+
+  <!-- PAGINATION -->
+  <div class="pager" *ngIf="!loading">
+    <button class="pager-btn" (click)="prev.emit()" [disabled]="disablePrev">
+      Prev
+    </button>
+
+    <span class="page-no">Page {{ page }}</span>
+
+    <button class="pager-btn" (click)="next.emit()" [disabled]="disableNext">
+      Next
+    </button>
+  </div>
+
+</div>

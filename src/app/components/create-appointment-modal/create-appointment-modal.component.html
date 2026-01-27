@@ -1,0 +1,84 @@
+<!-- ✅ No ion-header. Everything inside ion-content -->
+<ion-content class="ion-padding">
+  <div class="cap-modal">
+
+    <!-- Top bar (title + close icon) -->
+    <div class="cap-top">
+      <div class="cap-title">Create Appointment</div>
+
+      <button
+        type="button"
+        class="cap-close"
+        (click)="close()"
+        [disabled]="creating"
+        aria-label="Close"
+      >
+        <ion-icon name="close-outline"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Patient info -->
+    <div class="cap-patient">
+      <div class="cap-patient__name">
+        Patient: <b>{{ patient.name }}</b>
+      </div>
+      <div class="cap-patient__sub">
+        {{ patient.pid }} • {{ patient.phone }}
+      </div>
+    </div>
+
+    <!-- Form -->
+    <form [formGroup]="form" (ngSubmit)="submit()" class="cap-form">
+      <!-- Date -->
+      <div class="cap-field">
+        <label class="cap-label">Appointment Date <span class="req">*</span></label>
+
+        <div class="cap-input">
+          <ion-icon name="calendar-outline" class="cap-ic"></ion-icon>
+          <input class="cap-inp" type="date" formControlName="appointmentDate" />
+        </div>
+
+        <div class="cap-err" *ngIf="form.controls.appointmentDate.touched && form.controls.appointmentDate.invalid">
+          Date required
+        </div>
+      </div>
+
+      <!-- Time -->
+      <div class="cap-field">
+        <label class="cap-label">Appointment Time <span class="req">*</span></label>
+
+        <div class="cap-input">
+          <ion-icon name="time-outline" class="cap-ic"></ion-icon>
+          <input class="cap-inp" type="time" formControlName="appointmentTime" />
+        </div>
+
+        <div class="cap-err" *ngIf="form.controls.appointmentTime.touched && form.controls.appointmentTime.invalid">
+          Time required
+        </div>
+      </div>
+
+      <!-- Remark -->
+      <div class="cap-field">
+        <label class="cap-label">Remark</label>
+
+        <div class="cap-input">
+          <ion-icon name="chatbox-ellipses-outline" class="cap-ic"></ion-icon>
+          <input class="cap-inp" type="text" formControlName="remark" placeholder="Optional remark" />
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="cap-actions">
+        <button class="cap-btn cap-btn--primary" type="submit" [disabled]="creating">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+          <span>{{ creating ? 'Creating...' : 'Create Appointment' }}</span>
+        </button>
+
+        <button class="cap-btn cap-btn--ghost" type="button" (click)="close()" [disabled]="creating">
+          Cancel
+        </button>
+      </div>
+    </form>
+
+  </div>
+</ion-content>

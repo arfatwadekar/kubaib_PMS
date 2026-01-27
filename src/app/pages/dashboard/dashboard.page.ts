@@ -1,18 +1,30 @@
 import { Component, OnInit } from '@angular/core';
 import { ToastController } from '@ionic/angular';
-import { PatientService, PatientDto } from 'src/app/services/patient.service';
+import { Router } from '@angular/router';
+import { AppointmentService } from 'src/app/services/appointment.service';
 
-export type ApptStatus = 'TODAYS_APPOINTMENT' | 'PENDING_CONSULTATION' | 'IN_PATIENT';
+type ApptStatus = string; // backend gives statusText anyway
 
-type Row = PatientDto & {
+type ApptRow = {
+  appointmentId: number;
+  patientId: number;
   _pid: string;
   _name: string;
   _phone: string;
 
-  // UI-only fields (until appointment API)
-  apptTime: string;
-  status: ApptStatus;
+  apptTime: string;       // "11:45" / "11:45 AM"
+  statusText: string;     // "InPatient" etc
+  status: ApptStatus;     // optional
+  raw: any;
 };
+
+function todayYmd(): string {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
 
 @Component({
   selector: 'app-dashboard',
@@ -24,61 +36,39 @@ export class DashboardPage implements OnInit {
   loading = false;
 
   page = 1;
-  pageSize = 10;
+  pageSize = 50;
 
   searchText = '';
 
-  rows: Row[] = [];
-  filtered: Row[] = [];
+  rows: ApptRow[] = [];
+  filtered: ApptRow[] = [];
 
   // popover state
   actionOpen = false;
   actionEvent: any = null;
-  selectedRow: Row | null = null;
+  selectedRow: ApptRow | null = null;
 
   constructor(
-    private patientService: PatientService,
-    private toastCtrl: ToastController
+    private apptService: AppointmentService,
+    private toastCtrl: ToastController,
+    private router: Router
   ) {}
 
   ngOnInit() {
     this.load();
   }
 
-  // ---------- UI text/classes ----------
-  pillLabel(s: ApptStatus) {
-    if (s === 'TODAYS_APPOINTMENT') return "Today's Appointment";
-    if (s === 'PENDING_CONSULTATION') return 'Pending Consultation';
-    return 'Out Patient'; // screenshot second row shows Out Patient (use IN_PATIENT if you want)
+  // ---------- UI helpers ----------
+  pillLabel(r: ApptRow) {
+    return r.statusText || '—';
   }
 
-  pillClass(s: ApptStatus) {
-    if (s === 'TODAYS_APPOINTMENT') return 'today';
-    if (s === 'PENDING_CONSULTATION') return 'pending';
-    return 'inp';
-  }
-
-  // ---------- normalization ----------
-  private normalize(list: PatientDto[]): Row[] {
-    return (list || []).map((p: any, idx) => {
-      const pid = (p.patientId || p.patientID || p.pid || '').toString();
-      const name = `${(p.firstName || '').trim()} ${(p.lastName || '').trim()}`.trim();
-      const phone = (p.phoneNumber || '').toString();
-
-      // UI-only (until appointment API)
-      const apptTime = idx % 2 === 0 ? '09:00 AM' : '09:30 AM';
-      const status: ApptStatus =
-        idx % 2 === 0 ? 'TODAYS_APPOINTMENT' : 'IN_PATIENT';
-
-      return {
-        ...p,
-        _pid: pid || '-',
-        _name: name || 'NA',
-        _phone: phone || '-',
-        apptTime,
-        status,
-      };
-    });
+  pillClass(r: ApptRow) {
+    const s = (r.statusText || '').toLowerCase();
+    if (s.includes('today')) return 'today';
+    if (s.includes('pending')) return 'pending';
+    if (s.includes('inpatient') || s.includes('in patient')) return 'inp';
+    return 'neutral';
   }
 
   // ---------- search ----------
@@ -107,26 +97,26 @@ export class DashboardPage implements OnInit {
     });
   }
 
-  // ---------- load ----------
+  // ---------- load appointments ----------
   load() {
     this.loading = true;
 
-    this.patientService.getPatients(this.page, this.pageSize).subscribe({
-      next: (res: any) => {
-        const list: PatientDto[] =
-          res?.data || res?.items || res?.patients || (Array.isArray(res) ? res : []);
+    // ✅ Today’s appointments (as your title says)
+    const date = todayYmd();
 
+    this.apptService.getAppointments({ date, page: this.page, pageSize: this.pageSize }).subscribe({
+      next: (res: any) => {
+        const list = this.extractArray(res);
         this.rows = this.normalize(list);
         this.applyFilter();
       },
       error: async (err) => {
         const t = await this.toastCtrl.create({
-          message: err?.error?.message || err?.message || 'Failed to load patients',
-          duration: 2500,
+          message: err?.error?.message || err?.message || 'Failed to load appointments',
+          duration: 3000,
           position: 'top',
         });
         t.present();
-        this.loading = false;
       },
       complete: () => (this.loading = false),
     });
@@ -137,8 +127,58 @@ export class DashboardPage implements OnInit {
     this.load();
   }
 
-  // ---------- Actions dropdown ----------
-  openActions(ev: any, row: Row) {
+  private extractArray(res: any): any[] {
+    if (Array.isArray(res)) return res;
+
+    const candidates = [
+      res?.items,
+      res?.data,
+      res?.appointments,
+      res?.result,
+      res?.data?.items,
+      res?.data?.appointments,
+      res?.result?.items,
+    ];
+    for (const c of candidates) if (Array.isArray(c)) return c;
+
+    return [];
+  }
+
+  private normalize(list: any[]): ApptRow[] {
+    return (list || []).map((a: any) => {
+      const apptId = Number(a?.appointmentId ?? a?.id ?? 0) || 0;
+
+      const patient = a?.patient || {};
+      const patientId = Number(patient?.patientId ?? a?.patientId ?? 0) || 0;
+
+      const pid = String(patient?.patientIdFormatted ?? a?.patientIdFormatted ?? '').trim();
+      const name = String(patient?.fullName ?? a?.fullName ?? '').trim() || 'NA';
+      const phone = String(patient?.phoneNumber ?? a?.phoneNumber ?? '').trim() || '-';
+
+      // time
+      const timeFormatted = String(a?.appointmentTimeFormatted ?? '').trim(); // "11:45"
+      const timeRaw = String(a?.appointmentTime ?? '').trim();               // "11:45:00"
+      const apptTime = timeFormatted || (timeRaw ? timeRaw.slice(0, 5) : '-');
+
+      const statusText = String(a?.statusText ?? '').trim() || '-';
+
+      return {
+        appointmentId: apptId,
+        patientId,
+        _pid: pid || (patientId ? `P-${patientId}` : '-'),
+        _name: name,
+        _phone: phone,
+        apptTime,
+        statusText,
+        status: String(a?.status ?? ''),
+        raw: a,
+      };
+    });
+  }
+
+  // ---------- actions dropdown (for now UI only) ----------
+  openActions(ev: any, row: ApptRow) {
+    ev?.stopPropagation();
     this.selectedRow = row;
     this.actionEvent = ev;
     this.actionOpen = true;
@@ -150,9 +190,11 @@ export class DashboardPage implements OnInit {
     this.selectedRow = null;
   }
 
-  setStatus(status: ApptStatus) {
-    if (!this.selectedRow) return;
-    this.selectedRow.status = status;
-    this.closeActions();
+  // Optional: open patient profile
+  openPatient(r: ApptRow) {
+    // if you have patient profile page:
+    this.router.navigate(['/patients/create'], {
+      queryParams: { patientId: r.patientId },
+    });
   }
 }

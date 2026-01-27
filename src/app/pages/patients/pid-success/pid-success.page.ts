@@ -21,6 +21,6 @@ export class PidSuccessPage {
 
   async goDashboard() {
     await this.modalCtrl.dismiss();
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/patients/list']);
   }
 }

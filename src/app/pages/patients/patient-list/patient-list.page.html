@@ -1,0 +1,65 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title>Patient Listing</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="refresh()">Refresh</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="mhc-bg">
+  <div class="card">
+    <div class="card__head">
+      <div class="card__title">All Patients</div>
+
+      <div class="topbar">
+        <div class="search">
+          <ion-icon name="search-outline" class="search__ic"></ion-icon>
+          <input
+            class="search__inp"
+            placeholder="Search PID / Name / Phone"
+            [(ngModel)]="searchText"
+            (keyup.enter)="search()"
+          />
+        </div>
+
+        <button class="btn btn--primary" *ngIf="!showCreatePatientBtn" (click)="search()">
+          Search
+        </button>
+
+        <button class="btn btn--primary" *ngIf="showCreatePatientBtn" (click)="goToCreatePatient()">
+          + Create Patient
+        </button>
+
+        <button class="btn btn--ghost" (click)="clearSearch()">
+          <ion-icon name="funnel-outline"></ion-icon>
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <app-table
+      [columns]="columns"
+      [rows]="rows"
+      [loading]="loading"
+      emptyText="No patients found."
+      [page]="page"
+      [disablePrev]="page === 1 || loading || isSearching"
+      [disableNext]="loading || isSearching || !hasNext"
+      (prev)="prevPage()"
+      (next)="nextPage()"
+      [rowTemplate]="actionTpl"
+    ></app-table>
+
+    <ng-template #actionTpl let-r>
+      <button class="pill-btn" type="button" (click)="openApptModal(r, $event)">
+        Create Appointment
+      </button>
+    </ng-template>
+  </div>
+</ion-content>
