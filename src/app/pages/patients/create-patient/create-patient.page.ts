@@ -1,11 +1,11 @@
 // src/app/pages/patients/create-patient/create-patient.page.ts
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, Validators } from '@angular/forms';
-import { ModalController, ToastController } from '@ionic/angular';
-import { Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
+import { AlertController, ToastController } from '@ionic/angular';
+import { Subscription } from 'rxjs';
 
 import { PatientService } from 'src/app/services/patient.service';
-import { PidSuccessPage } from '../pid-success/pid-success.page';
 
 function onlyDigits(v: string) {
   return (v || '').replace(/\D/g, '');
@@ -14,19 +14,45 @@ function onlyDigits(v: string) {
 function splitFullName(full: string) {
   const s = (full || '').trim().replace(/\s+/g, ' ');
   if (!s) return { firstName: 'NA', lastName: 'NA' };
-
   const parts = s.split(' ');
   if (parts.length === 1) return { firstName: parts[0], lastName: 'NA' };
-
   return { firstName: parts[0], lastName: parts.slice(1).join(' ') || 'NA' };
 }
 
-function toIso(dateOnlyOrIso: string): string {
-  if (!dateOnlyOrIso) return new Date().toISOString();
-  if (dateOnlyOrIso.includes('T')) return dateOnlyOrIso;
+function toIso(dateOnlyOrIso: string): string | null {
+  const s = (dateOnlyOrIso || '').toString().trim();
+  if (!s) return null;
+  if (s.includes('T')) return s;
 
-  const [y, m, d] = dateOnlyOrIso.split('-').map(Number);
+  const [y, m, d] = s.split('-').map(Number);
+  if (!y) return null;
   return new Date(Date.UTC(y, (m || 1) - 1, d || 1)).toISOString();
+}
+
+function toDateInput(isoOrDateOrYear: any): string {
+  const s = (isoOrDateOrYear ?? '').toString().trim();
+  if (!s) return '';
+  if (/^\d{4}$/.test(s)) return s;
+  if (s.includes('T')) return s.slice(0, 10);
+  return s;
+}
+
+function nullIfBlank(v: any): string | null {
+  const s = (v ?? '').toString().trim();
+  return s ? s : null;
+}
+
+function nullIfDigitsBlank(v: any, maxLen: number): string | null {
+  const d = onlyDigits((v ?? '').toString()).slice(0, maxLen);
+  return d ? d : null;
+}
+
+function normalizeMaritalSince(v: any): string | null {
+  const s = (v ?? '').toString().trim();
+  if (!s) return null;
+  if (/^\d{4}$/.test(s)) return s; // year allowed
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return toIso(s);
+  return s; // if backend supports other format
 }
 
 @Component({
@@ -35,8 +61,16 @@ function toIso(dateOnlyOrIso: string): string {
   styleUrls: ['./create-patient.page.scss'],
   standalone: false,
 })
-export class CreatePatientPage {
+export class CreatePatientPage implements OnInit, OnDestroy {
   loading = false;
+
+  isEditMode = false;
+  patientId: number | null = null;
+
+  // ✅ store latest patient from DB
+  private currentPatient: any = null;
+
+  private sub = new Subscription();
 
   form = this.fb.group({
     fullName: ['', [Validators.required, Validators.minLength(2)]],
@@ -68,18 +102,32 @@ export class CreatePatientPage {
     private fb: FormBuilder,
     private patient: PatientService,
     private toastCtrl: ToastController,
-    private modalCtrl: ModalController,
-    private router: Router
-  ) {
-    // ✅ if patient data passed from previous page
-    const nav = this.router.getCurrentNavigation();
-    const data = nav?.extras?.state?.['patient'];
-    if (data) this.patchFromDashboard(data);
+    private alertCtrl: AlertController,
+    private route: ActivatedRoute
+  ) {}
+
+  ngOnInit(): void {
+    this.sub.add(
+      this.route.queryParams.subscribe((qp) => {
+        const id = Number(qp?.['patientId'] ?? 0) || 0;
+
+        if (id > 0) {
+          this.isEditMode = true;
+          this.patientId = id;
+          this.loadPatient(id);
+        } else {
+          this.isEditMode = false;
+          this.patientId = null;
+          this.currentPatient = null;
+          this.resetForm();
+        }
+      })
+    );
   }
 
-  // -------------------------
-  // Input cleaners
-  // -------------------------
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
+  }
 
   onPhoneInput() {
     const cleaned = onlyDigits(this.form.value.phoneNumber || '').slice(0, 10);
@@ -96,64 +144,102 @@ export class CreatePatientPage {
     this.form.patchValue({ aadharNumber: cleaned }, { emitEvent: false });
   }
 
-  // -------------------------
-  // Submit
-  // -------------------------
+  private loadPatient(id: number) {
+    this.loading = true;
 
-  async submit() {
+    this.patient.getPatientById(id).subscribe({
+      next: (res: any) => {
+        const p = res?.data ?? res;
+
+        // ✅ keep exact DB data for update merge
+        this.currentPatient = p;
+
+        this.resetForm();
+
+        const fullName =
+          `${String(p?.firstName ?? '').trim()} ${String(p?.lastName ?? '').trim()}`.trim() ||
+          String(p?.fullName ?? '').trim();
+
+        this.form.patchValue({
+          fullName: fullName || '',
+          gender: p?.gender || 'Male',
+          dateOfBirth: toDateInput(p?.dateOfBirth),
+          phoneNumber: String(p?.phoneNumber ?? '').trim(),
+          alternateNumber: String(p?.alternateNumber ?? '').trim(),
+          email: String(p?.email ?? '').trim(),
+          address: String(p?.address ?? '').trim(),
+          city: String(p?.city ?? '').trim(),
+          state: String(p?.state ?? '').trim(),
+          pinCode: String(p?.pinCode ?? '').trim(),
+
+          maritalStatus: p?.maritalStatus || 'Single',
+          maritalStatusSince: toDateInput(p?.maritalStatusSince),
+
+          religion: String(p?.religion ?? '').trim(),
+          diet: String(p?.diet ?? '').trim(),
+          education: String(p?.education ?? '').trim(),
+          occupation: String(p?.occupation ?? '').trim(),
+
+          aadharNumber: String(p?.aadharNumber ?? '').trim(),
+          panNumber: String(p?.panNumber ?? '').trim(),
+          referredBy: String(p?.referredBy ?? '').trim(),
+        });
+      },
+      error: (err) => this.toast(err?.error?.message || err?.message || 'Failed to load patient'),
+      complete: () => (this.loading = false),
+    });
+  }
+
+  submit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      return this.toast('Full Name, DOB and Phone Number (10 digits) are required.');
+      this.toast('Full Name, DOB and Phone Number (10 digits) are required.');
+      return;
     }
 
     const phone = onlyDigits(this.form.value.phoneNumber || '').slice(0, 10);
-    if (phone.length !== 10) return this.toast('Phone Number must be exactly 10 digits.');
+    if (phone.length !== 10) {
+      this.toast('Phone Number must be exactly 10 digits.');
+      return;
+    }
 
-    const payload = this.buildPayload();
     this.loading = true;
 
+    // ✅ Update mode: merge with currentPatient so backend gets full object
+    if (this.isEditMode && this.patientId) {
+      const payload = this.buildUpdatePayload(); // ✅ full object with nulls
+
+      this.patient.updatePatient(this.patientId, payload).subscribe({
+        next: async () => {
+          this.loading = false;
+          await this.openSuccessModalAndReload();
+        },
+        error: (err) => {
+          this.loading = false;
+          this.toast(err?.error?.message || err?.message || 'Update Patient failed');
+        },
+      });
+
+      return;
+    }
+
+    // ✅ Create mode
+    const payload = this.buildCreatePayload();
     this.patient.createPatient(payload).subscribe({
-      next: async (res: any) => {
+      next: async () => {
         this.loading = false;
-
-        const pid =
-          res?.pid ||
-          res?.patientId ||
-          res?.patientID ||
-          res?.data?.pid ||
-          res?.data?.patientId ||
-          null;
-
-        if (!pid) {
-          return this.toast('Patient created but PID not received from API.');
-        }
-
-        // ✅ show success modal
-        await this.openSuccessModal(pid);
-
-        // ✅ reset form after success
+        await this.toast('Patient created successfully.');
         this.resetForm();
       },
-      error: async (err) => {
+      error: (err) => {
         this.loading = false;
-
-        const apiErr = err?.error?.errors;
-        const msg = apiErr
-          ? Object.keys(apiErr)
-              .map((k) => `${k}: ${apiErr[k]?.[0] || ''}`.trim())
-              .join(' | ')
-          : err?.error?.title || err?.error?.message || 'Create Patient failed';
-
-        this.toast(msg);
+        this.toast(err?.error?.message || err?.message || 'Create Patient failed');
       },
     });
   }
 
-  // -------------------------
-  // Helpers
-  // -------------------------
-
-  private buildPayload() {
+  // ✅ Create payload (null instead of "")
+  private buildCreatePayload() {
     const v = this.form.value;
     const { firstName, lastName } = splitFullName(v.fullName || '');
 
@@ -161,82 +247,118 @@ export class CreatePatientPage {
     const alt = onlyDigits(v.alternateNumber || '').slice(0, 10);
 
     return {
-      FirstName: firstName || 'NA',
-      LastName: lastName || 'NA',
-      DateOfBirth: toIso(v.dateOfBirth || ''),
-      Gender: v.gender || 'Male',
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      dateOfBirth: toIso(v.dateOfBirth || ''),
+      gender: (v.gender || 'Male').toString(),
 
-      PhoneNumber: phone,
-      AlternateNumber: alt.length === 10 ? alt : phone,
+      phoneNumber: phone,
+      alternateNumber: alt.length === 10 ? alt : phone,
 
-      Email: (v.email || '').toString().trim(),
-      Address: (v.address || 'NA').toString().trim(),
-      City: (v.city || 'NA').toString().trim(),
-      State: (v.state || 'NA').toString().trim(),
-      PinCode: (v.pinCode || '000000').toString().trim(),
+      email: nullIfBlank(v.email),
+      address: nullIfBlank(v.address),
+      city: nullIfBlank(v.city),
+      state: nullIfBlank(v.state),
+      pinCode: nullIfBlank(v.pinCode),
 
-      MaritalStatus: (v.maritalStatus || 'Single').toString(),
-      MaritalStatusSince: v.maritalStatusSince ? toIso(v.maritalStatusSince) : '2000-01-01T00:00:00.000Z',
+      maritalStatus: nullIfBlank(v.maritalStatus) ?? 'Single',
+      maritalStatusSince: normalizeMaritalSince(v.maritalStatusSince),
 
-      Religion: (v.religion || 'NA').toString().trim(),
-      Diet: (v.diet || 'NA').toString().trim(),
-      Education: (v.education || 'NA').toString().trim(),
-      Occupation: (v.occupation || 'NA').toString().trim(),
+      religion: nullIfBlank(v.religion),
+      diet: nullIfBlank(v.diet),
+      education: nullIfBlank(v.education),
+      occupation: nullIfBlank(v.occupation),
 
-      AadharNumber: (v.aadharNumber || '000000000000').toString().trim(),
-      PanNumber: (v.panNumber || 'NA').toString().trim(),
-      ReferredBy: (v.referredBy || 'Self').toString().trim(),
+      aadharNumber: nullIfDigitsBlank(v.aadharNumber, 12),
+      panNumber: nullIfBlank(v.panNumber),
+      referredBy: nullIfBlank(v.referredBy),
     };
   }
 
-  private async openSuccessModal(pid: string) {
-    const modal = await this.modalCtrl.create({
-      component: PidSuccessPage,
-      componentProps: { pid, registeredBy: 'Receptionist' },
+  // ✅ Update payload: base = currentPatient + override form + nulls
+  private buildUpdatePayload() {
+    const base = this.currentPatient || {};
+    const v = this.form.value;
+
+    const { firstName, lastName } = splitFullName(v.fullName || '');
+    const phone = onlyDigits(v.phoneNumber || '').slice(0, 10);
+    const alt = onlyDigits(v.alternateNumber || '').slice(0, 10);
+
+    return {
+      // keep ids if backend expects them (safe)
+      patientsId: base?.patientsId ?? this.patientId,
+
+      pid: base?.pid ?? null,
+
+      // overwrite with form
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      dateOfBirth: toIso(v.dateOfBirth || ''),
+      gender: (v.gender || base?.gender || 'Male').toString(),
+
+      phoneNumber: phone,
+      alternateNumber: alt.length === 10 ? alt : phone,
+
+      // optional => null
+      email: nullIfBlank(v.email),
+      address: nullIfBlank(v.address),
+      city: nullIfBlank(v.city),
+      state: nullIfBlank(v.state),
+      pinCode: nullIfBlank(v.pinCode),
+
+      maritalStatus: nullIfBlank(v.maritalStatus) ?? base?.maritalStatus ?? 'Single',
+      maritalStatusSince: normalizeMaritalSince(v.maritalStatusSince),
+
+      religion: nullIfBlank(v.religion),
+      diet: nullIfBlank(v.diet),
+      education: nullIfBlank(v.education),
+      occupation: nullIfBlank(v.occupation),
+
+      aadharNumber: nullIfDigitsBlank(v.aadharNumber, 12),
+      panNumber: nullIfBlank(v.panNumber),
+      referredBy: nullIfBlank(v.referredBy),
+    };
+  }
+
+  private async openSuccessModalAndReload() {
+    const alert = await this.alertCtrl.create({
+      header: 'Success',
+      message: 'Patient details updated successfully.',
       backdropDismiss: false,
-      cssClass: 'pid-success-modal', // ✅ IMPORTANT (global.scss)
+      buttons: [
+        {
+          text: 'OK',
+          handler: () => {
+            if (this.patientId) this.loadPatient(this.patientId);
+          },
+        },
+      ],
     });
 
-    await modal.present();
+    await alert.present();
   }
 
   private resetForm() {
     this.form.reset({
+      fullName: '',
       gender: 'Male',
+      dateOfBirth: '',
+      phoneNumber: '',
+      alternateNumber: '',
+      email: '',
+      address: '',
+      city: '',
+      state: '',
+      pinCode: '',
       maritalStatus: 'Single',
-    });
-  }
-
-  private patchFromDashboard(p: any) {
-    const fullName =
-      `${(p.firstName || '').trim()} ${(p.lastName || '').trim()}`.trim() || (p._name || '');
-
-    const dob = (p.dateOfBirth || '').toString().includes('T')
-      ? (p.dateOfBirth || '').toString().substring(0, 10)
-      : (p.dateOfBirth || '');
-
-    this.form.patchValue({
-      fullName,
-      gender: p.gender || 'Male',
-      dateOfBirth: dob || '',
-      phoneNumber: (p.phoneNumber || p._phone || '').toString(),
-      email: (p.email || '').toString(),
-      address: (p.address || '').toString(),
-      city: (p.city || '').toString(),
-      state: (p.state || '').toString(),
-      pinCode: (p.pinCode || '').toString(),
-      maritalStatus: p.maritalStatus || 'Single',
-      maritalStatusSince: (p.maritalStatusSince || '').toString().includes('T')
-        ? (p.maritalStatusSince || '').toString().substring(0, 10)
-        : (p.maritalStatusSince || ''),
-      religion: (p.religion || '').toString(),
-      diet: (p.diet || '').toString(),
-      education: (p.education || '').toString(),
-      occupation: (p.occupation || '').toString(),
-      aadharNumber: (p.aadharNumber || '').toString(),
-      panNumber: (p.panNumber || '').toString(),
-      referredBy: (p.referredBy || '').toString(),
-      alternateNumber: (p.alternateNumber || '').toString(),
+      maritalStatusSince: '',
+      religion: '',
+      diet: '',
+      education: '',
+      occupation: '',
+      aadharNumber: '',
+      panNumber: '',
+      referredBy: '',
     });
   }
 
@@ -246,23 +368,6 @@ export class CreatePatientPage {
       duration: 2500,
       position: 'top',
     });
-    t.present();
-  }
-
-  async autofill() {
-    this.form.patchValue({
-      fullName: 'Arfat Wadekar',
-      gender: 'Male',
-      dateOfBirth: '1998-06-15',
-      phoneNumber: '9967027888',
-      email: 'arfuwadekar74@gmail.com',
-      address: 'Naheed Apt, B Wing 204, Mumbra',
-      city: 'Mumbai',
-      state: 'Maharashtra',
-      pinCode: '400612',
-      maritalStatus: 'Single',
-    });
-
-    this.toast('Auto-filled. Now click Create.');
+    await t.present();
   }
 }

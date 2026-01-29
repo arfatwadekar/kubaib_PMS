@@ -5,7 +5,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
 
 import { CreatePatientPage } from './create-patient.page';
-import { PidSuccessPageModule } from '../pid-success/pid-success.module'; // ✅ add this
+// import { PidSuccessPageModule } from '../pid-success/pid-success.module'; // ✅ add this
 
 const routes: Routes = [{ path: '', component: CreatePatientPage }];
 
@@ -15,7 +15,7 @@ const routes: Routes = [{ path: '', component: CreatePatientPage }];
     CommonModule,
     IonicModule,
     ReactiveFormsModule,
-    PidSuccessPageModule, // ✅
+    // PidSuccessPageModule, // ✅
     RouterModule.forChild(routes),
   ],
 })

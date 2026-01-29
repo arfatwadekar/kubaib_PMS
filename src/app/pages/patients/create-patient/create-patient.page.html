@@ -4,21 +4,23 @@
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
 
-    <ion-title>Create Patient</ion-title>
+    <ion-title>{{ isEditMode ? 'Update Patient' : 'Create Patient' }}</ion-title>
 
     <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="autofill()">Auto Fill</ion-button>
+      <ion-button fill="clear"  *ngIf="!isEditMode">
+        Auto Fill
+      </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="ion-padding">
   <form class="card" [formGroup]="form" (ngSubmit)="submit()">
-
     <div class="sec-h">Preliminary Information</div>
 
-    <ion-grid>
+    <!-- ✅ your same form layout below (unchanged) -->
 
+    <ion-grid>
       <!-- FULL NAME + GENDER -->
       <ion-row>
         <ion-col size="5.8">
@@ -191,17 +193,16 @@
           </div>
         </ion-col>
       </ion-row>
-
     </ion-grid>
 
-    <!-- ACTIONS -->
     <div class="actions">
       <button class="btn primary" type="submit" [disabled]="loading">
-        {{ loading ? 'Creating...' : 'Create Patient' }}
+        {{
+          loading
+            ? (isEditMode ? 'Updating...' : 'Creating...')
+            : (isEditMode ? 'Update Patient' : 'Create Patient')
+        }}
       </button>
     </div>
-
-
-
   </form>
 </ion-content>
