@@ -1,15 +1,15 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { ToastController, ModalController } from '@ionic/angular';
+import { ModalController, ToastController } from '@ionic/angular';
+import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
 
 import { PatientService } from 'src/app/services/patient.service';
 import { TableColumn } from 'src/app/components/table/table.component';
-
 import { CreateAppointmentModalComponent } from 'src/app/components/create-appointment-modal/create-appointment-modal.component';
 
 type Row = {
   srNo: number;
-  id: number;
+  id: number;     // can be 0 if backend doesn't send id, but row should still show
   pid: string;
   name: string;
   phone: string;
@@ -22,13 +22,20 @@ type Row = {
   styleUrls: ['./patient-list.page.scss'],
   standalone: false,
 })
-export class PatientListPage implements OnInit {
+export class PatientListPage implements OnInit, OnDestroy {
   loading = false;
+
   searchText = '';
+
+  // same semantics: indicates you are in "search mode"
   isSearching = false;
+
+  // ✅ NEW: to control create button correctly (only after a search attempt)
+  searchedOnce = false;
 
   page = 1;
   pageSize = 10;
+
   totalCount = 0;
   totalPages = 0;
   hasNext = false;
@@ -43,6 +50,9 @@ export class PatientListPage implements OnInit {
     { key: 'actions', label: 'Action', width: '180px', align: 'end' },
   ];
 
+  private subs = new Subscription();
+  private search$ = new Subject<string>();
+
   constructor(
     private patientService: PatientService,
     private toastCtrl: ToastController,
@@ -51,19 +61,53 @@ export class PatientListPage implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // ✅ typing search (debounce). Button search still works too.
+    this.subs.add(
+      this.search$
+        .pipe(debounceTime(350), distinctUntilChanged())
+        .subscribe((q) => this.searchNow(q))
+    );
+
+    // ✅ first load
+    this.resetToListAndLoad();
+  }
+
+  ionViewWillEnter(): void {
+    // ✅ optional: keep list fresh when returning
+    // If you don't want reload on back, remove this line.
+    if (!this.isSearching) this.resetToListAndLoad();
+  }
+
+  ngOnDestroy(): void {
+    this.subs.unsubscribe();
+  }
+
+  // ✅ FIXED: create button only after a search was actually performed
+  get showCreatePatientBtn(): boolean {
+    return (
+      this.isSearching &&
+      this.searchedOnce &&
+      !this.loading &&
+      this.rows.length === 0 &&
+      (this.searchText || '').trim().length > 0
+    );
+  }
+
+  // ----------------------------
+  // LIST
+  // ----------------------------
+  private resetToListAndLoad(): void {
+    this.page = 1;
+    this.searchText = '';
+    this.isSearching = false;
+    this.searchedOnce = false;
     this.loadList();
   }
 
-  get showCreatePatientBtn(): boolean {
-    return this.isSearching && !this.loading && this.rows.length === 0;
-  }
-
-  // ----------------------------
-  // LIST + SEARCH
-  // ----------------------------
   loadList(): void {
     this.loading = true;
-    this.isSearching = false;
+    this.isSearching = false;   // ✅ list mode
+    this.searchedOnce = false;  // ✅ not a search screen
 
     this.patientService.getPatients(this.page, this.pageSize).subscribe({
       next: (res) => {
@@ -76,22 +120,46 @@ export class PatientListPage implements OnInit {
     });
   }
 
-  search(): void {
+  // ----------------------------
+  // SEARCH (button + typing)
+  // ----------------------------
+  onSearchInput(): void {
     const q = (this.searchText || '').trim();
+
+    // if user cleared input, go back to list automatically
     if (!q) {
-      this.page = 1;
-      this.loadList();
+      this.clearSearch();
+      return;
+    }
+
+    this.search$.next(q);
+  }
+
+  search(): void {
+    // Search button click
+    this.searchNow((this.searchText || '').trim());
+  }
+
+  private searchNow(q: string): void {
+    const query = (q || '').trim();
+
+    if (!query) {
+      this.clearSearch();
       return;
     }
 
     this.loading = true;
     this.isSearching = true;
+    this.searchedOnce = true;
 
-    this.patientService.searchPatients(q).subscribe({
+    this.patientService.searchPatients(query).subscribe({
       next: (res) => {
         const list = this.toArray(res);
+
+        // search results -> single page view
         this.page = 1;
         this.rows = this.toRows(list, 1);
+
         this.totalCount = list.length;
         this.totalPages = 1;
         this.hasNext = false;
@@ -104,15 +172,19 @@ export class PatientListPage implements OnInit {
   clearSearch(): void {
     this.searchText = '';
     this.page = 1;
-    this.loadList();
+    this.isSearching = false;
+    this.searchedOnce = false;
+    this.loadList(); // ✅ back to GET listing + show table data
   }
 
   refresh(): void {
-    this.page = 1;
-    this.searchText = '';
-    this.loadList();
+    // keep same behavior: refresh resets everything
+    this.resetToListAndLoad();
   }
 
+  // ----------------------------
+  // PAGINATION (listing only)
+  // ----------------------------
   nextPage(): void {
     if (this.loading || this.isSearching || !this.hasNext) return;
     this.page++;
@@ -125,6 +197,9 @@ export class PatientListPage implements OnInit {
     this.loadList();
   }
 
+  // ----------------------------
+  // NAV
+  // ----------------------------
   goToCreatePatient(): void {
     this.router.navigate(['/patients/create'], {
       queryParams: { q: (this.searchText || '').trim() },
@@ -132,7 +207,7 @@ export class PatientListPage implements OnInit {
   }
 
   // ----------------------------
-  // ✅ OPEN MODAL (SEPARATE COMPONENT)
+  // MODAL
   // ----------------------------
   async openApptModal(r: Row, ev?: Event) {
     ev?.stopPropagation();
@@ -155,8 +230,8 @@ export class PatientListPage implements OnInit {
 
     const { role } = await modal.onWillDismiss();
     if (role === 'success') {
-      // optional: refresh list or do nothing
-      // this.loadList();
+      // optional
+      // if (!this.isSearching) this.loadList();
     }
   }
 
@@ -167,11 +242,13 @@ export class PatientListPage implements OnInit {
     if (Array.isArray(res)) return res;
     if (Array.isArray(res?.items)) return res.items;
     if (Array.isArray(res?.data)) return res.data;
+    if (Array.isArray(res?.result)) return res.result;
     return [];
   }
 
   private updatePager(res: any, list: any[]): void {
-    const count = Number(res?.totalCount ?? res?.totalRecords ?? res?.count ?? 0) || 0;
+    const count =
+      Number(res?.totalCount ?? res?.totalRecords ?? res?.count ?? 0) || 0;
 
     const pages =
       Number(res?.totalPages ?? 0) ||
@@ -179,34 +256,51 @@ export class PatientListPage implements OnInit {
 
     this.totalCount = count;
     this.totalPages = pages;
-    this.hasNext = pages > 0 ? this.page < pages : (list?.length || 0) === this.pageSize;
+
+    this.hasNext =
+      pages > 0 ? this.page < pages : (list?.length || 0) === this.pageSize;
   }
 
+  // ✅ IMPORTANT FIX: don't drop rows if id not present
   private toRows(list: any[], page: number): Row[] {
-    return (list || [])
-      .map((p: any, idx: number) => {
-        const id = Number(p?.patientsId ?? p?.patientId ?? p?.patientID ?? 0) || 0;
+    return (list || []).map((p: any, idx: number) => {
+      // try multiple possible keys for id
+      const id =
+        Number(
+          p?.patientsId ??
+            p?.patientId ??
+            p?.patientID ??
+            p?.id ??
+            0
+        ) || 0;
 
-        const pid = String(p?.pid ?? p?.patientIdFormatted ?? p?.patientIDFormatted ?? '').trim();
+      const pid = String(
+        p?.pid ??
+          p?.patientIdFormatted ??
+          p?.patientIDFormatted ??
+          p?.patientCode ??
+          id ??
+          ''
+      ).trim();
 
-        const fullName = String(p?.fullName ?? '').trim();
-        const name =
-          fullName ||
-          `${String(p?.firstName ?? '').trim()} ${String(p?.lastName ?? '').trim()}`.trim() ||
-          'NA';
+      const fullName = String(p?.fullName ?? '').trim();
+      const name =
+        fullName ||
+        `${String(p?.firstName ?? '').trim()} ${String(p?.lastName ?? '').trim()}`.trim() ||
+        'NA';
 
-        const phone = String(p?.phoneNumber ?? '').trim() || '-';
+      const phone =
+        String(p?.phoneNumber ?? p?.mobile ?? p?.phone ?? '').trim() || '-';
 
-        return {
-          srNo: (page - 1) * this.pageSize + idx + 1,
-          id,
-          pid: pid || String(id),
-          name,
-          phone,
-          raw: p,
-        };
-      })
-      .filter((r) => r.id > 0);
+      return {
+        srNo: (page - 1) * this.pageSize + idx + 1,
+        id,
+        pid: pid || '-',
+        name,
+        phone,
+        raw: p,
+      };
+    });
   }
 
   private async showToast(err: any, fallback: string): Promise<void> {
@@ -216,6 +310,6 @@ export class PatientListPage implements OnInit {
       duration: 2500,
       position: 'top',
     });
-    t.present();
+    await t.present();
   }
 }

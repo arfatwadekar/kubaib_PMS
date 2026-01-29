@@ -24,19 +24,30 @@
             class="search__inp"
             placeholder="Search PID / Name / Phone"
             [(ngModel)]="searchText"
+            (input)="onSearchInput()"
             (keyup.enter)="search()"
           />
         </div>
 
-        <button class="btn btn--primary" *ngIf="!showCreatePatientBtn" (click)="search()">
+        <button
+          class="btn btn--primary"
+          *ngIf="!showCreatePatientBtn"
+          type="button"
+          (click)="search()"
+        >
           Search
         </button>
 
-        <button class="btn btn--primary" *ngIf="showCreatePatientBtn" (click)="goToCreatePatient()">
+        <button
+          class="btn btn--primary"
+          *ngIf="showCreatePatientBtn"
+          type="button"
+          (click)="goToCreatePatient()"
+        >
           + Create Patient
         </button>
 
-        <button class="btn btn--ghost" (click)="clearSearch()">
+        <button class="btn btn--ghost" type="button" (click)="clearSearch()">
           <ion-icon name="funnel-outline"></ion-icon>
           Clear
         </button>
