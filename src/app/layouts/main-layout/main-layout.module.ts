@@ -46,6 +46,14 @@ const routes: Routes = [
             (m) => m.MedicalExaminationPageModule
           ),
       },
+
+       {
+        path: 'patients/follow-up',
+        loadChildren: () =>
+          import('../../pages/patients/followUp/follow-up.module').then(
+            (m) => m.FollowUpPageModule
+          ),
+      },
       // {
       //   path: 'appointments/create',
       //   loadChildren: () =>

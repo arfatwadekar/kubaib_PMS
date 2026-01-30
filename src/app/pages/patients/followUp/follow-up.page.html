@@ -1,0 +1,205 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Follow Up</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="fu-content">
+  <div class="fu-card">
+    <!-- Title -->
+    <div class="fu-title">
+      <div class="h1">
+        <ion-icon name="clipboard-outline" class="ic"></ion-icon>
+        Follow Up Criteria
+      </div>
+      <div class="h2">Monitor clinical symptoms and patient progress over time.</div>
+    </div>
+
+    <!-- ================== Reference Symptoms (Criteria) ================== -->
+    <div class="panel">
+      <div class="panel-h">
+        PATIENT SYMPTOMS (REFERENCE)
+        <span class="panel-sub" *ngIf="isCriteriaSaved">Saved</span>
+        <span class="panel-sub warn" *ngIf="!isCriteriaSaved">First visit</span>
+      </div>
+
+      <form [formGroup]="referenceForm">
+        <div class="tbl">
+          <div class="tbl-head">
+            <div class="c-no">SR NO</div>
+            <div class="c-sym">SYMPTOMS</div>
+          </div>
+
+          <div formArrayName="symptoms">
+            <div
+              class="tbl-row"
+              *ngFor="let _ of refSymptomsArr.controls; let i = index; trackBy: trackByIndex"
+            >
+              <div class="c-no">{{ i + 1 }}</div>
+
+              <div class="c-sym">
+                <input
+                  class="inp"
+                  [formControlName]="i"
+                  placeholder="Enter symptom..."
+                  [readonly]="isCriteriaSaved"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="hint" *ngIf="!isCriteriaSaved">
+            Enter symptoms once (first visit). After save, criteria will be locked.
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- ================== Visit CTA (Returning patient only) ================== -->
+    <div class="visit-btn-wrap" *ngIf="isCriteriaSaved && !showVisitForm">
+      <button class="btn primary" type="button" (click)="openFollowUpVisit()">
+        <ion-icon name="add-outline"></ion-icon>
+        Follow Up Visit
+      </button>
+    </div>
+
+    <!-- ================== Visit Section ================== -->
+    <div class="visit-panel">
+      <!-- Empty state -->
+      <div class="empty" *ngIf="isCriteriaSaved && !showVisitForm && visits.length === 0">
+        <div class="empty-ic">
+          <ion-icon name="time-outline"></ion-icon>
+        </div>
+        <div class="empty-t1">No follow-up records found.</div>
+        <div class="empty-t2">Click on “Follow Up Visit” to document a new visit.</div>
+      </div>
+
+      <!-- Visit form:
+           - First visit => showVisitForm true automatically
+           - Returning => openFollowUpVisit() -->
+      <div class="visit-card" *ngIf="showVisitForm" [formGroup]="visitForm">
+        <div class="visit-head">
+          <div class="vh-left">
+            <ion-icon name="calendar-outline"></ion-icon>
+            <div>
+              Follow Up Date:
+              <b>{{ visitForm.value.date || '—' }}</b>
+            </div>
+          </div>
+
+          <div class="vh-right">
+            <div class="tag" *ngIf="isCriteriaSaved">NEW ENTRY</div>
+            <div class="tag" *ngIf="!isCriteriaSaved">FIRST ENTRY</div>
+          </div>
+        </div>
+
+        <div class="visit-grid">
+          <!-- Date -->
+          <div class="v-left">
+            <label class="lbl">FOLLOW UP DATE</label>
+            <input class="inp" type="date" formControlName="date" />
+            <div class="err" *ngIf="visitForm.controls.date.touched && visitForm.controls.date.invalid">
+              Date is required
+            </div>
+          </div>
+
+          <!-- Score table -->
+          <div class="v-right">
+            <div class="score-table">
+              <div class="score-head">
+                <div class="s-lbl">SR</div>
+                <div class="s-col" *ngFor="let n of [1,2,3,4,5,6,7,8,9,10]">{{ n }}</div>
+              </div>
+
+              <div class="score-row" formArrayName="symptomsScore">
+                <div class="s-lbl">Remark</div>
+                <div
+                  class="s-col"
+                  *ngFor="let _ of visitScoresArr.controls; let i = index; trackBy: trackByIndex"
+                >
+                  <input class="score-inp" [formControlName]="i" placeholder="-" />
+                </div>
+              </div>
+            </div>
+
+            <div class="hint">
+              Remarks per symptom (e.g., intensity, improvement, frequency).
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom fields -->
+        <div class="visit-bottom">
+          <div class="box">
+            <div class="box-h">INTERPRETATION</div>
+            <textarea
+              class="ta"
+              formControlName="interpretation"
+              placeholder="Clinical interpretation of symptoms..."
+            ></textarea>
+          </div>
+
+          <div class="box">
+            <div class="box-h">TEMPORARY PROBLEMS</div>
+            <textarea
+              class="ta"
+              formControlName="temporaryProblems"
+              placeholder="Short-term clinical issues..."
+            ></textarea>
+          </div>
+
+          <div class="charges">
+            <div class="box-h">CONSULTATION CHARGES</div>
+            <div class="money">
+              <span>₹</span>
+              <input class="money-inp" type="number" formControlName="consultationCharges" />
+            </div>
+          </div>
+
+          <div class="visit-actions">
+            <!-- Cancel only for returning patient -->
+            <button class="btn ghost" type="button" (click)="closeVisitForm()" *ngIf="isCriteriaSaved">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Saved preview -->
+      <div class="saved-preview" *ngIf="isCriteriaSaved && !showVisitForm && visits.length > 0">
+        <div class="saved-pill">Last Saved: {{ visits[0].date }}</div>
+
+        <!-- Optional quick list -->
+        <div class="saved-list">
+          <div class="saved-item" *ngFor="let v of visits; let i = index; trackBy: trackByIndex">
+            <div class="si-left">
+              <div class="si-date">{{ v.date }}</div>
+              <div class="si-sub">{{ v.interpretation || '—' }}</div>
+            </div>
+            <div class="si-right">₹ {{ v.consultationCharges || 0 }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================== Bottom actions ================== -->
+    <div class="bottom-actions">
+      <button class="btn outline" type="button" (click)="goPrevPhysicalExam()">
+        Previous: Physical Exam
+      </button>
+
+      <div class="right">
+        <button class="btn primary" type="button" (click)="goNextPayment()">
+          Next: Payment
+        </button>
+
+        <button class="btn success" type="button" (click)="saveRecord()" [disabled]="loading">
+          {{ loading ? 'Saving...' : 'Save Record' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</ion-content>

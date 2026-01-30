@@ -72,7 +72,16 @@
 
        <ion-item
         button
-        *ngIf="role === 'Doctor' || role === 'Receptionist'"
+        *ngIf="role === 'Doctor'"
+        (click)="go('/patients/follow-up')"
+      >
+        <ion-icon slot="start" name="person-add-outline"></ion-icon>
+        <ion-label>Follow Up</ion-label>
+      </ion-item>
+
+       <ion-item
+        button
+        *ngIf="role === 'Doctor'"
         (click)="go('/patients/medical-examination')"
       >
         <ion-icon slot="start" name="person-add-outline"></ion-icon>
