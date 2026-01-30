@@ -1,5 +1,3 @@
-/* medical-examination.page.scss (STATIC UI - inputs only, white bg, black text) */
-
 .me-content {
   --background: #f6f8fc;
   padding: 14px;
@@ -37,7 +35,7 @@
   }
 }
 
-/* accordion card */
+/* accordion box */
 ion-accordion {
   border: 1px solid #e6ebf5;
   border-radius: 10px;
@@ -66,7 +64,7 @@ ion-accordion {
   padding: 12px;
 }
 
-/* Section 1 blocks */
+/* complaint blocks */
 .block {
   border: 1px solid #e6ebf5;
   border-radius: 10px;
@@ -84,9 +82,10 @@ ion-accordion {
   color: #2f6fed;
 }
 
+/* complaint grid */
 .grid-head {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, 1fr) 92px;
   border: 1px solid #dfe7f5;
   border-radius: 8px 8px 0 0;
   overflow: hidden;
@@ -101,17 +100,16 @@ ion-accordion {
     color: #2f6fed;
   }
 
-  .col:last-child {
+  .col.act {
     border-right: none;
   }
 }
 
 .grid-row {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, 1fr) 92px;
   border: 1px solid #dfe7f5;
   border-top: none;
-  overflow: hidden;
   background: #fff;
 }
 
@@ -127,7 +125,7 @@ ion-accordion {
   color: #111;
 }
 
-.cell:last-child {
+.grid-row .cell:nth-child(4) {
   border-right: none;
 }
 
@@ -137,27 +135,21 @@ ion-accordion {
   margin-top: 8px;
 }
 
-/* common grids */
+/* add/remove row area */
+.row-actions {
+  margin-top: 10px;
+}
+
+/* common grid */
 .grid {
   display: grid;
   gap: 10px;
 }
 
-.grid-3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.grid-4 {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.grid-5 {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-}
-
-.grid-6 {
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-}
+.grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.grid-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.grid-6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
 
 /* field card */
 .field {
@@ -167,9 +159,7 @@ ion-accordion {
   background: #fff;
 }
 
-.field.full {
-  grid-column: 1 / -1;
-}
+.field.full { grid-column: 1 / -1; }
 
 .lbl {
   font-size: 9px;
@@ -192,7 +182,13 @@ ion-accordion {
   color: #111;
 }
 
-/* reactions table */
+/* checkbox (still input) */
+.chk {
+  width: 18px;
+  height: 18px;
+}
+
+/* reaction table */
 .rf-table {
   border: 1px solid #dfe7f5;
   border-radius: 10px;
@@ -216,13 +212,8 @@ ion-accordion {
   justify-content: center;
 }
 
-.rf-row:last-child .rf-cell {
-  border-bottom: none;
-}
-
-.rf-cell:last-child {
-  border-right: none;
-}
+.rf-row:last-child .rf-cell { border-bottom: none; }
+.rf-cell:last-child { border-right: none; }
 
 .rf-head .rf-cell {
   font-weight: 900;
@@ -246,7 +237,7 @@ ion-accordion {
   color: #111;
 }
 
-/* section 7 sub blocks */
+/* subsections */
 .subsec {
   margin-top: 12px;
   border-top: 1px solid #edf1f7;
@@ -259,6 +250,37 @@ ion-accordion {
   margin-bottom: 10px;
   text-transform: uppercase;
   color: #2f6fed;
+}
+
+/* buttons */
+.btn {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid #dfe7f5;
+  background: #2f6fed;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn.sm {
+  height: 28px;
+  font-size: 10px;
+  padding: 0 10px;
+}
+
+.btn.outline {
+  background: #fff;
+  color: #2f6fed;
+  border-color: #bcd0ff;
+}
+
+.btn.danger {
+  background: #fff;
+  color: #e11d48;
+  border-color: #fecdd3;
 }
 
 /* bottom actions */
@@ -276,23 +298,15 @@ ion-accordion {
   gap: 8px;
 }
 
-.mt12 {
-  margin-top: 12px;
-}
+.mt12 { margin-top: 12px; }
 
 /* responsive */
 @media (max-width: 980px) {
-  .grid-5,
-  .grid-6 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  .grid-5, .grid-6 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid-4, .grid-3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 
-  .grid-4,
-  .grid-3 {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  .rf-row { grid-template-columns: 90px repeat(5, 1fr); }
 
-  .rf-row {
-    grid-template-columns: 90px repeat(5, 1fr);
-  }
+  .grid-head { grid-template-columns: repeat(4, 1fr) 84px; }
+  .grid-row { grid-template-columns: repeat(4, 1fr) 84px; }
 }

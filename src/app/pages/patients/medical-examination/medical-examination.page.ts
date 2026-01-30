@@ -1,9 +1,8 @@
-// src/app/pages/medical-examination/medical-examination.ts
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
-import { Subscription } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 
 import {
   ClinicalCaseService,
@@ -17,16 +16,18 @@ type ComplaintKey = 'chief' | 'associated' | 'past';
   selector: 'app-medical-examination',
   templateUrl: './medical-examination.page.html',
   styleUrls: ['./medical-examination.page.scss'],
-  standalone:false,
+  standalone: false,
 })
 export class MedicalExaminationPage implements OnInit, OnDestroy {
   loading = false;
+
   patientId: number | null = null;
-
   openSection = 's1';
-  private sub = new Subscription();
 
-  // ✅ MAIN FORM (structure aligned to API objects)
+  private destroy$ = new Subject<void>();
+  private isSaving = false;
+
+  // ✅ MAIN FORM (aligned with API schema)
   form = this.fb.group({
     complaints: this.fb.group({
       chief: this.fb.array([]),
@@ -46,7 +47,6 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
       remarks: [''],
     }),
 
-    // ✅ API: personalStatus
     personalStatus: this.fb.group({
       skin: [''],
       woundHealing: [''],
@@ -256,28 +256,27 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.ensureDefaultComplaintRows();
 
-    this.sub.add(
-      this.route.queryParams.subscribe((qp) => {
-        const id = Number(qp?.['patientId'] ?? 0) || 0;
-        this.patientId = id > 0 ? id : null;
-      })
-    );
+    // ✅ patientId from query (?patientId=123)
+    this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe((qp) => {
+      const id = Number(qp?.['patientId'] ?? 0);
+      this.patientId = id > 0 ? id : null;
+    });
   }
 
   ngOnDestroy(): void {
-    this.sub.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // -----------------------------
-  // Complaint rows (L/S/M/C)
-  // API expects: location, sensation, modality, concomitant
+  // Complaint rows
   // -----------------------------
   private complaintRow(): FormGroup {
     return this.fb.group({
       location: [''],
-      sensation: [''],     // ✅ renamed from severitySensation
+      sensation: [''],
       modality: [''],
-      concomitant: [''],   // ✅ renamed from concomitants
+      concomitant: [''],
     });
   }
 
@@ -299,12 +298,14 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
 
   addComplaintRow(key: ComplaintKey) {
     this.arr(key).push(this.complaintRow());
+    this.form.markAsDirty();
   }
 
   removeComplaintRow(key: ComplaintKey, index: number) {
     const a = this.arr(key);
     if (a.length <= 1) return;
     a.removeAt(index);
+    this.form.markAsDirty();
   }
 
   private ensureDefaultComplaintRows() {
@@ -329,28 +330,30 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
   }
 
   // -----------------------------
-  // Save to API
+  // Save to API (ONLY ON BUTTON CLICK)
   // -----------------------------
   async saveRecord() {
     if (!this.patientId) {
       await this.toast('PatientId missing. Open from patient flow.');
       return;
     }
+    if (this.isSaving) return;
 
     const payload = this.buildPayload();
 
+    this.isSaving = true;
     this.loading = true;
-    this.clinicalCase.createClinicalCase(payload).subscribe({
+
+    this.clinicalCase.create(payload).pipe(takeUntil(this.destroy$)).subscribe({
       next: async (res) => {
+        this.isSaving = false;
         this.loading = false;
 
-        // backend response example: { success, message, data }
+        this.form.markAsPristine();
         await this.toast(res?.message || 'Clinical case saved.');
-
-        // ✅ optional: go next step
-        // this.goNextFollowUp();
       },
       error: async (err) => {
+        this.isSaving = false;
         this.loading = false;
 
         const msg =
@@ -358,6 +361,7 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
           err?.error?.detail ||
           err?.message ||
           'Failed to save clinical case.';
+
         const a = await this.alertCtrl.create({
           header: 'Save Failed',
           message: msg,
@@ -371,7 +375,6 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
   private buildPayload(): ClinicalCasePayload {
     const v: any = this.form.value;
 
-    // Flatten complaints into API format
     const mapType = (k: ComplaintKey): ComplaintType =>
       k === 'chief' ? 'Chief' : k === 'associated' ? 'Associated' : 'PastHistory';
 
@@ -397,6 +400,73 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
       mentalState: v?.mentalState || {},
       behavioralEvaluation: v?.behavioralEvaluation || {},
     };
+  }
+
+  // -----------------------------
+  // AutoFill (Testing) - DOES NOT SAVE
+  // -----------------------------
+  async autofill() {
+    if (!this.patientId) {
+      await this.toast('PatientId missing. Open from patient flow.');
+      return;
+    }
+
+    this.ensureDefaultComplaintRows();
+
+    (this.chiefArr.at(0) as FormGroup).patchValue({
+      location: 'Head',
+      sensation: 'Throbbing pain',
+      modality: 'Worse in sunlight',
+      concomitant: 'Nausea',
+    });
+
+    (this.associatedArr.at(0) as FormGroup).patchValue({
+      location: 'Stomach',
+      sensation: 'Burning',
+      modality: 'Better after cold water',
+      concomitant: 'Acidity',
+    });
+
+    (this.pastArr.at(0) as FormGroup).patchValue({
+      location: 'Chest',
+      sensation: 'Tightness',
+      modality: 'Worse on exertion',
+      concomitant: 'Sweating',
+    });
+
+    this.form.patchValue({
+      familyHistory: {
+        father: 'Diabetes',
+        mother: 'Hypertension',
+        remarks: 'No major hereditary issues reported',
+      },
+      personalStatus: {
+        appetite: 'Good',
+        thirst: 'Moderate',
+        sleep: 'Disturbed',
+        dreams: 'Anxiety dreams',
+      },
+      physicalExamination: {
+        height: '170 cm',
+        weight: '70 kg',
+        bp: '120/80',
+        pulse: '78',
+        spO2: '98%',
+      },
+      mentalState: {
+        mentalStateEvaluation: 'Normal',
+        overall_Results: 'Stable',
+      },
+      behavioralEvaluation: {
+        provisionalDiagnosis: 'Migraine',
+        finalDiagnosis: 'Migraine',
+        firstPrescription: 'As per protocol',
+        generalInstructions: 'Hydration, rest, avoid triggers',
+      },
+    });
+
+    this.form.markAsDirty();
+    await this.toast('Autofill applied (not saved).');
   }
 
   private async toast(message: string) {

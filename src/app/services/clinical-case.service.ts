@@ -1,8 +1,7 @@
-
-// src/app/services/clinical-case.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
 
 export type ComplaintType = 'Chief' | 'Associated' | 'PastHistory';
 
@@ -16,7 +15,6 @@ export interface ClinicalCaseComplaint {
 
 export interface ClinicalCasePayload {
   patientId: number;
-
   complaints: ClinicalCaseComplaint[];
 
   familyHistory: any;
@@ -29,13 +27,32 @@ export interface ClinicalCasePayload {
   behavioralEvaluation: any;
 }
 
+/** Common API response (as per your swagger sample) */
+export interface ApiResponse<T = any> {
+  success?: boolean;
+  message?: string;
+  data?: T;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ClinicalCaseService {
-  private baseUrl = 'http://localhost:8080'; // ✅ change if needed
+  private readonly base = environment.apiBaseUrl; // e.g. http://localhost:8080
+  private readonly endpoint = '/api/ClinicalCase';
 
   constructor(private http: HttpClient) {}
 
-  createClinicalCase(payload: ClinicalCasePayload): Observable<any> {
-    return this.http.post(`${this.baseUrl}/api/ClinicalCase`, payload);
+  /** POST: Create clinical case */
+  create(payload: ClinicalCasePayload): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(`${this.base}${this.endpoint}`, payload);
   }
+
+  /** OPTIONAL (future): GET by patientId (only if backend supports) */
+  // getByPatientId(patientId: number): Observable<ApiResponse<any>> {
+  //   return this.http.get<ApiResponse<any>>(`${this.base}${this.endpoint}/${patientId}`);
+  // }
+
+  /** OPTIONAL (future): PUT update (only if backend supports) */
+  // update(id: number, payload: ClinicalCasePayload): Observable<ApiResponse<any>> {
+  //   return this.http.put<ApiResponse<any>>(`${this.base}${this.endpoint}/${id}`, payload);
+  // }
 }
