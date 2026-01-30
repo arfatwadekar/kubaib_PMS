@@ -1,0 +1,399 @@
+<!-- medical-examination.page.html (STATIC UI - inputs only) -->
+
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Medical Examination</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="me-content">
+  <div class="page-card">
+    <!-- Title -->
+    <div class="page-title">
+      <div class="t1">Medical Examination</div>
+      <div class="t2">Document comprehensive medical history and clinical findings.</div>
+    </div>
+
+    <ion-accordion-group value="s1">
+
+      <!-- ================= SECTION 1 ================= -->
+      <ion-accordion value="s1">
+        <ion-item slot="header" lines="none" class="sec-header">
+          <ion-label>SECTION 1: COMPLAINTS AND HISTORY</ion-label>
+          <!-- <ion-icon name="chevron-down-outline" slot="end"></ion-icon> -->
+        </ion-item>
+
+        <div slot="content" class="sec-body">
+
+          <!-- CHIEF -->
+          <div class="block">
+            <div class="block-title">CHIEF COMPLAINTS</div>
+
+            <div class="grid-head">
+              <div class="col">L</div>
+              <div class="col">S</div>
+              <div class="col">M</div>
+              <div class="col">C</div>
+            </div>
+
+            <div class="grid-row">
+              <input class="cell" placeholder="Location..." />
+              <input class="cell" placeholder="Severity/Sensation..." />
+              <input class="cell" placeholder="Modality..." />
+              <input class="cell" placeholder="Concomitants..." />
+            </div>
+          </div>
+
+          <!-- ASSOCIATED -->
+          <div class="block">
+            <div class="block-title">ASSOCIATED COMPLAINTS</div>
+
+            <div class="grid-head">
+              <div class="col">L</div>
+              <div class="col">S</div>
+              <div class="col">M</div>
+              <div class="col">C</div>
+            </div>
+
+            <div class="grid-row">
+              <input class="cell" placeholder="Location..." />
+              <input class="cell" placeholder="Severity/Sensation..." />
+              <input class="cell" placeholder="Modality..." />
+              <input class="cell" placeholder="Concomitants..." />
+            </div>
+          </div>
+
+          <!-- PAST -->
+          <div class="block">
+            <div class="block-title">PAST HISTORY</div>
+
+            <div class="grid-head">
+              <div class="col">L</div>
+              <div class="col">S</div>
+              <div class="col">M</div>
+              <div class="col">C</div>
+            </div>
+
+            <div class="grid-row">
+              <input class="cell" placeholder="Location..." />
+              <input class="cell" placeholder="Severity/Sensation..." />
+              <input class="cell" placeholder="Modality..." />
+              <input class="cell" placeholder="Concomitants..." />
+            </div>
+
+            <div class="hint">L: Location, S: Severity/Sensation, M: Modality, C: Concomitants</div>
+          </div>
+        </div>
+      </ion-accordion>
+
+      <!-- ================= SECTION 2 ================= -->
+      <ion-accordion value="s2">
+        <ion-item slot="header" lines="none" class="sec-header">
+          <ion-label>SECTION 2: FAMILY HISTORY</ion-label>
+          <!-- <ion-icon name="chevron-down-outline" slot="end"></ion-icon> -->
+        </ion-item>
+
+        <div slot="content" class="sec-body">
+          <div class="grid grid-4">
+            <div class="field">
+              <div class="lbl">Father</div>
+              <input class="inp" placeholder="History of father..." />
+            </div>
+            <div class="field">
+              <div class="lbl">Mother</div>
+              <input class="inp" placeholder="History of mother..." />
+            </div>
+            <div class="field">
+              <div class="lbl">Brothers</div>
+              <input class="inp" placeholder="History of brothers..." />
+            </div>
+            <div class="field">
+              <div class="lbl">Sisters</div>
+              <input class="inp" placeholder="History of sisters..." />
+            </div>
+
+            <div class="field">
+              <div class="lbl">Paternal Uncle</div>
+              <input class="inp" placeholder="History of p/u..." />
+            </div>
+            <div class="field">
+              <div class="lbl">Maternal Uncle</div>
+              <input class="inp" placeholder="History of m/u..." />
+            </div>
+            <div class="field">
+              <div class="lbl">Paternal Grand Parents</div>
+              <input class="inp" placeholder="History of pgp..." />
+            </div>
+            <div class="field">
+              <div class="lbl">Maternal Grand Parents</div>
+              <input class="inp" placeholder="History of mgp..." />
+            </div>
+          </div>
+
+          <div class="field full mt12">
+            <div class="lbl">Remarks</div>
+            <input class="inp" placeholder="Remarks..." />
+          </div>
+        </div>
+      </ion-accordion>
+
+      <!-- ================= SECTION 3 ================= -->
+      <ion-accordion value="s3">
+        <ion-item slot="header" lines="none" class="sec-header">
+          <ion-label>SECTION 3: PATIENT AS A PERSON</ion-label>
+          <!-- <ion-icon name="chevron-down-outline" slot="end"></ion-icon> -->
+        </ion-item>
+
+        <div slot="content" class="sec-body">
+          <div class="grid grid-5">
+            <div class="field"><div class="lbl">Skin</div><input class="inp" placeholder="Enter details..." /></div>
+            <div class="field"><div class="lbl">Wound Healing</div><input class="inp" placeholder="Enter details..." /></div>
+            <div class="field"><div class="lbl">Hairs</div><input class="inp" placeholder="Enter details..." /></div>
+            <div class="field"><div class="lbl">Nails</div><input class="inp" placeholder="Enter details..." /></div>
+            <div class="field"><div class="lbl">Perspiration</div><input class="inp" placeholder="Enter details..." /></div>
+
+            <div class="field"><div class="lbl">Thirst</div><input class="inp" placeholder="Enter details..." /></div>
+            <div class="field"><div class="lbl">Appetite</div><input class="inp" placeholder="Enter details..." /></div>
+            <div class="field"><div class="lbl">Cravings</div><input class="inp" placeholder="Enter details..." /></div>
+            <div class="field"><div class="lbl">Aversions</div><input class="inp" placeholder="Enter details..." /></div>
+            <div class="field"><div class="lbl">Food</div><input class="inp" placeholder="Enter details..." /></div>
+
+            <div class="field"><div class="lbl">Nature</div><input class="inp" placeholder="Enter details..." /></div>
+            <div class="field"><div class="lbl">Temperament</div><input class="inp" placeholder="Enter details..." /></div>
+            <div class="field"><div class="lbl">Fears</div><input class="inp" placeholder="Enter details..." /></div>
+            <div class="field"><div class="lbl">Dreams</div><input class="inp" placeholder="Enter details..." /></div>
+            <div class="field"><div class="lbl">Remarks</div><input class="inp" placeholder="Enter remarks..." /></div>
+          </div>
+        </div>
+      </ion-accordion>
+
+      <!-- ================= SECTION 4 ================= -->
+      <ion-accordion value="s4">
+        <ion-item slot="header" lines="none" class="sec-header">
+          <ion-label>SECTION 4: MENSTRUAL FUNCTIONS</ion-label>
+          <!-- <ion-icon name="chevron-down-outline" slot="end"></ion-icon> -->
+        </ion-item>
+
+        <div slot="content" class="sec-body">
+          <div class="grid grid-3">
+            <div class="field"><div class="lbl">Menses</div><input class="inp" placeholder="Details..." /></div>
+            <div class="field"><div class="lbl">Dysmenorr</div><input class="inp" placeholder="Details..." /></div>
+            <div class="field"><div class="lbl">Rhythm</div><input class="inp" placeholder="Details..." /></div>
+
+            <div class="field"><div class="lbl">Metrorr</div><input class="inp" placeholder="Details..." /></div>
+            <div class="field"><div class="lbl">Leucorr</div><input class="inp" placeholder="Details..." /></div>
+            <div class="field"><div class="lbl">Clots</div><input class="inp" placeholder="Details..." /></div>
+
+            <div class="field"><div class="lbl">Pains</div><input class="inp" placeholder="Details..." /></div>
+            <div class="field"><div class="lbl">Backache</div><input class="inp" placeholder="Details..." /></div>
+            <div class="field"><div class="lbl">Pregnancy</div><input class="inp" placeholder="Details..." /></div>
+          </div>
+        </div>
+      </ion-accordion>
+
+      <!-- ================= SECTION 5 ================= -->
+      <ion-accordion value="s5">
+        <ion-item slot="header" lines="none" class="sec-header">
+          <ion-label>SECTION 5: MALE SEXUAL FUNCTIONS</ion-label>
+          <!-- <ion-icon name="chevron-down-outline" slot="end"></ion-icon> -->
+        </ion-item>
+
+        <div slot="content" class="sec-body">
+          <div class="grid grid-3">
+            <div class="field"><div class="lbl">Masturbation</div><input class="inp" placeholder="Details..." /></div>
+            <div class="field"><div class="lbl">Erection</div><input class="inp" placeholder="Details..." /></div>
+            <div class="field"><div class="lbl">Nocturnal Emis</div><input class="inp" placeholder="Details..." /></div>
+          </div>
+        </div>
+      </ion-accordion>
+
+      <!-- ================= SECTION 6 ================= -->
+      <ion-accordion value="s6">
+        <ion-item slot="header" lines="none" class="sec-header">
+          <ion-label>SECTION 6: REACTIONS - PHYSICAL FACTORS</ion-label>
+          <!-- <ion-icon name="chevron-down-outline" slot="end"></ion-icon> -->
+        </ion-item>
+
+        <div slot="content" class="sec-body">
+
+          <div class="rf-table">
+            <div class="rf-row rf-head">
+              <div class="rf-cell rf-left"></div>
+              <div class="rf-cell">FAN</div>
+              <div class="rf-cell">AC</div>
+              <div class="rf-cell">COVERING</div>
+              <div class="rf-cell">WOOLLENS</div>
+              <div class="rf-cell">BATH</div>
+            </div>
+
+            <div class="rf-row">
+              <div class="rf-cell rf-left">Summer</div>
+              <div class="rf-cell"><input class="rf-inp" /></div>
+              <div class="rf-cell"><input class="rf-inp" /></div>
+              <div class="rf-cell"><input class="rf-inp" /></div>
+              <div class="rf-cell"><input class="rf-inp" /></div>
+              <div class="rf-cell"><input class="rf-inp" /></div>
+            </div>
+
+            <div class="rf-row">
+              <div class="rf-cell rf-left">Monsoon</div>
+              <div class="rf-cell"><input class="rf-inp" /></div>
+              <div class="rf-cell"><input class="rf-inp" /></div>
+              <div class="rf-cell"><input class="rf-inp" /></div>
+              <div class="rf-cell"><input class="rf-inp" /></div>
+              <div class="rf-cell"><input class="rf-inp" /></div>
+            </div>
+
+            <div class="rf-row">
+              <div class="rf-cell rf-left">Winter</div>
+              <div class="rf-cell"><input class="rf-inp" /></div>
+              <div class="rf-cell"><input class="rf-inp" /></div>
+              <div class="rf-cell"><input class="rf-inp" /></div>
+              <div class="rf-cell"><input class="rf-inp" /></div>
+              <div class="rf-cell"><input class="rf-inp" /></div>
+            </div>
+          </div>
+
+          <div class="grid grid-6 mt12">
+            <div class="field"><div class="lbl">Build</div><input class="inp" /></div>
+            <div class="field"><div class="lbl">Skin</div><input class="inp" /></div>
+            <div class="field"><div class="lbl">Cold Air</div><input class="inp" /></div>
+            <div class="field"><div class="lbl">Draft</div><input class="inp" /></div>
+            <div class="field"><div class="lbl">Wet Getting</div><input class="inp" /></div>
+            <div class="field"><div class="lbl">Thermal State</div><input class="inp" /></div>
+          </div>
+        </div>
+      </ion-accordion>
+
+      <!-- ================= SECTION 7 ================= -->
+      <ion-accordion value="s7">
+        <ion-item slot="header" lines="none" class="sec-header">
+          <ion-label>SECTION 7: PHYSICAL EXAMINATION</ion-label>
+          <!-- <ion-icon name="chevron-down-outline" slot="end"></ion-icon> -->
+        </ion-item>
+
+        <div slot="content" class="sec-body">
+
+          <div class="subsec">
+            <div class="subsec-title">VITALS &amp; BMI</div>
+            <div class="grid grid-4">
+              <div class="field"><div class="lbl">Height (cm)</div><input class="inp" placeholder="Ht, 175" /></div>
+              <div class="field"><div class="lbl">Weight (kg)</div><input class="inp" placeholder="Wt, 70" /></div>
+              <div class="field"><div class="lbl">BMI</div><input class="inp" placeholder="Auto calculated" /></div>
+              <div class="field"><div class="lbl">BMI Category</div><input class="inp" placeholder="Auto classified" /></div>
+            </div>
+          </div>
+
+          <div class="subsec">
+            <div class="subsec-title">GENERAL EXAMINATION</div>
+            <div class="grid grid-4">
+              <div class="field"><div class="lbl">Physical Appearance</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Deviation</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Temperature</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Pulse</div><input class="inp" /></div>
+
+              <div class="field"><div class="lbl">BP</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Tongue</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Lips</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Teeth</div><input class="inp" /></div>
+
+              <div class="field"><div class="lbl">Gums</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Nails</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Skin</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Glands</div><input class="inp" /></div>
+
+              <div class="field"><div class="lbl">Nose</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Throat</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Trachea</div><input class="inp" /></div>
+            </div>
+          </div>
+
+          <div class="subsec">
+            <div class="subsec-title">RESPIRATORY SYSTEM (RS)</div>
+            <div class="grid grid-4">
+              <div class="field"><div class="lbl">Percussion</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">R.R.</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Air Entry</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Chest Expansion</div><input class="inp" /></div>
+
+              <div class="field"><div class="lbl">Breath Sounds</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">SpO2</div><input class="inp" /></div>
+            </div>
+          </div>
+
+          <div class="subsec">
+            <div class="subsec-title">GIT / ABDOMEN (PA)</div>
+            <div class="grid grid-4">
+              <div class="field"><div class="lbl">Size / Shape / Scar</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Movement</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Percussion</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Soft/Hardness/Rigidity/Guarding</div><input class="inp" /></div>
+
+              <div class="field"><div class="lbl">Bowel Sound</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">LMP</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Mict</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Palpation</div><input class="inp" /></div>
+            </div>
+          </div>
+
+          <div class="subsec">
+            <div class="subsec-title">CARDIOVASCULAR SYSTEM (CVS)</div>
+            <div class="grid grid-4">
+              <div class="field"><div class="lbl">Apex Beat</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">S1</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Thrill</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Percussion</div><input class="inp" /></div>
+
+              <div class="field"><div class="lbl">Heart Sounds</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Murmur</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">S2</div><input class="inp" /></div>
+            </div>
+          </div>
+
+          <div class="subsec">
+            <div class="subsec-title">CENTRAL NERVOUS SYSTEM (CNS)</div>
+            <div class="grid grid-4">
+              <div class="field"><div class="lbl">Higher Function</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Motor Function</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Sensory Function</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Cranial Nerves</div><input class="inp" /></div>
+
+              <div class="field"><div class="lbl">Reflexes</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Coordination</div><input class="inp" /></div>
+            </div>
+          </div>
+
+          <div class="subsec">
+            <div class="subsec-title">MUSCULOSKELETAL SYSTEM (MS)</div>
+            <div class="grid grid-4">
+              <div class="field"><div class="lbl">Inspection</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">ROM</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Swelling</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Warmth</div><input class="inp" /></div>
+
+              <div class="field"><div class="lbl">Tenderness</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Deformities</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Crepitation</div><input class="inp" /></div>
+              <div class="field"><div class="lbl">Muscle Strength</div><input class="inp" /></div>
+            </div>
+          </div>
+
+        </div>
+      </ion-accordion>
+
+    </ion-accordion-group>
+
+    <!-- Bottom actions -->
+    <div class="bottom-actions">
+      <ion-button fill="outline" size="small">Previous: Identity</ion-button>
+
+      <div class="right-actions">
+        <ion-button size="small">Next Follow Up</ion-button>
+        <ion-button size="small" color="success">Save Record</ion-button>
+      </div>
+    </div>
+  </div>
+</ion-content>

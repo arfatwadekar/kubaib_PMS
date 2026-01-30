@@ -36,7 +36,16 @@ const routes: Routes = [
             (m) => m.CreatePatientPageModule,
           ),
       },
+      // src/app/app-routing.module.ts (snippet)
 
+
+      {
+        path: 'patients/medical-examination',
+        loadChildren: () =>
+          import('../../pages/patients/medical-examination/medical-examination.module').then(
+            (m) => m.MedicalExaminationPageModule
+          ),
+      },
       // {
       //   path: 'appointments/create',
       //   loadChildren: () =>
