@@ -20,6 +20,14 @@ type ApptRow = {
   raw: any;
 };
 
+type Kpi = {
+  today: number;
+  pending: number;
+  inPatient: number;
+  awaiting: number;
+  outPatient: number;
+};
+
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.page.html',
@@ -29,6 +37,7 @@ type ApptRow = {
 export class DashboardPage implements OnInit {
   loading = false;
 
+  // table search
   searchText = '';
 
   rows: ApptRow[] = [];
@@ -39,6 +48,21 @@ export class DashboardPage implements OnInit {
   actionEvent: any = null;
   selectedRow: ApptRow | null = null;
 
+  // ✅ Dashboard UI (top cards + charts)
+  kpi: Kpi = {
+    today: 0,
+    pending: 0,
+    inPatient: 0,
+    awaiting: 0,
+    outPatient: 0,
+  };
+
+  donutTotal = 0;
+  donutAngles = { today: 0, pending: 0, inp: 0, awaiting: 0, out: 0 };
+
+  weekly: Array<{ day: string; value: number; pct: number }> = [];
+  weekRangeText = 'Jan 26 - Feb 1';
+
   constructor(
     private apptService: AppointmentService,
     private toastCtrl: ToastController,
@@ -46,6 +70,7 @@ export class DashboardPage implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.buildWeekly(); // UI-only demo, replace later with API aggregation if needed
     this.load();
   }
 
@@ -61,9 +86,13 @@ export class DashboardPage implements OnInit {
 
   pillClass(r: ApptRow) {
     const s = (r.statusText || '').toLowerCase();
+
     if (s.includes('today')) return 'today';
     if (s.includes('pending')) return 'pending';
+    if (s.includes('await')) return 'awaiting';
+    if (s.includes('out')) return 'out';
     if (s.includes('inpatient') || s.includes('in patient')) return 'inp';
+
     return 'neutral';
   }
 
@@ -98,12 +127,15 @@ export class DashboardPage implements OnInit {
     if (this.loading) return;
     this.loading = true;
 
-    // ✅ Correct API: GET /api/Appointment/today
     this.apptService.getTodayAppointments().subscribe({
       next: (res: any) => {
         const list = this.extractArray(res);
         this.rows = this.normalize(list);
         this.applyFilter();
+
+        // ✅ update dashboard stats
+        this.computeKpiFromRows();
+        this.computeDonut();
       },
       error: async (err) => {
         const t = await this.toastCtrl.create({
@@ -127,7 +159,6 @@ export class DashboardPage implements OnInit {
   private extractArray(res: any): any[] {
     if (Array.isArray(res)) return res;
 
-    // Today endpoint returns: { appointments: [...] }
     const candidates = [
       res?.appointments,
       res?.items,
@@ -157,8 +188,10 @@ export class DashboardPage implements OnInit {
           (patientId ? `P-${patientId}` : '')
       ).trim();
 
-      const name = String(patient?.fullName ?? a?.fullName ?? '').trim() || 'NA';
-      const phone = String(patient?.phoneNumber ?? a?.phoneNumber ?? '').trim() || '-';
+      const name =
+        String(patient?.fullName ?? a?.fullName ?? '').trim() || 'NA';
+      const phone =
+        String(patient?.phoneNumber ?? a?.phoneNumber ?? '').trim() || '-';
 
       const timeFormatted = String(a?.appointmentTimeFormatted ?? '').trim();
       const timeRaw = String(a?.appointmentTime ?? '').trim();
@@ -178,6 +211,81 @@ export class DashboardPage implements OnInit {
         raw: a,
       };
     });
+  }
+
+  // ---------- KPI + Donut (computed from rows) ----------
+  private computeKpiFromRows() {
+    const counts: Kpi = {
+      today: 0,
+      pending: 0,
+      inPatient: 0,
+      awaiting: 0,
+      outPatient: 0,
+    };
+
+    for (const r of this.rows) {
+      const s = (r.statusText || '').toLowerCase();
+
+      if (s.includes('today')) counts.today++;
+      else if (s.includes('pending')) counts.pending++;
+      else if (s.includes('await')) counts.awaiting++;
+      else if (s.includes('out')) counts.outPatient++;
+      else if (s.includes('inpatient') || s.includes('in patient'))
+        counts.inPatient++;
+    }
+
+    this.kpi = counts;
+  }
+
+  private computeDonut() {
+    const a = this.kpi.today;
+    const b = this.kpi.pending;
+    const c = this.kpi.inPatient;
+    const d = this.kpi.awaiting;
+    const e = this.kpi.outPatient;
+
+    const total = a + b + c + d + e;
+    this.donutTotal = total;
+
+    if (!total) {
+      this.donutAngles = { today: 0, pending: 0, inp: 0, awaiting: 0, out: 0 };
+      return;
+    }
+
+    const toDeg = (v: number) => Math.round((v / total) * 360);
+
+    const da = toDeg(a);
+    const db = toDeg(b);
+    const dc = toDeg(c);
+    const dd = toDeg(d);
+
+    this.donutAngles = {
+      today: da,
+      pending: db,
+      inp: dc,
+      awaiting: dd,
+      out: 360 - (da + db + dc + dd), // rounding fix
+    };
+  }
+
+  // ---------- Weekly (UI-only sample) ----------
+  private buildWeekly() {
+    // Replace later with grouping your real data by weekday if needed
+    const data = [
+      { day: 'Mon', value: 6 },
+      { day: 'Tue', value: 9 },
+      { day: 'Wed', value: 7 },
+      { day: 'Thu', value: 10 },
+      { day: 'Fri', value: 5 },
+      { day: 'Sat', value: 1 },
+      { day: 'Sun', value: 2 },
+    ];
+
+    const max = Math.max(...data.map((x) => x.value), 1);
+    this.weekly = data.map((d) => ({
+      ...d,
+      pct: Math.round((d.value / max) * 100),
+    }));
   }
 
   // ---------- actions dropdown ----------
