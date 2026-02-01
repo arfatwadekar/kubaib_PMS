@@ -4,245 +4,156 @@
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
 
-    <ion-title class="dash-title">
-      <span class="brand">Mariam Health Care</span>
-    </ion-title>
+    <ion-title class="dash-title">Mariam Health Care</ion-title>
 
-    <ion-buttons slot="end" class="dash-end">
-      <div class="top-search">
-        <ion-icon name="search-outline"></ion-icon>
-        <input placeholder="Search Patients" />
-      </div>
-
-      <ion-button fill="clear" (click)="refresh()" class="icon-btn">
-        <ion-icon name="refresh-outline"></ion-icon>
-      </ion-button>
-
-      <ion-button fill="clear" class="icon-btn">
-        <ion-icon name="notifications-outline"></ion-icon>
-      </ion-button>
-
-      <ion-button fill="clear" class="icon-btn">
-        <ion-icon name="person-circle-outline"></ion-icon>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="doRefresh()">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content class="dash-bg">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <div class="dash-wrap">
-    <!-- ================= KPI ROW ================= -->
-    <div class="kpi-row">
-      <div class="kpi-card">
-        <div class="kpi-top">
-          <div class="kpi-label">Today's Appointment</div>
-          <div class="kpi-ico kpi-ico--blue">
-            <ion-icon name="calendar-outline"></ion-icon>
-          </div>
-        </div>
-        <div class="kpi-val">{{ kpi.today }}</div>
-      </div>
+    <!-- KPI CARDS -->
+    <ion-grid class="kpi-grid">
+      <ion-row>
+        <ion-col size="12" sizeMd="6" sizeLg="2.4">
+          <ion-card class="kpi-card">
+            <ion-card-content>
+              <div class="kpi-label">Today's Appointments</div>
+              <div class="kpi-value">{{ cards.today }}</div>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
 
-      <div class="kpi-card">
-        <div class="kpi-top">
-          <div class="kpi-label">Pending Consultation</div>
-          <div class="kpi-ico kpi-ico--amber">
-            <ion-icon name="time-outline"></ion-icon>
-          </div>
-        </div>
-        <div class="kpi-val">{{ kpi.pending }}</div>
-      </div>
+        <ion-col size="12" sizeMd="6" sizeLg="2.4">
+          <ion-card class="kpi-card">
+            <ion-card-content>
+              <div class="kpi-label">Pending</div>
+              <div class="kpi-value">{{ cards.pending }}</div>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
 
-      <div class="kpi-card">
-        <div class="kpi-top">
-          <div class="kpi-label">In Patient</div>
-          <div class="kpi-ico kpi-ico--indigo">
-            <ion-icon name="person-outline"></ion-icon>
-          </div>
-        </div>
-        <div class="kpi-val">{{ kpi.inPatient }}</div>
-      </div>
+        <ion-col size="12" sizeMd="6" sizeLg="2.4">
+          <ion-card class="kpi-card">
+            <ion-card-content>
+              <div class="kpi-label">In Patient</div>
+              <div class="kpi-value">{{ cards.inPatient }}</div>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
 
-      <div class="kpi-card">
-        <div class="kpi-top">
-          <div class="kpi-label">Awaiting Payment</div>
-          <div class="kpi-ico kpi-ico--yellow">
-            <ion-icon name="card-outline"></ion-icon>
-          </div>
-        </div>
-        <div class="kpi-val">{{ kpi.awaiting }}</div>
-      </div>
+        <ion-col size="12" sizeMd="6" sizeLg="2.4">
+          <ion-card class="kpi-card">
+            <ion-card-content>
+              <div class="kpi-label">Awaiting Payment</div>
+              <div class="kpi-value">{{ cards.awaitingPayment }}</div>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
 
-      <div class="kpi-card">
-        <div class="kpi-top">
-          <div class="kpi-label">Out Patient</div>
-          <div class="kpi-ico kpi-ico--green">
-            <ion-icon name="log-out-outline"></ion-icon>
-          </div>
-        </div>
-        <div class="kpi-val">{{ kpi.outPatient }}</div>
-      </div>
-    </div>
+        <ion-col size="12" sizeMd="6" sizeLg="2.4">
+          <ion-card class="kpi-card">
+            <ion-card-content>
+              <div class="kpi-label">Out Patient</div>
+              <div class="kpi-value">{{ cards.outPatient }}</div>
+            </ion-card-content>
+          </ion-card>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
 
-    <!-- ================= CHARTS ROW ================= -->
-    <div class="charts-row">
-      <!-- Status Overview -->
-      <div class="panel">
-        <div class="panel-head">
-          <div>
-            <div class="panel-title">Status Overview</div>
-            <div class="panel-sub">Distribution of today's patients</div>
-          </div>
-        </div>
-
-        <div class="status-body">
-          <div class="donut-wrap">
-            <div
-              class="donut"
-              [style.--a]="donutAngles.today"
-              [style.--b]="donutAngles.pending"
-              [style.--c]="donutAngles.inp"
-              [style.--d]="donutAngles.awaiting"
-              [style.--e]="donutAngles.out"
-            >
-              <div class="donut-center">
-                <div class="donut-num">{{ donutTotal }}</div>
-                <div class="donut-lbl">Total</div>
-              </div>
-            </div>
-          </div>
-
-          <div class="legend">
-            <div class="leg-item">
-              <span class="dot dot--blue"></span>
-              <span class="leg-name">Today's Appointment</span>
-              <span class="leg-val">{{ kpi.today }}</span>
-            </div>
-
-            <div class="leg-item">
-              <span class="dot dot--amber"></span>
-              <span class="leg-name">Pending Consultation</span>
-              <span class="leg-val">{{ kpi.pending }}</span>
-            </div>
-
-            <div class="leg-item">
-              <span class="dot dot--indigo"></span>
-              <span class="leg-name">In Patient</span>
-              <span class="leg-val">{{ kpi.inPatient }}</span>
-            </div>
-
-            <div class="leg-item">
-              <span class="dot dot--yellow"></span>
-              <span class="leg-name">Awaiting Payment</span>
-              <span class="leg-val">{{ kpi.awaiting }}</span>
-            </div>
-
-            <div class="leg-item">
-              <span class="dot dot--green"></span>
-              <span class="leg-name">Out Patient</span>
-              <span class="leg-val">{{ kpi.outPatient }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Weekly Overview -->
-      <div class="panel">
-        <div class="panel-head panel-head--space">
-          <div>
-            <div class="panel-title">Weekly Overview</div>
-            <div class="panel-sub">Total patients per day</div>
-          </div>
-
-          <div class="range">
-            <ion-icon name="chevron-back-outline"></ion-icon>
-            <span>{{ weekRangeText }}</span>
-            <ion-icon name="chevron-forward-outline"></ion-icon>
-          </div>
-        </div>
-
-        <div class="bars">
-          <div class="bar" *ngFor="let d of weekly">
-            <div class="bar-col">
-              <div class="bar-fill" [style.height.%]="d.pct"></div>
-            </div>
-            <div class="bar-lbl">{{ d.day }}</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= TABLE ================= -->
-    <div class="panel panel--table">
-      <div class="table-head">
+    <!-- TABLE CARD (Like Screenshot) -->
+    <ion-card class="table-card">
+      <!-- Top bar -->
+      <div class="table-topbar">
         <div class="table-title">Today's Appointments</div>
 
-        <div class="table-actions">
-          <div class="mhc-search">
-            <ion-icon name="search-outline" class="mhc-search__ic"></ion-icon>
+        <div class="table-tools">
+          <div class="searchbox">
+            <ion-icon name="search-outline"></ion-icon>
             <input
-              class="mhc-search__inp"
+              type="text"
               placeholder="Search Appointments"
-              [(ngModel)]="searchText"
-              (keyup.enter)="onSearch()"
+              [(ngModel)]="search"
             />
           </div>
 
-          <button class="mhc-btn mhc-btn--primary" type="button" (click)="onSearch()">
+          <button class="btn btn--primary" type="button" (click)="onSearchClick()">
             Search
           </button>
 
-          <button class="mhc-btn mhc-btn--ghost" type="button" (click)="clearSearch()">
-            <ion-icon name="funnel-outline"></ion-icon>
+          <button class="btn btn--ghost" type="button" (click)="onClearClick()">
+            <ion-icon name="close-circle-outline"></ion-icon>
             Clear
           </button>
         </div>
       </div>
 
-      <div class="mhc-table">
-        <div class="mhc-thead">
-          <div class="mhc-th">Patient ID</div>
-          <div class="mhc-th">Patient Name</div>
-          <div class="mhc-th">Phone Number</div>
-          <div class="mhc-th">Time</div>
-          <div class="mhc-th">Status</div>
-          <div class="mhc-th mhc-th--actions">Actions</div>
+      <!-- Loading -->
+      <ion-list *ngIf="isLoading">
+        <ion-item *ngFor="let i of [1,2,3,4,5]">
+          <ion-label>
+            <h2><ion-skeleton-text animated style="width: 60%"></ion-skeleton-text></h2>
+            <p><ion-skeleton-text animated style="width: 80%"></ion-skeleton-text></p>
+          </ion-label>
+        </ion-item>
+      </ion-list>
+
+      <!-- Table -->
+      <div class="appt-table" *ngIf="!isLoading">
+        <div class="appt-tr appt-tr--head">
+          <div class="appt-th">Patient ID</div>
+          <div class="appt-th">Patient Name</div>
+          <div class="appt-th">Phone Number</div>
+          <div class="appt-th">Time</div>
+          <div class="appt-th">Status</div>
+          <div class="appt-th appt-th--right">Actions</div>
         </div>
 
-        <div class="mhc-tbody" *ngIf="!loading">
-          <div class="mhc-tr" *ngFor="let r of filtered" (click)="openPatient(r)">
-            <div class="mhc-td mhc-td--pid">{{ r._pid }}</div>
-            <div class="mhc-td">{{ r._name }}</div>
-            <div class="mhc-td">{{ r._phone }}</div>
+        <div class="appt-body">
+          <div
+            class="appt-tr"
+            *ngFor="let r of visibleRows"
+            (click)="openPatient(r)"
+            role="button"
+            tabindex="0"
+          >
+            <div class="appt-td appt-td--strong">{{ r.pid }}</div>
+            <div class="appt-td">{{ r.name }}</div>
+            <div class="appt-td appt-td--muted">{{ r.phone }}</div>
 
-            <div class="mhc-td mhc-time">
-              <ion-icon name="time-outline" class="mhc-time__ic"></ion-icon>
-              <span class="mhc-time__tx">{{ r.apptTime }}</span>
+            <div class="appt-td appt-td--time">
+              <ion-icon name="time-outline"></ion-icon>
+              <span>{{ r.timeText }}</span>
             </div>
 
-            <div class="mhc-td">
-              <span class="mhc-pill" [ngClass]="pillClass(r)">
-                {{ pillLabel(r) }}
-              </span>
+            <div class="appt-td">
+              <span [class]="statusPillClass(r.statusCode)">{{ r.statusText }}</span>
             </div>
 
-            <div class="mhc-td mhc-td--actions">
-              <button class="mhc-gear" type="button" (click)="openActions($event, r)">
-                <ion-icon name="settings-outline"></ion-icon>
-              </button>
+            <div class="appt-td appt-td--right" (click)="$event.stopPropagation()">
+              <ion-button fill="clear" class="gear" (click)="openActions($event, r)">
+                <ion-icon name="settings-outline" slot="icon-only"></ion-icon>
+              </ion-button>
             </div>
           </div>
 
-          <div class="mhc-empty" *ngIf="filtered.length === 0">
+          <div class="empty" *ngIf="visibleRows.length === 0">
             No appointments found.
           </div>
         </div>
-
-        <div class="mhc-loading" *ngIf="loading">Loading...</div>
       </div>
-    </div>
+    </ion-card>
 
-    <!-- ✅ Dropdown / Popover -->
+    <!-- POPOVER -->
     <ion-popover
       class="mhc-popover"
       [isOpen]="actionOpen"
@@ -250,26 +161,29 @@
       (didDismiss)="closeActions()"
     >
       <ng-template>
-        <div class="mhc-pop">
-          <div class="mhc-pop__head">
-            <div class="mhc-pop__title">Status</div>
-          </div>
+        <ion-list lines="none">
+          <ion-item lines="none">
+            <ion-label><strong>Change Status</strong></ion-label>
+          </ion-item>
 
-          <button class="mhc-pop__item" type="button" (click)="closeActions()">
-            <ion-icon name="checkmark-circle-outline" class="mhc-pop__ic"></ion-icon>
-            <span>Mark as Today’s Appointment</span>
-          </button>
+          <ng-container *ngIf="selectedRow as r">
+            <ion-item
+              button
+              lines="none"
+              *ngFor="let s of allowedNextStatuses(r)"
+              (click)="markStatus(s)"
+            >
+              <ion-label>{{ statusLabel(s) }}</ion-label>
+            </ion-item>
+          </ng-container>
 
-          <button class="mhc-pop__item" type="button" (click)="closeActions()">
-            <ion-icon name="hourglass-outline" class="mhc-pop__ic"></ion-icon>
-            <span>Mark as Pending Consultation</span>
-          </button>
-
-          <button class="mhc-pop__item" type="button" (click)="closeActions()">
-            <ion-icon name="bed-outline" class="mhc-pop__ic"></ion-icon>
-            <span>Mark as In Patient</span>
-          </button>
-        </div>
+          <ion-item
+            *ngIf="selectedRow && allowedNextStatuses(selectedRow).length === 0"
+            lines="none"
+          >
+            <ion-label color="medium">No actions available</ion-label>
+          </ion-item>
+        </ion-list>
       </ng-template>
     </ion-popover>
   </div>

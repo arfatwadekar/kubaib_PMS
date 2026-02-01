@@ -17,6 +17,11 @@ const routes: Routes = [
     path: '**',
     redirectTo: 'auth/login',
   },
+  {
+    path: 'patient',
+    loadChildren: () => import('./pages/patients/patient.module').then( m => m.PatientPageModule)
+  },
+
 ];
 
 @NgModule({

@@ -1,31 +1,41 @@
-import { Component, OnInit } from '@angular/core';
-import { ToastController } from '@ionic/angular';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
-import { AppointmentService } from 'src/app/services/appointment.service';
+import { ToastController } from '@ionic/angular';
+import { of } from 'rxjs';
+import { catchError, finalize } from 'rxjs/operators';
+import { DashboardService } from 'src/app/services/dashboard.service';
 
-type ApptStatus = string;
+export enum AppointmentStatus {
+  Pending = 1,
+  InPatient = 2,
+  AwaitingPayment = 3,
+  OutPatient = 4,
+  Cancelled = 5,
+}
 
-type ApptRow = {
+type AppointmentRow = {
   appointmentId: number;
   patientId: number;
 
-  _pid: string;
-  _name: string;
-  _phone: string;
+  pid: string;
+  name: string;
+  phone: string;
 
-  apptTime: string;
+  timeText: string;
+
+  statusCode: number;
   statusText: string;
-  status: ApptStatus;
 
   raw: any;
 };
 
-type Kpi = {
+type DashboardCards = {
   today: number;
   pending: number;
   inPatient: number;
-  awaiting: number;
+  awaitingPayment: number;
   outPatient: number;
+  cancelled: number;
 };
 
 @Component({
@@ -34,262 +44,141 @@ type Kpi = {
   styleUrls: ['./dashboard.page.scss'],
   standalone: false,
 })
-export class DashboardPage implements OnInit {
-  loading = false;
+export class DashboardPage {
+  isLoading = false;
 
-  // table search
-  searchText = '';
+  // search UI
+  search = '';
+  private lastAppliedSearch = '';
 
-  rows: ApptRow[] = [];
-  filtered: ApptRow[] = [];
-
-  // popover state
-  actionOpen = false;
-  actionEvent: any = null;
-  selectedRow: ApptRow | null = null;
-
-  // ✅ Dashboard UI (top cards + charts)
-  kpi: Kpi = {
+  // KPI
+  cards: DashboardCards = {
     today: 0,
     pending: 0,
     inPatient: 0,
-    awaiting: 0,
+    awaitingPayment: 0,
     outPatient: 0,
+    cancelled: 0,
   };
 
-  donutTotal = 0;
-  donutAngles = { today: 0, pending: 0, inp: 0, awaiting: 0, out: 0 };
+  // rows
+  rows: AppointmentRow[] = [];
+  visibleRows: AppointmentRow[] = [];
 
-  weekly: Array<{ day: string; value: number; pct: number }> = [];
-  weekRangeText = 'Jan 26 - Feb 1';
+  // popover
+  actionOpen = false;
+  actionEvent: any = null;
+  selectedRow: AppointmentRow | null = null;
+
+  private readonly VALID_STATUS = new Set<number>([
+    AppointmentStatus.Pending,
+    AppointmentStatus.InPatient,
+    AppointmentStatus.AwaitingPayment,
+    AppointmentStatus.OutPatient,
+    AppointmentStatus.Cancelled,
+  ]);
 
   constructor(
-    private apptService: AppointmentService,
+    private api: DashboardService,
     private toastCtrl: ToastController,
     private router: Router
   ) {}
 
-  ngOnInit() {
-    this.buildWeekly(); // UI-only demo, replace later with API aggregation if needed
-    this.load();
-  }
-
-  // ✅ when coming back from patient create page, refresh today list
   ionViewWillEnter() {
-    this.load();
+    this.loadToday();
   }
 
-  // ---------- UI helpers ----------
-  pillLabel(r: ApptRow) {
-    return r.statusText || '—';
+  async doRefresh(ev?: any) {
+    await this.loadToday(true);
+    ev?.target?.complete?.();
   }
 
-  pillClass(r: ApptRow) {
-    const s = (r.statusText || '').toLowerCase();
+  // =========================
+  // LOAD TODAY
+  // =========================
+  private loadToday(force = false): Promise<void> {
+    if (this.isLoading && !force) return Promise.resolve();
+    this.isLoading = true;
 
-    if (s.includes('today')) return 'today';
-    if (s.includes('pending')) return 'pending';
-    if (s.includes('await')) return 'awaiting';
-    if (s.includes('out')) return 'out';
-    if (s.includes('inpatient') || s.includes('in patient')) return 'inp';
+    const todayISO = this.todayISO_Local();
 
-    return 'neutral';
+    return new Promise((resolve) => {
+      this.api
+        .getTodayAppointments()
+        .pipe(
+          catchError(() => of(null)),
+          finalize(() => {
+            this.isLoading = false;
+            resolve();
+          })
+        )
+        .subscribe(async (res) => {
+          const list = this.extractList(res);
+
+          // /today sometimes returns mixed dates -> strict filter by local today
+          const mapped = this.mapRows(list).filter((r) => {
+            const d = this.toISODate_LocalSafe(r.raw?.appointmentDate);
+            return d === todayISO;
+          });
+
+          this.rows = mapped.sort((a, b) =>
+            (a.timeText || '').localeCompare(b.timeText || '')
+          );
+
+          this.cards = this.buildCards(this.rows);
+
+          // keep applied search
+          this.applySearchOnly(this.lastAppliedSearch);
+
+          if (!res) await this.toast('Failed to load today appointments.');
+        });
+    });
   }
 
-  // ---------- search ----------
-  onSearch() {
-    this.applyFilter();
+  // =========================
+  // SEARCH (exact like screenshot)
+  // =========================
+  onSearchClick() {
+    this.lastAppliedSearch = (this.search || '').trim();
+    this.applySearchOnly(this.lastAppliedSearch);
   }
 
-  clearSearch() {
-    this.searchText = '';
-    this.applyFilter();
+  onClearClick() {
+    this.search = '';
+    this.lastAppliedSearch = '';
+    this.applySearchOnly('');
   }
 
-  private applyFilter() {
-    const q = (this.searchText || '').trim().toLowerCase();
+  private applySearchOnly(qRaw: string) {
+    const q = (qRaw || '').trim().toLowerCase();
     if (!q) {
-      this.filtered = [...this.rows];
+      this.visibleRows = [...this.rows];
       return;
     }
 
-    this.filtered = this.rows.filter((r) => {
+    this.visibleRows = this.rows.filter((r) => {
       return (
-        (r._pid || '').toLowerCase().includes(q) ||
-        (r._phone || '').toLowerCase().includes(q) ||
-        (r._name || '').toLowerCase().includes(q)
+        (r.pid || '').toLowerCase().includes(q) ||
+        (r.name || '').toLowerCase().includes(q) ||
+        (r.phone || '').toLowerCase().includes(q)
       );
     });
   }
 
-  // ---------- load appointments ----------
-  load() {
-    if (this.loading) return;
-    this.loading = true;
-
-    this.apptService.getTodayAppointments().subscribe({
-      next: (res: any) => {
-        const list = this.extractArray(res);
-        this.rows = this.normalize(list);
-        this.applyFilter();
-
-        // ✅ update dashboard stats
-        this.computeKpiFromRows();
-        this.computeDonut();
-      },
-      error: async (err) => {
-        const t = await this.toastCtrl.create({
-          message:
-            err?.error?.message ||
-            err?.message ||
-            'Failed to load appointments',
-          duration: 3000,
-          position: 'top',
-        });
-        t.present();
-      },
-      complete: () => (this.loading = false),
+  // =========================
+  // NAV
+  // =========================
+  openPatient(row: AppointmentRow) {
+    if (!row?.patientId) return;
+    this.router.navigate(['/patients/create'], {
+      queryParams: { patientId: row.patientId },
     });
   }
 
-  refresh() {
-    this.load();
-  }
-
-  private extractArray(res: any): any[] {
-    if (Array.isArray(res)) return res;
-
-    const candidates = [
-      res?.appointments,
-      res?.items,
-      res?.data,
-      res?.result,
-      res?.data?.appointments,
-      res?.data?.items,
-      res?.result?.items,
-    ];
-
-    for (const c of candidates) {
-      if (Array.isArray(c)) return c;
-    }
-    return [];
-  }
-
-  private normalize(list: any[]): ApptRow[] {
-    return (list || []).map((a: any) => {
-      const apptId = Number(a?.appointmentId ?? a?.id ?? 0) || 0;
-
-      const patient = a?.patient || {};
-      const patientId = Number(patient?.patientId ?? a?.patientId ?? 0) || 0;
-
-      const pid = String(
-        patient?.patientIdFormatted ??
-          a?.patientIdFormatted ??
-          (patientId ? `P-${patientId}` : '')
-      ).trim();
-
-      const name =
-        String(patient?.fullName ?? a?.fullName ?? '').trim() || 'NA';
-      const phone =
-        String(patient?.phoneNumber ?? a?.phoneNumber ?? '').trim() || '-';
-
-      const timeFormatted = String(a?.appointmentTimeFormatted ?? '').trim();
-      const timeRaw = String(a?.appointmentTime ?? '').trim();
-      const apptTime = timeFormatted || (timeRaw ? timeRaw.slice(0, 5) : '-');
-
-      const statusText = String(a?.statusText ?? '').trim() || '-';
-
-      return {
-        appointmentId: apptId,
-        patientId,
-        _pid: pid || (patientId ? `P-${patientId}` : '-'),
-        _name: name,
-        _phone: phone,
-        apptTime,
-        statusText,
-        status: String(a?.status ?? ''),
-        raw: a,
-      };
-    });
-  }
-
-  // ---------- KPI + Donut (computed from rows) ----------
-  private computeKpiFromRows() {
-    const counts: Kpi = {
-      today: 0,
-      pending: 0,
-      inPatient: 0,
-      awaiting: 0,
-      outPatient: 0,
-    };
-
-    for (const r of this.rows) {
-      const s = (r.statusText || '').toLowerCase();
-
-      if (s.includes('today')) counts.today++;
-      else if (s.includes('pending')) counts.pending++;
-      else if (s.includes('await')) counts.awaiting++;
-      else if (s.includes('out')) counts.outPatient++;
-      else if (s.includes('inpatient') || s.includes('in patient'))
-        counts.inPatient++;
-    }
-
-    this.kpi = counts;
-  }
-
-  private computeDonut() {
-    const a = this.kpi.today;
-    const b = this.kpi.pending;
-    const c = this.kpi.inPatient;
-    const d = this.kpi.awaiting;
-    const e = this.kpi.outPatient;
-
-    const total = a + b + c + d + e;
-    this.donutTotal = total;
-
-    if (!total) {
-      this.donutAngles = { today: 0, pending: 0, inp: 0, awaiting: 0, out: 0 };
-      return;
-    }
-
-    const toDeg = (v: number) => Math.round((v / total) * 360);
-
-    const da = toDeg(a);
-    const db = toDeg(b);
-    const dc = toDeg(c);
-    const dd = toDeg(d);
-
-    this.donutAngles = {
-      today: da,
-      pending: db,
-      inp: dc,
-      awaiting: dd,
-      out: 360 - (da + db + dc + dd), // rounding fix
-    };
-  }
-
-  // ---------- Weekly (UI-only sample) ----------
-  private buildWeekly() {
-    // Replace later with grouping your real data by weekday if needed
-    const data = [
-      { day: 'Mon', value: 6 },
-      { day: 'Tue', value: 9 },
-      { day: 'Wed', value: 7 },
-      { day: 'Thu', value: 10 },
-      { day: 'Fri', value: 5 },
-      { day: 'Sat', value: 1 },
-      { day: 'Sun', value: 2 },
-    ];
-
-    const max = Math.max(...data.map((x) => x.value), 1);
-    this.weekly = data.map((d) => ({
-      ...d,
-      pct: Math.round((d.value / max) * 100),
-    }));
-  }
-
-  // ---------- actions dropdown ----------
-  openActions(ev: any, row: ApptRow) {
+  // =========================
+  // ACTIONS
+  // =========================
+  openActions(ev: any, row: AppointmentRow) {
     ev?.stopPropagation();
     this.selectedRow = row;
     this.actionEvent = ev;
@@ -302,11 +191,221 @@ export class DashboardPage implements OnInit {
     this.selectedRow = null;
   }
 
-  // ✅ Dashboard row click -> open patient form with prefilled data (edit mode)
-  openPatient(r: ApptRow) {
-    if (!r?.patientId) return;
-    this.router.navigate(['/patients/create'], {
-      queryParams: { patientId: r.patientId },
+  allowedNextStatuses(row: AppointmentRow): number[] {
+    const s = row?.statusCode;
+
+    if (s === AppointmentStatus.Pending)
+      return [AppointmentStatus.InPatient, AppointmentStatus.Cancelled];
+
+    if (s === AppointmentStatus.InPatient)
+      return [AppointmentStatus.AwaitingPayment, AppointmentStatus.Cancelled];
+
+    if (s === AppointmentStatus.AwaitingPayment)
+      return [AppointmentStatus.OutPatient];
+
+    return [];
+  }
+
+  async markStatus(nextStatus: number) {
+    if (!this.VALID_STATUS.has(nextStatus)) {
+      await this.toast(`Invalid status: ${nextStatus}`);
+      return;
+    }
+
+    const selected = this.selectedRow;
+    if (!selected?.appointmentId) {
+      await this.toast('No appointment selected');
+      return;
+    }
+
+    const apptId = selected.appointmentId;
+
+    // re-find live row (avoid stale object reference)
+    const row = this.rows.find((x) => x.appointmentId === apptId);
+    if (!row) {
+      await this.toast('Appointment not found');
+      this.closeActions();
+      return;
+    }
+
+    if (row.statusCode === nextStatus) {
+      await this.toast('Already in same status');
+      this.closeActions();
+      return;
+    }
+
+    this.closeActions();
+    this.isLoading = true;
+
+    this.api
+      .updateStatus(apptId, nextStatus) // ✅ Swagger: { status }
+      .pipe(finalize(() => (this.isLoading = false)))
+      .subscribe({
+        next: async (updated: any) => {
+          // Trust server response
+          const newCode = Number(updated?.status ?? nextStatus);
+          row.statusCode = newCode;
+          row.statusText = String(updated?.statusText || this.statusLabel(newCode));
+
+          this.cards = this.buildCards(this.rows);
+
+          // re-apply current search filter
+          this.applySearchOnly(this.lastAppliedSearch);
+
+          await this.toast('Status updated');
+          await this.loadToday(true);
+        },
+        error: async (err) => {
+          await this.toast(
+            err?.error?.message ||
+              err?.error?.title ||
+              err?.message ||
+              'Failed to update status'
+          );
+        },
+      });
+  }
+
+  // =========================
+  // UI HELPERS
+  // =========================
+  statusLabel(code: number): string {
+    if (code === AppointmentStatus.Pending) return 'Pending';
+    if (code === AppointmentStatus.InPatient) return 'In Patient';
+    if (code === AppointmentStatus.AwaitingPayment) return 'Awaiting Payment';
+    if (code === AppointmentStatus.OutPatient) return 'Out Patient';
+    if (code === AppointmentStatus.Cancelled) return 'Cancelled';
+    return 'Unknown';
+  }
+
+  statusPillClass(code: number): string {
+    if (code === AppointmentStatus.InPatient) return 'pill pill--blue';
+    if (code === AppointmentStatus.OutPatient) return 'pill pill--green';
+    if (code === AppointmentStatus.AwaitingPayment) return 'pill pill--amber';
+    if (code === AppointmentStatus.Pending) return 'pill pill--gray';
+    if (code === AppointmentStatus.Cancelled) return 'pill pill--red';
+    return 'pill pill--gray';
+  }
+
+  // =========================
+  // MAPPING
+  // =========================
+  private extractList(res: any): any[] {
+    if (!res) return [];
+    if (Array.isArray(res)) return res;
+
+    const candidates = [
+      res?.appointments,
+      res?.items,
+      res?.data,
+      res?.result,
+      res?.data?.appointments,
+      res?.data?.items,
+      res?.result?.items,
+    ];
+
+    for (const c of candidates) if (Array.isArray(c)) return c;
+    return [];
+  }
+
+  private mapRows(list: any[]): AppointmentRow[] {
+    return (list || []).map((x: any) => {
+      const patient = x?.patient || {};
+
+      const appointmentId = this.toNum(x?.appointmentId ?? x?.id);
+      const patientId = this.toNum(patient?.patientId ?? x?.patientId);
+
+      const pid = String(
+        patient?.patientIdFormatted ??
+          x?.patientIdFormatted ??
+          x?.pid ??
+          (patientId ? `PID${String(patientId).padStart(3, '0')}` : '-')
+      ).trim();
+
+      const name = String(patient?.fullName ?? x?.fullName ?? x?.patientName ?? 'NA').trim();
+      const phone = String(patient?.phoneNumber ?? x?.phoneNumber ?? x?.mobile ?? '-').trim();
+
+      const timeText =
+        String(x?.appointmentTimeFormatted ?? '').trim() ||
+        this.timeFromRaw(x?.appointmentTime);
+
+      const statusCode = this.toNum(x?.status);
+      const statusText = String(x?.statusText ?? '').trim() || this.statusLabel(statusCode);
+
+      return {
+        appointmentId,
+        patientId,
+        pid,
+        name,
+        phone,
+        timeText,
+        statusCode,
+        statusText,
+        raw: x,
+      };
     });
+  }
+
+  private buildCards(rows: AppointmentRow[]): DashboardCards {
+    const c: DashboardCards = {
+      today: rows.length,
+      pending: 0,
+      inPatient: 0,
+      awaitingPayment: 0,
+      outPatient: 0,
+      cancelled: 0,
+    };
+
+    for (const r of rows) {
+      if (r.statusCode === AppointmentStatus.Pending) c.pending++;
+      else if (r.statusCode === AppointmentStatus.InPatient) c.inPatient++;
+      else if (r.statusCode === AppointmentStatus.AwaitingPayment) c.awaitingPayment++;
+      else if (r.statusCode === AppointmentStatus.OutPatient) c.outPatient++;
+      else if (r.statusCode === AppointmentStatus.Cancelled) c.cancelled++;
+    }
+
+    return c;
+  }
+
+  // =========================
+  // DATE/TIME LOCAL SAFE
+  // =========================
+  private todayISO_Local(): string {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  private toISODate_LocalSafe(v: any): string {
+    if (!v) return '';
+    const d = new Date(v);
+    if (isNaN(d.getTime())) return '';
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  private timeFromRaw(v: any): string {
+    const s = String(v ?? '').trim();
+    if (!s) return '-';
+    if (s.includes(':')) return s.slice(0, 5);
+    return s;
+  }
+
+  private toNum(v: any): number {
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  private async toast(message: string) {
+    const t = await this.toastCtrl.create({
+      message,
+      duration: 2500,
+      position: 'top',
+    });
+    t.present();
   }
 }

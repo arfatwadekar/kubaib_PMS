@@ -4,19 +4,17 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { RouterModule, Routes } from '@angular/router';
 
-import { NgxChartsModule } from '@swimlane/ngx-charts';  // ✅ add
-import { DashboardPage } from './dashboard.page';
+import { SearchAppointmentPage } from './search-appointment.page';
 
-const routes: Routes = [{ path: '', component: DashboardPage }];
+const routes: Routes = [{ path: '', component: SearchAppointmentPage }];
 
 @NgModule({
-  declarations: [DashboardPage],
+  declarations: [SearchAppointmentPage],
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,
-    NgxChartsModule, // ✅ add
     RouterModule.forChild(routes),
   ],
 })
-export class DashboardPageModule {}
+export class SearchAppointmentPageModule {}

@@ -1,0 +1,69 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Search Appointments</ion-title>
+
+   <ion-segment
+  slot="end"
+  [value]="viewMode"
+  (ionChange)="onSegmentChange($event)"
+>
+  <ion-segment-button value="queue">
+    <ion-label>Queue</ion-label>
+  </ion-segment-button>
+  <ion-segment-button value="today">
+    <ion-label>Today</ion-label>
+  </ion-segment-button>
+</ion-segment>
+
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page">
+  <ion-refresher slot="fixed" (ionRefresh)="load($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
+  <div class="card filters">
+    <ion-input
+      placeholder="Search patient / PID / phone"
+      [(ngModel)]="searchText"
+      (ionInput)="applyFilter()"
+    ></ion-input>
+
+    <ion-select [(ngModel)]="statusFilter" (ionChange)="applyFilter()">
+      <ion-select-option *ngFor="let s of statusOptions" [value]="s.value">
+        {{ s.label }}
+      </ion-select-option>
+    </ion-select>
+  </div>
+
+  <div *ngIf="loading" class="card">Loading…</div>
+
+  <div class="card list" *ngFor="let r of filtered; trackBy: trackById">
+    <b>{{ r.patient.fullName }}</b>
+    <div>{{ r.appointmentTimeFormatted }} | {{ r.statusText }}</div>
+
+    <ion-button size="small" (click)="r._editing = !r._editing">Edit</ion-button>
+
+    <ion-select
+      placeholder="Change Status"
+      (ionChange)="confirmStatus(r, $event.detail.value)"
+    >
+      <ion-select-option *ngFor="let s of statusOptions" [value]="s.value" [disabled]="s.value === 0">
+        {{ s.label }}
+      </ion-select-option>
+    </ion-select>
+
+    <div *ngIf="r._editing">
+      <ion-input type="date" [(ngModel)]="r._dateDraft"></ion-input>
+      <ion-input type="time" [(ngModel)]="r._timeDraft"></ion-input>
+    <ion-textarea
+  autoGrow="true"
+  [(ngModel)]="r._remarkDraft"
+  placeholder="Optional remark"
+></ion-textarea>
+
+      <ion-button (click)="saveEdit(r)">Save</ion-button>
+    </div>
+  </div>
+</ion-content>

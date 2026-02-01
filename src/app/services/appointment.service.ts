@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../environments/environment';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class AppointmentService {
@@ -68,5 +68,23 @@ export class AppointmentService {
   // PUT /api/Appointment/{id}/restore
   restoreAppointment(id: number): Observable<any> {
     return this.http.put(`${this.base}/api/Appointment/${id}/restore`, {});
+  }
+
+  
+  // ✅ active appointment finder
+  getActiveAppointmentByPatient(patientId: number) {
+    return this.getAppointmentsByPatient(patientId).pipe(
+      map((list) => {
+        const arr = Array.isArray(list) ? list : [];
+
+        // active = not OutPatient(4) and not Cancelled(5)
+        const active = arr.find((a) => {
+          const s = Number(a?.status);
+          return s !== 4 && s !== 5;
+        });
+
+        return active || arr[0] || null;
+      })
+    );
   }
 }

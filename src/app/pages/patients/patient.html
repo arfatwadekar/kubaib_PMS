@@ -1,0 +1,159 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Patients</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="resetAll()">Reset</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- ================= ID BAR (debug / flow visibility) ================= -->
+  <div class="ids">
+    <span>PID: <b>{{ ctx.pid || '-' }}</b></span>
+    <span>patientId: <b>{{ ctx.patientId || '-' }}</b></span>
+    <span>appointmentId: <b>{{ ctx.appointmentId || '-' }}</b></span>
+    <span>clinicalCaseId: <b>{{ ctx.clinicalCaseId || '-' }}</b></span>
+    <span>followupId: <b>{{ ctx.followupId || '-' }}</b></span>
+    <span>paymentId: <b>{{ ctx.paymentId || '-' }}</b></span>
+  </div>
+
+  <!-- ================= STEP TABS ================= -->
+  <div class="steps">
+    <button
+      class="step"
+      [class.active]="ctx.activeStep === 's1'"
+      [class.done]="ctx.steps.s1 === 'done'"
+      (click)="go('s1')"
+    >
+      1. Preliminary
+    </button>
+
+    <button
+      class="step"
+      [disabled]="ctx.steps.s2 === 'locked'"
+      [class.active]="ctx.activeStep === 's2'"
+      [class.done]="ctx.steps.s2 === 'done'"
+      (click)="go('s2')"
+    >
+      2. Medical
+    </button>
+
+    <button
+      class="step"
+      [disabled]="ctx.steps.s3 === 'locked'"
+      [class.active]="ctx.activeStep === 's3'"
+      [class.done]="ctx.steps.s3 === 'done'"
+      (click)="go('s3')"
+    >
+      3. Follow-up
+    </button>
+
+    <button
+      class="step"
+      [disabled]="ctx.steps.s4 === 'locked'"
+      [class.active]="ctx.activeStep === 's4'"
+      [class.done]="ctx.steps.s4 === 'done'"
+      (click)="go('s4')"
+    >
+      4. Payment
+    </button>
+  </div>
+
+  <!-- ================= MAIN CARD ================= -->
+  <div class="card">
+
+    <!-- ---------- STEP 1 ---------- -->
+    <ng-container *ngIf="ctx.activeStep === 's1'">
+      <h2>Preliminary Information</h2>
+
+      <label>Full Name*</label>
+      <input [(ngModel)]="s1.fullName" placeholder="Patient full name" />
+
+      <label>Phone*</label>
+      <input [(ngModel)]="s1.phone" placeholder="Phone number" />
+
+      <label>Gender</label>
+      <select [(ngModel)]="s1.gender">
+        <option value="">Select</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label>DOB</label>
+      <input type="date" [(ngModel)]="s1.dob" />
+
+      <label>Address</label>
+      <input [(ngModel)]="s1.address" placeholder="Address" />
+
+      <ion-button expand="block" [disabled]="loading" (click)="saveS1()">
+        Save & Next
+      </ion-button>
+    </ng-container>
+
+    <!-- ---------- STEP 2 ---------- -->
+    <ng-container *ngIf="ctx.activeStep === 's2'">
+      <h2>Medical Examination</h2>
+
+      <label>Chief Complaint</label>
+      <input [(ngModel)]="s2.chiefComplaint" />
+
+      <label>Associated Complaint</label>
+      <input [(ngModel)]="s2.associatedComplaint" />
+
+      <label>Past History</label>
+      <input [(ngModel)]="s2.pastHistory" />
+
+      <div class="actions">
+        <ion-button fill="outline" (click)="go('s1')">Back</ion-button>
+        <ion-button [disabled]="loading" (click)="saveS2()">Save & Next</ion-button>
+      </div>
+    </ng-container>
+
+    <!-- ---------- STEP 3 ---------- -->
+    <ng-container *ngIf="ctx.activeStep === 's3'">
+      <h2>Follow-up</h2>
+
+      <label>Next Visit Date</label>
+      <input type="date" [(ngModel)]="s3.nextVisitDate" />
+
+      <label>Notes</label>
+      <input [(ngModel)]="s3.notes" />
+
+      <div class="actions">
+        <ion-button fill="outline" (click)="go('s2')">Back</ion-button>
+        <ion-button [disabled]="loading" (click)="saveS3()">Save & Next</ion-button>
+      </div>
+    </ng-container>
+
+    <!-- ---------- STEP 4 ---------- -->
+    <ng-container *ngIf="ctx.activeStep === 's4'">
+      <h2>Payment</h2>
+
+      <label>Amount*</label>
+      <input type="number" [(ngModel)]="s4.amount" />
+
+      <label>Mode*</label>
+      <select [(ngModel)]="s4.mode">
+        <option value="">Select</option>
+        <option value="Cash">Cash</option>
+        <option value="UPI">UPI</option>
+        <option value="Card">Card</option>
+      </select>
+
+      <label>Remarks</label>
+      <input [(ngModel)]="s4.remarks" />
+
+      <div class="actions">
+        <ion-button fill="outline" (click)="go('s3')">Back</ion-button>
+        <ion-button [disabled]="loading" (click)="saveS4()">Finish</ion-button>
+      </div>
+    </ng-container>
+
+    <ion-spinner *ngIf="loading"></ion-spinner>
+
+  </div>
+</ion-content>

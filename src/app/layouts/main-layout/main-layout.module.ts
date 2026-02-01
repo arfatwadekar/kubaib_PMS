@@ -23,7 +23,7 @@ const routes: Routes = [
       {
         path: 'patients/list',
         loadChildren: () =>
-          import('../../pages/patients/patient-list/patient-list.module').then(
+          import('../../pages/patient-list/patient-list.module').then(
             (m) => m.PatientListPageModule,
           ),
       },
@@ -54,6 +54,17 @@ const routes: Routes = [
             (m) => m.FollowUpPageModule
           ),
       },
+
+       // ✅ Everyone (Doctor + Receptionist)
+      {
+        path: 'patients',
+        loadChildren: () =>
+          import('../../pages/patients/patient.module').then(
+            (m) => m.PatientPageModule,
+          ),
+      },
+      // src/app/app-routing.module.ts (snippet)
+
       // {
       //   path: 'appointments/create',
       //   loadChildren: () =>
@@ -69,6 +80,17 @@ const routes: Routes = [
         loadChildren: () =>
           import('../../pages/coming-soon/coming-soon.module').then(
             (m) => m.ComingSoonModule,
+          ),
+        canActivate: [RoleGuard],
+        data: { roles: ['Doctor', 'Receptionist'] },
+      },
+
+      
+      {
+        path: 'SearchAppointments',
+        loadChildren: () =>
+          import('../../pages/search-appointment/search-appointment.module').then(
+            (m) => m.SearchAppointmentPageModule,
           ),
         canActivate: [RoleGuard],
         data: { roles: ['Doctor', 'Receptionist'] },
