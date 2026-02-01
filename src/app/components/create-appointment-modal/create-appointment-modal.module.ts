@@ -1,7 +1,7 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { CreateAppointmentModalComponent } from './create-appointment-modal.component';
 
@@ -11,6 +11,8 @@ import { CreateAppointmentModalComponent } from './create-appointment-modal.comp
     CommonModule,
     IonicModule,            // ✅ ion-* tags
     ReactiveFormsModule,    // ✅ formGroup/formControlName
+     FormsModule,
+
   ],
   exports: [CreateAppointmentModalComponent],
 })

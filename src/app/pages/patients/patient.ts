@@ -1,7 +1,60 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { FormBuilder, Validators } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { AlertController, ToastController } from '@ionic/angular';
+import { Subscription } from 'rxjs';
+import { PatientService } from 'src/app/services/patient.service';
 
-type StepKey = 's1' | 's2' | 's3' | 's4';
-type StepStatus = 'locked' | 'active' | 'done';
+type TabKey = 'prelim' | 'medical' | 'followup' | 'payment' | 'identity';
+type UserRole = 'Doctor' | 'Receptionist';
+
+function onlyDigits(v: string) {
+  return (v || '').replace(/\D/g, '');
+}
+
+function splitFullName(full: string) {
+  const s = (full || '').trim().replace(/\s+/g, ' ');
+  if (!s) return { firstName: 'NA', lastName: 'NA' };
+  const parts = s.split(' ');
+  if (parts.length === 1) return { firstName: parts[0], lastName: 'NA' };
+  return { firstName: parts[0], lastName: parts.slice(1).join(' ') || 'NA' };
+}
+
+function toIso(dateOnlyOrIso: string): string | null {
+  const s = (dateOnlyOrIso || '').toString().trim();
+  if (!s) return null;
+  if (s.includes('T')) return s;
+
+  const [y, m, d] = s.split('-').map(Number);
+  if (!y) return null;
+  return new Date(Date.UTC(y, (m || 1) - 1, d || 1)).toISOString();
+}
+
+function toDateInput(isoOrDateOrYear: any): string {
+  const s = (isoOrDateOrYear ?? '').toString().trim();
+  if (!s) return '';
+  if (/^\d{4}$/.test(s)) return s;
+  if (s.includes('T')) return s.slice(0, 10);
+  return s;
+}
+
+function nullIfBlank(v: any): string | null {
+  const s = (v ?? '').toString().trim();
+  return s ? s : null;
+}
+
+function nullIfDigitsBlank(v: any, maxLen: number): string | null {
+  const d = onlyDigits((v ?? '').toString()).slice(0, maxLen);
+  return d ? d : null;
+}
+
+function normalizeMaritalSince(v: any): string | null {
+  const s = (v ?? '').toString().trim();
+  if (!s) return null;
+  if (/^\d{4}$/.test(s)) return s;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return toIso(s);
+  return s;
+}
 
 @Component({
   selector: 'app-patient',
@@ -9,195 +62,404 @@ type StepStatus = 'locked' | 'active' | 'done';
   styleUrls: ['./patient.scss'],
   standalone: false,
 })
-export class PatientPage implements OnInit {
+export class PatientPage implements OnInit, OnDestroy {
+  // =====================
+  // ROLE + TABS
+  // =====================
+  role: UserRole = 'Receptionist';
+  activeTab: TabKey = 'prelim';
 
+  // =====================
+  // PRELIM FORM STATE
+  // =====================
   loading = false;
+  isEditMode = false;
+  patientId: number | null = null;
 
-  // ===============================
-  // FLOW CONTEXT (IDs + step state)
-  // ===============================
-  ctx = {
-    patientId: null as number | null,
-    pid: '',
-    appointmentId: null as number | null,
-    clinicalCaseId: null as number | null,
-    followupId: null as number | null,
-    paymentId: null as number | null,
+  private currentPatient: any = null;
+  private sub = new Subscription();
 
-    activeStep: 's1' as StepKey,
-    steps: {
-      s1: 'active' as StepStatus,
-      s2: 'locked' as StepStatus,
-      s3: 'locked' as StepStatus,
-      s4: 'locked' as StepStatus,
-    },
-  };
+  form = this.fb.group({
+    fullName: ['', [Validators.required, Validators.minLength(2)]],
+    gender: ['Male', [Validators.required]],
+    dateOfBirth: ['', [Validators.required]],
+    phoneNumber: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
 
-  // ===============================
-  // STEP FORM MODELS (DEMO)
-  // ===============================
-  s1 = {
-    fullName: '',
-    phone: '',
-    gender: '',
-    dob: '',
-    address: '',
-  };
+    alternateNumber: [''],
+    email: [''],
+    address: [''],
+    city: [''],
+    state: [''],
+    pinCode: [''],
 
-  s2 = {
-    chiefComplaint: '',
-    associatedComplaint: '',
-    pastHistory: '',
-  };
+    maritalStatus: ['Single'],
+    maritalStatusSince: [''],
 
-  s3 = {
-    nextVisitDate: '',
-    notes: '',
-  };
+    religion: [''],
+    diet: [''],
+    education: [''],
+    occupation: [''],
 
-  s4 = {
-    amount: 0,
-    mode: '',
-    remarks: '',
-  };
+    aadharNumber: [''],
+    panNumber: [''],
+    referredBy: [''],
+  });
 
-  constructor() {}
+  constructor(
+    private fb: FormBuilder,
+    private patient: PatientService,
+    private toastCtrl: ToastController,
+    private alertCtrl: AlertController,
+    private route: ActivatedRoute
+  ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    // ✅ ROLE must come from localStorage
+    this.loadRoleFromStorage();
+    this.ensureAllowedTab();
 
-  // ===============================
-  // STEP NAVIGATION
-  // ===============================
-  go(step: StepKey): void {
-    if (this.ctx.steps[step] === 'locked') return;
-    this.ctx.activeStep = step;
-  }
+    // if opened with patientId => edit mode
+ this.sub.add(
+  this.route.queryParams.subscribe((qp) => {
+    // ✅ always refresh role (in case login changed)
+    this.loadRoleFromStorage();
 
-  private markDone(step: StepKey): void {
-    this.ctx.steps[step] = 'done';
-  }
+    const id = Number(qp?.['patientId'] ?? 0) || 0;
 
-  private unlock(step: StepKey): void {
-    if (this.ctx.steps[step] === 'locked') {
-      this.ctx.steps[step] = 'active';
+    // ✅ requested tab from dashboard
+    const requestedTab = String(qp?.['tab'] || '').trim() as TabKey;
+
+    // if tab is valid and allowed, open it; else fallback
+    if (requestedTab && this.isTabAllowed(requestedTab)) {
+      this.activeTab = requestedTab;
+    } else {
+      this.activeTab = 'prelim';
     }
+
+    if (id > 0) {
+      this.isEditMode = true;
+      this.patientId = id;
+      this.loadPatient(id);
+    } else {
+      this.isEditMode = false;
+      this.patientId = null;
+      this.currentPatient = null;
+      this.resetForm();
+    }
+  })
+);
+
   }
 
-  resetAll(): void {
-    this.ctx = {
-      patientId: null,
-      pid: '',
-      appointmentId: null,
-      clinicalCaseId: null,
-      followupId: null,
-      paymentId: null,
-      activeStep: 's1',
-      steps: { s1: 'active', s2: 'locked', s3: 'locked', s4: 'locked' },
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
+  }
+
+  // =====================
+  // ROLE LOAD
+  // =====================
+  private loadRoleFromStorage() {
+    const raw = (localStorage.getItem('mhc_role') || '').trim().toLowerCase();
+    this.role = raw === 'doctor' ? 'Doctor' : 'Receptionist';
+  }
+
+  // =====================
+  // TAB PERMISSIONS
+  // =====================
+  isTabAllowed(tab: TabKey): boolean {
+    if (this.role === 'Doctor') return true; // ✅ doctor all access
+    return tab === 'prelim' || tab === 'payment' || tab === 'identity'; // ✅ receptionist limited
+  }
+
+  isTabDisabled(tab: TabKey): boolean {
+    return !this.isTabAllowed(tab);
+  }
+
+  private ensureAllowedTab() {
+    if (!this.isTabAllowed(this.activeTab)) this.activeTab = 'prelim';
+  }
+
+  // =====================
+  // TAB ACTIONS
+  // =====================
+  onSegmentChange(ev: any): void {
+    const nextTab = (ev?.detail?.value || 'prelim') as TabKey;
+
+    if (!this.isTabAllowed(nextTab)) {
+      this.toast('Access denied');
+      // revert visual selection
+      setTimeout(() => (this.activeTab = this.activeTab), 0);
+      return;
+    }
+
+    this.activeTab = nextTab;
+  }
+
+  goTab(tab: TabKey): void {
+    if (!this.isTabAllowed(tab)) {
+      this.toast('Access denied');
+      return;
+    }
+    this.activeTab = tab;
+  }
+
+  navigateToTab(tab: TabKey): void {
+    this.goTab(tab);
+  }
+
+  // =====================
+  // INPUT HELPERS
+  // =====================
+  onPhoneInput() {
+    const cleaned = onlyDigits(this.form.value.phoneNumber || '').slice(0, 10);
+    this.form.patchValue({ phoneNumber: cleaned }, { emitEvent: false });
+  }
+
+  onAltPhoneInput() {
+    const cleaned = onlyDigits(this.form.value.alternateNumber || '').slice(0, 10);
+    this.form.patchValue({ alternateNumber: cleaned }, { emitEvent: false });
+  }
+
+  onAadharInput() {
+    const cleaned = onlyDigits(this.form.value.aadharNumber || '').slice(0, 12);
+    this.form.patchValue({ aadharNumber: cleaned }, { emitEvent: false });
+  }
+
+  // =====================
+  // LOAD PATIENT
+  // =====================
+  private loadPatient(id: number) {
+    this.loading = true;
+
+    this.patient.getPatientById(id).subscribe({
+      next: (res: any) => {
+        const p = res?.data ?? res;
+
+        this.currentPatient = p;
+        this.resetForm();
+
+        const fullName =
+          `${String(p?.firstName ?? '').trim()} ${String(p?.lastName ?? '').trim()}`.trim() ||
+          String(p?.fullName ?? '').trim();
+
+        this.form.patchValue({
+          fullName: fullName || '',
+          gender: p?.gender || 'Male',
+          dateOfBirth: toDateInput(p?.dateOfBirth),
+          phoneNumber: String(p?.phoneNumber ?? '').trim(),
+          alternateNumber: String(p?.alternateNumber ?? '').trim(),
+          email: String(p?.email ?? '').trim(),
+          address: String(p?.address ?? '').trim(),
+          city: String(p?.city ?? '').trim(),
+          state: String(p?.state ?? '').trim(),
+          pinCode: String(p?.pinCode ?? '').trim(),
+
+          maritalStatus: p?.maritalStatus || 'Single',
+          maritalStatusSince: toDateInput(p?.maritalStatusSince),
+
+          religion: String(p?.religion ?? '').trim(),
+          diet: String(p?.diet ?? '').trim(),
+          education: String(p?.education ?? '').trim(),
+          occupation: String(p?.occupation ?? '').trim(),
+
+          aadharNumber: String(p?.aadharNumber ?? '').trim(),
+          panNumber: String(p?.panNumber ?? '').trim(),
+          referredBy: String(p?.referredBy ?? '').trim(),
+        });
+      },
+      error: (err) =>
+        this.toast(err?.error?.message || err?.message || 'Failed to load patient'),
+      complete: () => (this.loading = false),
+    });
+  }
+
+  // =====================
+  // SUBMIT
+  // =====================
+  submit() {
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      this.toast('Full Name, DOB and Phone Number (10 digits) are required.');
+      return;
+    }
+
+    const phone = onlyDigits(this.form.value.phoneNumber || '').slice(0, 10);
+    if (phone.length !== 10) {
+      this.toast('Phone Number must be exactly 10 digits.');
+      return;
+    }
+
+    this.loading = true;
+
+    // update
+    if (this.isEditMode && this.patientId) {
+      const payload = this.buildUpdatePayload();
+      this.patient.updatePatient(this.patientId, payload).subscribe({
+        next: async () => {
+          this.loading = false;
+          await this.openSuccessModalAndReload();
+        },
+        error: (err) => {
+          this.loading = false;
+          this.toast(err?.error?.message || err?.message || 'Update Patient failed');
+        },
+      });
+      return;
+    }
+
+    // create
+    const payload = this.buildCreatePayload();
+    this.patient.createPatient(payload).subscribe({
+      next: async () => {
+        this.loading = false;
+        await this.toast('Patient created successfully.');
+        this.resetForm();
+      },
+      error: (err) => {
+        this.loading = false;
+        this.toast(err?.error?.message || err?.message || 'Create Patient failed');
+      },
+    });
+  }
+
+  private buildCreatePayload() {
+    const v = this.form.value;
+    const { firstName, lastName } = splitFullName(v.fullName || '');
+
+    const phone = onlyDigits(v.phoneNumber || '').slice(0, 10);
+    const alt = onlyDigits(v.alternateNumber || '').slice(0, 10);
+
+    return {
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      dateOfBirth: toIso(v.dateOfBirth || ''),
+      gender: (v.gender || 'Male').toString(),
+
+      phoneNumber: phone,
+      alternateNumber: alt.length === 10 ? alt : phone,
+
+      email: nullIfBlank(v.email),
+      address: nullIfBlank(v.address),
+      city: nullIfBlank(v.city),
+      state: nullIfBlank(v.state),
+      pinCode: nullIfBlank(v.pinCode),
+
+      maritalStatus: nullIfBlank(v.maritalStatus) ?? 'Single',
+      maritalStatusSince: normalizeMaritalSince(v.maritalStatusSince),
+
+      religion: nullIfBlank(v.religion),
+      diet: nullIfBlank(v.diet),
+      education: nullIfBlank(v.education),
+      occupation: nullIfBlank(v.occupation),
+
+      aadharNumber: nullIfDigitsBlank(v.aadharNumber, 12),
+      panNumber: nullIfBlank(v.panNumber),
+      referredBy: nullIfBlank(v.referredBy),
     };
-
-    this.s1 = { fullName: '', phone: '', gender: '', dob: '', address: '' };
-    this.s2 = { chiefComplaint: '', associatedComplaint: '', pastHistory: '' };
-    this.s3 = { nextVisitDate: '', notes: '' };
-    this.s4 = { amount: 0, mode: '', remarks: '' };
   }
 
-  // ===============================
-  // STEP 1: PRELIMINARY
-  // Create patientId + pid
-  // Create appointmentId (today visit)
-  // ===============================
-  saveS1(): void {
-    if (!this.s1.fullName || !this.s1.phone) {
-      alert('Name and Phone are required');
-      return;
-    }
+  private buildUpdatePayload() {
+    const base = this.currentPatient || {};
+    const v = this.form.value;
 
-    this.loading = true;
+    const { firstName, lastName } = splitFullName(v.fullName || '');
+    const phone = onlyDigits(v.phoneNumber || '').slice(0, 10);
+    const alt = onlyDigits(v.alternateNumber || '').slice(0, 10);
 
-    // ---- DEMO: create patient ----
-    setTimeout(() => {
-      this.ctx.patientId = this.randId();
-      this.ctx.pid = 'P-' + this.randId();
+    return {
+      patientsId: base?.patientsId ?? this.patientId,
+      pid: base?.pid ?? null,
 
-      // ---- DEMO: create appointment ----
-      this.ctx.appointmentId = this.randId();
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      dateOfBirth: toIso(v.dateOfBirth || ''),
+      gender: (v.gender || base?.gender || 'Male').toString(),
 
-      this.markDone('s1');
-      this.unlock('s2');
-      this.ctx.activeStep = 's2';
-      this.loading = false;
-    }, 500);
+      phoneNumber: phone,
+      alternateNumber: alt.length === 10 ? alt : phone,
+
+      email: nullIfBlank(v.email),
+      address: nullIfBlank(v.address),
+      city: nullIfBlank(v.city),
+      state: nullIfBlank(v.state),
+      pinCode: nullIfBlank(v.pinCode),
+
+      maritalStatus: nullIfBlank(v.maritalStatus) ?? base?.maritalStatus ?? 'Single',
+      maritalStatusSince: normalizeMaritalSince(v.maritalStatusSince),
+
+      religion: nullIfBlank(v.religion),
+      diet: nullIfBlank(v.diet),
+      education: nullIfBlank(v.education),
+      occupation: nullIfBlank(v.occupation),
+
+      aadharNumber: nullIfDigitsBlank(v.aadharNumber, 12),
+      panNumber: nullIfBlank(v.panNumber),
+      referredBy: nullIfBlank(v.referredBy),
+    };
   }
 
-  // ===============================
-  // STEP 2: MEDICAL
-  // Create clinicalCaseId
-  // ===============================
-  saveS2(): void {
-    if (!this.ctx.patientId || !this.ctx.appointmentId) {
-      alert('Patient not created yet');
-      return;
-    }
+  private async openSuccessModalAndReload() {
+    const alert = await this.alertCtrl.create({
+      header: 'Success',
+      message: 'Patient details updated successfully.',
+      backdropDismiss: false,
+      buttons: [
+        {
+          text: 'OK',
+          handler: () => {
+            if (this.patientId) this.loadPatient(this.patientId);
+          },
+        },
+      ],
+    });
 
-    this.loading = true;
-
-    setTimeout(() => {
-      this.ctx.clinicalCaseId = this.randId();
-
-      this.markDone('s2');
-      this.unlock('s3');
-      this.ctx.activeStep = 's3';
-      this.loading = false;
-    }, 400);
+    await alert.present();
   }
 
-  // ===============================
-  // STEP 3: FOLLOW-UP
-  // Create followupId
-  // ===============================
-  saveS3(): void {
-    if (!this.ctx.clinicalCaseId) {
-      alert('Medical examination pending');
-      return;
-    }
-
-    this.loading = true;
-
-    setTimeout(() => {
-      this.ctx.followupId = this.randId();
-
-      this.markDone('s3');
-      this.unlock('s4');
-      this.ctx.activeStep = 's4';
-      this.loading = false;
-    }, 400);
+  private resetForm() {
+    this.form.reset({
+      fullName: '',
+      gender: 'Male',
+      dateOfBirth: '',
+      phoneNumber: '',
+      alternateNumber: '',
+      email: '',
+      address: '',
+      city: '',
+      state: '',
+      pinCode: '',
+      maritalStatus: 'Single',
+      maritalStatusSince: '',
+      religion: '',
+      diet: '',
+      education: '',
+      occupation: '',
+      aadharNumber: '',
+      panNumber: '',
+      referredBy: '',
+    });
   }
 
-  // ===============================
-  // STEP 4: PAYMENT
-  // Create paymentId
-  // ===============================
-  saveS4(): void {
-    if (!this.s4.amount || !this.s4.mode) {
-      alert('Amount and payment mode required');
-      return;
-    }
-
-    this.loading = true;
-
-    setTimeout(() => {
-      this.ctx.paymentId = this.randId();
-      this.markDone('s4');
-      this.loading = false;
-
-      alert('✅ Patient flow completed (Demo)');
-    }, 400);
+  private async toast(message: string) {
+    const t = await this.toastCtrl.create({
+      message,
+      duration: 2000,
+      position: 'top',
+    });
+    await t.present();
   }
 
-  // ===============================
-  // UTIL
-  // ===============================
-  private randId(): number {
-    return Math.floor(10000 + Math.random() * 90000);
+  // =====================
+  // AUTO FILL (demo)
+  // =====================
+  autoFill() {
+    this.form.patchValue({
+      fullName: 'Test Patient',
+      gender: 'Male',
+      dateOfBirth: '1995-01-01',
+      phoneNumber: '9999999999',
+      city: 'Mumbai',
+      state: 'MH',
+    });
   }
 }

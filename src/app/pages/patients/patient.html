@@ -1,159 +1,289 @@
 <ion-header>
   <ion-toolbar>
-    <ion-title>Patients</ion-title>
-
-    <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="resetAll()">Reset</ion-button>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
     </ion-buttons>
+
+    <ion-title>Patient</ion-title>
+
+    <ion-segment
+      slot="end"
+      [value]="activeTab"
+      (ionChange)="onSegmentChange($event)"
+      scrollable="true"
+    >
+      <ion-segment-button value="prelim" [disabled]="isTabDisabled('prelim')">
+        <ion-label>PRELIMINARY</ion-label>
+      </ion-segment-button>
+
+      <ion-segment-button value="medical" [disabled]="isTabDisabled('medical')">
+        <ion-label>MEDICAL</ion-label>
+      </ion-segment-button>
+
+      <ion-segment-button value="followup" [disabled]="isTabDisabled('followup')">
+        <ion-label>FOLLOW UP</ion-label>
+      </ion-segment-button>
+
+      <ion-segment-button value="payment" [disabled]="isTabDisabled('payment')">
+        <ion-label>PAYMENT</ion-label>
+      </ion-segment-button>
+
+      <ion-segment-button value="identity" [disabled]="isTabDisabled('identity')">
+        <ion-label>IDENTITY</ion-label>
+      </ion-segment-button>
+    </ion-segment>
   </ion-toolbar>
 </ion-header>
 
+<!-- ✅ Only ONE ion-content for whole page -->
 <ion-content class="ion-padding">
 
-  <!-- ================= ID BAR (debug / flow visibility) ================= -->
-  <div class="ids">
-    <span>PID: <b>{{ ctx.pid || '-' }}</b></span>
-    <span>patientId: <b>{{ ctx.patientId || '-' }}</b></span>
-    <span>appointmentId: <b>{{ ctx.appointmentId || '-' }}</b></span>
-    <span>clinicalCaseId: <b>{{ ctx.clinicalCaseId || '-' }}</b></span>
-    <span>followupId: <b>{{ ctx.followupId || '-' }}</b></span>
-    <span>paymentId: <b>{{ ctx.paymentId || '-' }}</b></span>
-  </div>
+  <!-- ==========================
+       ✅ PRELIM TAB
+  =========================== -->
+  <div *ngIf="activeTab === 'prelim'">
 
-  <!-- ================= STEP TABS ================= -->
-  <div class="steps">
-    <button
-      class="step"
-      [class.active]="ctx.activeStep === 's1'"
-      [class.done]="ctx.steps.s1 === 'done'"
-      (click)="go('s1')"
-    >
-      1. Preliminary
-    </button>
+    <div class="page-title">
+      <div class="h1">Preliminary Information</div>
 
-    <button
-      class="step"
-      [disabled]="ctx.steps.s2 === 'locked'"
-      [class.active]="ctx.activeStep === 's2'"
-      [class.done]="ctx.steps.s2 === 'done'"
-      (click)="go('s2')"
-    >
-      2. Medical
-    </button>
-
-    <button
-      class="step"
-      [disabled]="ctx.steps.s3 === 'locked'"
-      [class.active]="ctx.activeStep === 's3'"
-      [class.done]="ctx.steps.s3 === 'done'"
-      (click)="go('s3')"
-    >
-      3. Follow-up
-    </button>
-
-    <button
-      class="step"
-      [disabled]="ctx.steps.s4 === 'locked'"
-      [class.active]="ctx.activeStep === 's4'"
-      [class.done]="ctx.steps.s4 === 'done'"
-      (click)="go('s4')"
-    >
-      4. Payment
-    </button>
-  </div>
-
-  <!-- ================= MAIN CARD ================= -->
-  <div class="card">
-
-    <!-- ---------- STEP 1 ---------- -->
-    <ng-container *ngIf="ctx.activeStep === 's1'">
-      <h2>Preliminary Information</h2>
-
-      <label>Full Name*</label>
-      <input [(ngModel)]="s1.fullName" placeholder="Patient full name" />
-
-      <label>Phone*</label>
-      <input [(ngModel)]="s1.phone" placeholder="Phone number" />
-
-      <label>Gender</label>
-      <select [(ngModel)]="s1.gender">
-        <option value="">Select</option>
-        <option value="Male">Male</option>
-        <option value="Female">Female</option>
-        <option value="Other">Other</option>
-      </select>
-
-      <label>DOB</label>
-      <input type="date" [(ngModel)]="s1.dob" />
-
-      <label>Address</label>
-      <input [(ngModel)]="s1.address" placeholder="Address" />
-
-      <ion-button expand="block" [disabled]="loading" (click)="saveS1()">
-        Save & Next
+      <ion-button
+        size="small"
+        fill="clear"
+        *ngIf="!isEditMode"
+        (click)="autoFill()"
+        [disabled]="loading"
+      >
+        Auto Fill
       </ion-button>
-    </ng-container>
+    </div>
 
-    <!-- ---------- STEP 2 ---------- -->
-    <ng-container *ngIf="ctx.activeStep === 's2'">
-      <h2>Medical Examination</h2>
+    <form class="card" [formGroup]="form" (ngSubmit)="submit()">
 
-      <label>Chief Complaint</label>
-      <input [(ngModel)]="s2.chiefComplaint" />
+      <ion-grid>
+        <!-- FULL NAME + GENDER -->
+        <ion-row>
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>FULL NAME <span class="req">*</span></label>
+              <input class="inp" formControlName="fullName" placeholder="Full Name" />
+              <div class="err" *ngIf="form.controls.fullName.touched && form.controls.fullName.invalid">
+                Required
+              </div>
+            </div>
+          </ion-col>
 
-      <label>Associated Complaint</label>
-      <input [(ngModel)]="s2.associatedComplaint" />
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>GENDER <span class="req">*</span></label>
+              <select class="inp" formControlName="gender">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+              </select>
+            </div>
+          </ion-col>
+        </ion-row>
 
-      <label>Past History</label>
-      <input [(ngModel)]="s2.pastHistory" />
+        <!-- DOB + PHONE -->
+        <ion-row>
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>DOB <span class="req">*</span></label>
+              <input class="inp" type="date" formControlName="dateOfBirth" />
+              <div class="err" *ngIf="form.controls.dateOfBirth.touched && form.controls.dateOfBirth.invalid">
+                Required
+              </div>
+            </div>
+          </ion-col>
+
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>PHONE NUMBER <span class="req">*</span></label>
+              <input
+                class="inp"
+                formControlName="phoneNumber"
+                placeholder="10 digits"
+                (input)="onPhoneInput()"
+              />
+              <div class="err" *ngIf="form.controls.phoneNumber.touched && form.controls.phoneNumber.invalid">
+                Enter 10 digits
+              </div>
+            </div>
+          </ion-col>
+        </ion-row>
+
+        <!-- ALT NUMBER + EMAIL -->
+        <ion-row>
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>ALTERNATE NUMBER</label>
+              <input
+                class="inp"
+                formControlName="alternateNumber"
+                placeholder="Optional"
+                (input)="onAltPhoneInput()"
+              />
+            </div>
+          </ion-col>
+
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>EMAIL</label>
+              <input class="inp" formControlName="email" placeholder="Optional" />
+            </div>
+          </ion-col>
+        </ion-row>
+
+        <!-- MARITAL STATUS -->
+        <ion-row>
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>MARITAL STATUS</label>
+              <select class="inp" formControlName="maritalStatus">
+                <option value="Single">Single</option>
+                <option value="Married">Married</option>
+                <option value="Divorced">Divorced</option>
+                <option value="Widowed">Widowed</option>
+              </select>
+            </div>
+          </ion-col>
+
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>MARITAL STATUS SINCE</label>
+              <input class="inp" type="date" formControlName="maritalStatusSince" />
+            </div>
+          </ion-col>
+        </ion-row>
+
+        <!-- RELIGION + DIET -->
+        <ion-row>
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>RELIGION</label>
+              <input class="inp" formControlName="religion" placeholder="Optional" />
+            </div>
+          </ion-col>
+
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>DIET</label>
+              <input class="inp" formControlName="diet" placeholder="Optional" />
+            </div>
+          </ion-col>
+        </ion-row>
+
+        <!-- EDUCATION + OCCUPATION -->
+        <ion-row>
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>EDUCATION</label>
+              <input class="inp" formControlName="education" placeholder="Optional" />
+            </div>
+          </ion-col>
+
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>OCCUPATION</label>
+              <input class="inp" formControlName="occupation" placeholder="Optional" />
+            </div>
+          </ion-col>
+        </ion-row>
+
+        <!-- AADHAR + PAN -->
+        <ion-row>
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>AADHAR NUMBER</label>
+              <input class="inp" formControlName="aadharNumber" placeholder="12 digits" (input)="onAadharInput()" />
+            </div>
+          </ion-col>
+
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>PAN NUMBER</label>
+              <input class="inp" formControlName="panNumber" placeholder="Optional" />
+            </div>
+          </ion-col>
+        </ion-row>
+
+        <!-- ADDRESS -->
+        <ion-row>
+          <ion-col size="12">
+            <div class="f">
+              <label>ADDRESS</label>
+              <input class="inp" formControlName="address" placeholder="Optional" />
+            </div>
+          </ion-col>
+        </ion-row>
+
+        <!-- CITY + STATE -->
+        <ion-row>
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>CITY</label>
+              <input class="inp" formControlName="city" placeholder="Optional" />
+            </div>
+          </ion-col>
+
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>STATE</label>
+              <input class="inp" formControlName="state" placeholder="Optional" />
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
 
       <div class="actions">
-        <ion-button fill="outline" (click)="go('s1')">Back</ion-button>
-        <ion-button [disabled]="loading" (click)="saveS2()">Save & Next</ion-button>
+        <button class="btn primary" type="submit" [disabled]="loading">
+          {{
+            loading
+              ? (isEditMode ? 'Updating...' : 'Creating...')
+              : (isEditMode ? 'Update Patient' : 'Create Patient')
+          }}
+        </button>
       </div>
-    </ng-container>
-
-    <!-- ---------- STEP 3 ---------- -->
-    <ng-container *ngIf="ctx.activeStep === 's3'">
-      <h2>Follow-up</h2>
-
-      <label>Next Visit Date</label>
-      <input type="date" [(ngModel)]="s3.nextVisitDate" />
-
-      <label>Notes</label>
-      <input [(ngModel)]="s3.notes" />
-
-      <div class="actions">
-        <ion-button fill="outline" (click)="go('s2')">Back</ion-button>
-        <ion-button [disabled]="loading" (click)="saveS3()">Save & Next</ion-button>
-      </div>
-    </ng-container>
-
-    <!-- ---------- STEP 4 ---------- -->
-    <ng-container *ngIf="ctx.activeStep === 's4'">
-      <h2>Payment</h2>
-
-      <label>Amount*</label>
-      <input type="number" [(ngModel)]="s4.amount" />
-
-      <label>Mode*</label>
-      <select [(ngModel)]="s4.mode">
-        <option value="">Select</option>
-        <option value="Cash">Cash</option>
-        <option value="UPI">UPI</option>
-        <option value="Card">Card</option>
-      </select>
-
-      <label>Remarks</label>
-      <input [(ngModel)]="s4.remarks" />
-
-      <div class="actions">
-        <ion-button fill="outline" (click)="go('s3')">Back</ion-button>
-        <ion-button [disabled]="loading" (click)="saveS4()">Finish</ion-button>
-      </div>
-    </ng-container>
-
-    <ion-spinner *ngIf="loading"></ion-spinner>
-
+    </form>
   </div>
+
+  <!-- ==========================
+       MEDICAL TAB
+  =========================== -->
+  <div *ngIf="activeTab === 'medical'">
+    <div class="page-title">
+      <div class="h1">Medical</div>
+    </div>
+    <div class="card">MEDICAL TAB CONTENT</div>
+  </div>
+
+  <!-- ==========================
+       FOLLOWUP TAB
+  =========================== -->
+  <div *ngIf="activeTab === 'followup'">
+    <div class="page-title">
+      <div class="h1">Follow Up</div>
+    </div>
+    <div class="card">FOLLOW UP TAB CONTENT</div>
+  </div>
+
+  <!-- ==========================
+       PAYMENT TAB
+  =========================== -->
+  <div *ngIf="activeTab === 'payment'">
+    <div class="page-title">
+      <div class="h1">Payment</div>
+    </div>
+    <div class="card">PAYMENT TAB CONTENT</div>
+  </div>
+
+  <!-- ==========================
+       IDENTITY TAB
+  =========================== -->
+  <div *ngIf="activeTab === 'identity'">
+    <div class="page-title">
+      <div class="h1">Identity</div>
+    </div>
+    <div class="card">IDENTITY TAB CONTENT</div>
+  </div>
+
 </ion-content>

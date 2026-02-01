@@ -178,12 +178,26 @@ export class DashboardPage {
   // =========================
   // NAV
   // =========================
+  // openPatient(row: AppointmentRow) {
+  //   if (!row?.patientId) return;
+  //   this.router.navigate(['/patients'], {
+  //     queryParams: { patientId: row.patientId },
+  //   });
+  // }
+
   openPatient(row: AppointmentRow) {
-    if (!row?.patientId) return;
-    this.router.navigate(['/patients/create'], {
-      queryParams: { patientId: row.patientId },
-    });
-  }
+  if (!row?.patientId) return;
+
+  const role = (localStorage.getItem('mhc_role') || '').trim().toLowerCase();
+
+  this.router.navigate(['/patients'], {
+    queryParams: {
+      patientId: row.patientId,
+      tab: role === 'doctor' ? 'medical' : 'prelim', // ✅ doctor -> medical
+    },
+  });
+}
+
 
   // =========================
   // ACTIONS

@@ -21,6 +21,7 @@ type Row = {
   pid: string;
   name: string;
   phone: string;
+  hasActiveAppointment: boolean;
   raw: any;
 };
 
@@ -51,7 +52,7 @@ export class PatientListPage implements OnInit, OnDestroy {
     { key: 'pid', label: 'Patient ID', width: '140px' },
     { key: 'name', label: 'Patient Name' },
     { key: 'phone', label: 'Phone Number', width: '150px' },
-    { key: 'actions', label: 'Action', width: '180px', align: 'end' },
+    { key: 'actions', label: 'Action', width: '200px', align: 'end' },
   ];
 
   private subs = new Subscription();
@@ -65,7 +66,7 @@ export class PatientListPage implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    // ✅ typing search – cancels previous request automatically
+    // typing search stream
     this.subs.add(
       this.search$
         .pipe(
@@ -74,12 +75,13 @@ export class PatientListPage implements OnInit, OnDestroy {
           switchMap((q) => {
             const query = (q || '').trim();
 
-            // If empty -> fallback to listing
+            // empty -> list mode
             if (!query) {
               this.isSearching = false;
               this.searchedOnce = false;
               this.page = 1;
               this.loading = true;
+
               return this.patientService.getPatients(this.page, this.pageSize).pipe(
                 catchError((err) => {
                   this.showToast(err, 'Failed to load patients');
@@ -88,7 +90,7 @@ export class PatientListPage implements OnInit, OnDestroy {
               );
             }
 
-            // Search mode
+            // search mode
             this.isSearching = true;
             this.searchedOnce = true;
             this.loading = true;
@@ -110,14 +112,12 @@ export class PatientListPage implements OnInit, OnDestroy {
           const list = this.toArray(res);
 
           if (this.isSearching) {
-            // search result view
             this.page = 1;
             this.rows = this.toRows(list, 1);
             this.totalCount = list.length;
             this.totalPages = 1;
             this.hasNext = false;
           } else {
-            // listing view
             this.rows = this.toRows(list, this.page);
             this.updatePager(res, list);
           }
@@ -126,15 +126,12 @@ export class PatientListPage implements OnInit, OnDestroy {
         })
     );
 
-    // ✅ first load listing
+    // first load
     this.loadList(true);
   }
 
-  // ✅ When page becomes active, just refresh listing if NOT searching
   ionViewWillEnter(): void {
-    if (!this.isSearching) {
-      this.loadList(true);
-    }
+    if (!this.isSearching) this.loadList(true);
   }
 
   ngOnDestroy(): void {
@@ -151,9 +148,7 @@ export class PatientListPage implements OnInit, OnDestroy {
     );
   }
 
-  // ----------------------------
-  // LIST
-  // ----------------------------
+  // ---------------- LIST ----------------
   loadList(resetPage = false): void {
     if (resetPage) this.page = 1;
 
@@ -179,27 +174,21 @@ export class PatientListPage implements OnInit, OnDestroy {
     this.loadList(true);
   }
 
-  // ----------------------------
-  // SEARCH
-  // ----------------------------
+  // ---------------- SEARCH ----------------
   onSearchInput(): void {
     this.search$.next(this.searchText || '');
   }
 
   search(): void {
-    // manual trigger (button / enter)
     this.search$.next(this.searchText || '');
   }
 
   clearSearch(): void {
     this.searchText = '';
-    // push empty => auto listing load from stream
     this.search$.next('');
   }
 
-  // ----------------------------
-  // PAGINATION (listing only)
-  // ----------------------------
+  // ---------------- PAGINATION (listing only) ----------------
   nextPage(): void {
     if (this.loading || this.isSearching || !this.hasNext) return;
     this.page++;
@@ -212,19 +201,14 @@ export class PatientListPage implements OnInit, OnDestroy {
     this.loadList(false);
   }
 
-  // ----------------------------
-  // NAV
-  // ----------------------------
+  // ---------------- NAV ----------------
   goToCreatePatient(): void {
-    // ✅ blank create page (no patientId)
     this.router.navigate(['/patients/create'], {
       queryParams: { q: (this.searchText || '').trim() },
     });
   }
 
-  // ----------------------------
-  // MODAL
-  // ----------------------------
+  // ---------------- MODAL ----------------
   async openApptModal(r: Row, ev?: Event) {
     ev?.stopPropagation();
 
@@ -237,6 +221,7 @@ export class PatientListPage implements OnInit, OnDestroy {
           name: r.name,
           phone: r.phone,
         },
+        mode: r.hasActiveAppointment ? 'edit' : 'create',
       },
       cssClass: 'mhc-appt-modal',
       backdropDismiss: false,
@@ -246,19 +231,19 @@ export class PatientListPage implements OnInit, OnDestroy {
 
     const { role } = await modal.onWillDismiss();
     if (role === 'success') {
-      // optional refresh listing
-      // if (!this.isSearching) this.loadList(false);
+      // optional: refresh list/search view
+      if (this.isSearching) this.search();
+      else this.loadList(false);
     }
   }
 
-  // ----------------------------
-  // HELPERS
-  // ----------------------------
+  // ---------------- HELPERS ----------------
   private toArray(res: any): any[] {
     if (Array.isArray(res)) return res;
     if (Array.isArray(res?.items)) return res.items;
     if (Array.isArray(res?.data)) return res.data;
     if (Array.isArray(res?.result)) return res.result;
+    if (Array.isArray(res?.patients)) return res.patients;
     return [];
   }
 
@@ -299,12 +284,15 @@ export class PatientListPage implements OnInit, OnDestroy {
       const phone =
         String(p?.phoneNumber ?? p?.mobile ?? p?.phone ?? '').trim() || '-';
 
+      const hasActiveAppointment = Boolean(p?.hasActiveAppointment);
+
       return {
         srNo: (page - 1) * this.pageSize + idx + 1,
         id,
         pid: pid || '-',
         name,
         phone,
+        hasActiveAppointment,
         raw: p,
       };
     });

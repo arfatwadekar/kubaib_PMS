@@ -34,6 +34,7 @@
           *ngIf="!showCreatePatientBtn"
           type="button"
           (click)="search()"
+          [disabled]="loading"
         >
           Search
         </button>
@@ -47,7 +48,12 @@
           + Create Patient
         </button>
 
-        <button class="btn btn--ghost" type="button" (click)="clearSearch()">
+        <button
+          class="btn btn--ghost"
+          type="button"
+          (click)="clearSearch()"
+          [disabled]="loading"
+        >
           <ion-icon name="funnel-outline"></ion-icon>
           Clear
         </button>
@@ -68,8 +74,12 @@
     ></app-table>
 
     <ng-template #actionTpl let-r>
-      <button class="pill-btn" type="button" (click)="openApptModal(r, $event)">
-        Create Appointment
+      <button
+        class="pill-btn"
+        type="button"
+        (click)="openApptModal(r, $event)"
+      >
+        {{ r.hasActiveAppointment ? 'View Appointment' : 'Create Appointment' }}
       </button>
     </ng-template>
   </div>
