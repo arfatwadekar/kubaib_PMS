@@ -20,55 +20,100 @@
   </ion-refresher>
 
   <div class="dash-wrap">
-    <!-- KPI CARDS -->
-    <ion-grid class="kpi-grid">
-      <ion-row>
-        <ion-col size="12" sizeMd="6" sizeLg="2.4">
-          <ion-card class="kpi-card">
-            <ion-card-content>
-              <div class="kpi-label">Today's Appointments</div>
-              <div class="kpi-value">{{ cards.today }}</div>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
+  <ion-grid class="kpi-grid">
+  <ion-row>
+    <!-- TODAY (ALL) -->
+    <ion-col size="12" sizeMd="6" sizeLg="2.4">
+      <ion-card
+        class="kpi-card"
+        [class.kpi-card--active]="activeCard === 'today'"
+        (click)="onCardClick('today')"
+        role="button"
+        tabindex="0"
+        (keydown.enter)="onCardClick('today')"
+        (keydown.space)="onCardClick('today')"
+      >
+        <ion-card-content>
+          <div class="kpi-label">Today's Appointments</div>
+          <div class="kpi-value">{{ cards.today }}</div>
+        </ion-card-content>
+      </ion-card>
+    </ion-col>
 
-        <ion-col size="12" sizeMd="6" sizeLg="2.4">
-          <ion-card class="kpi-card">
-            <ion-card-content>
-              <div class="kpi-label">Pending</div>
-              <div class="kpi-value">{{ cards.pending }}</div>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
+    <!-- PENDING -->
+    <ion-col size="12" sizeMd="6" sizeLg="2.4">
+      <ion-card
+        class="kpi-card"
+        [class.kpi-card--active]="activeCard === 'pending'"
+        (click)="onCardClick('pending')"
+        role="button"
+        tabindex="0"
+        (keydown.enter)="onCardClick('pending')"
+        (keydown.space)="onCardClick('pending')"
+      >
+        <ion-card-content>
+          <div class="kpi-label">Pending</div>
+          <div class="kpi-value">{{ cards.pending }}</div>
+        </ion-card-content>
+      </ion-card>
+    </ion-col>
 
-        <ion-col size="12" sizeMd="6" sizeLg="2.4">
-          <ion-card class="kpi-card">
-            <ion-card-content>
-              <div class="kpi-label">In Patient</div>
-              <div class="kpi-value">{{ cards.inPatient }}</div>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
+    <!-- IN PATIENT -->
+    <ion-col size="12" sizeMd="6" sizeLg="2.4">
+      <ion-card
+        class="kpi-card"
+        [class.kpi-card--active]="activeCard === 'inPatient'"
+        (click)="onCardClick('inPatient')"
+        role="button"
+        tabindex="0"
+        (keydown.enter)="onCardClick('inPatient')"
+        (keydown.space)="onCardClick('inPatient')"
+      >
+        <ion-card-content>
+          <div class="kpi-label">In Patient</div>
+          <div class="kpi-value">{{ cards.inPatient }}</div>
+        </ion-card-content>
+      </ion-card>
+    </ion-col>
 
-        <ion-col size="12" sizeMd="6" sizeLg="2.4">
-          <ion-card class="kpi-card">
-            <ion-card-content>
-              <div class="kpi-label">Awaiting Payment</div>
-              <div class="kpi-value">{{ cards.awaitingPayment }}</div>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
+    <!-- AWAITING PAYMENT -->
+    <ion-col size="12" sizeMd="6" sizeLg="2.4">
+      <ion-card
+        class="kpi-card"
+        [class.kpi-card--active]="activeCard === 'awaitingPayment'"
+        (click)="onCardClick('awaitingPayment')"
+        role="button"
+        tabindex="0"
+        (keydown.enter)="onCardClick('awaitingPayment')"
+        (keydown.space)="onCardClick('awaitingPayment')"
+      >
+        <ion-card-content>
+          <div class="kpi-label">Awaiting Payment</div>
+          <div class="kpi-value">{{ cards.awaitingPayment }}</div>
+        </ion-card-content>
+      </ion-card>
+    </ion-col>
 
-        <ion-col size="12" sizeMd="6" sizeLg="2.4">
-          <ion-card class="kpi-card">
-            <ion-card-content>
-              <div class="kpi-label">Out Patient</div>
-              <div class="kpi-value">{{ cards.outPatient }}</div>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
+    <!-- OUT PATIENT -->
+    <ion-col size="12" sizeMd="6" sizeLg="2.4">
+      <ion-card
+        class="kpi-card"
+        [class.kpi-card--active]="activeCard === 'outPatient'"
+        (click)="onCardClick('outPatient')"
+        role="button"
+        tabindex="0"
+        (keydown.enter)="onCardClick('outPatient')"
+        (keydown.space)="onCardClick('outPatient')"
+      >
+        <ion-card-content>
+          <div class="kpi-label">Out Patient</div>
+          <div class="kpi-value">{{ cards.outPatient }}</div>
+        </ion-card-content>
+      </ion-card>
+    </ion-col>
+  </ion-row>
+</ion-grid>
+
 
     <!-- TABLE CARD (Like Screenshot) -->
     <ion-card class="table-card">

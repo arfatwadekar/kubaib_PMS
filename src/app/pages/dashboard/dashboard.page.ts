@@ -38,6 +38,14 @@ type DashboardCards = {
   cancelled: number;
 };
 
+type CardFilterKey =
+  | 'today'
+  | 'pending'
+  | 'inPatient'
+  | 'awaitingPayment'
+  | 'outPatient'
+  | 'cancelled';
+
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.page.html',
@@ -64,6 +72,9 @@ export class DashboardPage {
   // rows
   rows: AppointmentRow[] = [];
   visibleRows: AppointmentRow[] = [];
+
+  // card filter state
+  activeCard: CardFilterKey = 'today';
 
   // popover
   actionOpen = false;
@@ -92,6 +103,20 @@ export class DashboardPage {
     await this.loadToday(true);
     ev?.target?.complete?.();
   }
+
+  // =========================
+  // KPI CLICK -> FILTER TABLE
+  // =========================
+  onCardClick(key: CardFilterKey) {
+    this.activeCard = key;
+    this.recomputeVisible();
+  }
+
+  // if you want toggle behavior (click same card to reset)
+  // onCardClick(key: CardFilterKey) {
+  //   this.activeCard = this.activeCard === key ? 'today' : key;
+  //   this.recomputeVisible();
+  // }
 
   // =========================
   // LOAD TODAY
@@ -127,8 +152,8 @@ export class DashboardPage {
 
           this.cards = this.buildCards(this.rows);
 
-          // keep applied search
-          this.applySearchOnly(this.lastAppliedSearch);
+          // keep existing filters (card + search)
+          this.recomputeVisible();
 
           if (!res) await this.toast('Failed to load today appointments.');
         });
@@ -140,29 +165,14 @@ export class DashboardPage {
   // =========================
   onSearchClick() {
     this.lastAppliedSearch = (this.search || '').trim();
-    this.applySearchOnly(this.lastAppliedSearch);
+    this.recomputeVisible();
   }
 
   onClearClick() {
     this.search = '';
     this.lastAppliedSearch = '';
-    this.applySearchOnly('');
-  }
-
-  private applySearchOnly(qRaw: string) {
-    const q = (qRaw || '').trim().toLowerCase();
-    if (!q) {
-      this.visibleRows = [...this.rows];
-      return;
-    }
-
-    this.visibleRows = this.rows.filter((r) => {
-      return (
-        (r.pid || '').toLowerCase().includes(q) ||
-        (r.name || '').toLowerCase().includes(q) ||
-        (r.phone || '').toLowerCase().includes(q)
-      );
-    });
+    this.activeCard = 'today'; // ✅ reset KPI filter also (recommended)
+    this.recomputeVisible();
   }
 
   // =========================
@@ -238,19 +248,18 @@ export class DashboardPage {
     this.isLoading = true;
 
     this.api
-      .updateStatus(apptId, nextStatus) // ✅ Swagger: { status }
+      .updateStatus(apptId, nextStatus)
       .pipe(finalize(() => (this.isLoading = false)))
       .subscribe({
         next: async (updated: any) => {
-          // Trust server response
           const newCode = Number(updated?.status ?? nextStatus);
           row.statusCode = newCode;
           row.statusText = String(updated?.statusText || this.statusLabel(newCode));
 
           this.cards = this.buildCards(this.rows);
 
-          // re-apply current search filter
-          this.applySearchOnly(this.lastAppliedSearch);
+          // keep filters
+          this.recomputeVisible();
 
           await this.toast('Status updated');
           await this.loadToday(true);
@@ -264,6 +273,50 @@ export class DashboardPage {
           );
         },
       });
+  }
+
+  // =========================
+  // FILTER PIPELINE (CARD + SEARCH)
+  // =========================
+  private recomputeVisible() {
+    // 1) base = rows
+    let base = [...this.rows];
+
+    // 2) apply KPI filter
+    base = this.applyCardFilter(base, this.activeCard);
+
+    // 3) apply search (only if applied)
+    base = this.applySearchOnList(base, this.lastAppliedSearch);
+
+    this.visibleRows = base;
+  }
+
+  private applyCardFilter(list: AppointmentRow[], key: CardFilterKey): AppointmentRow[] {
+    if (key === 'today') return list;
+
+    const statusMap: Record<Exclude<CardFilterKey, 'today'>, number> = {
+      pending: AppointmentStatus.Pending,
+      inPatient: AppointmentStatus.InPatient,
+      awaitingPayment: AppointmentStatus.AwaitingPayment,
+      outPatient: AppointmentStatus.OutPatient,
+      cancelled: AppointmentStatus.Cancelled,
+    };
+
+    const wanted = statusMap[key as Exclude<CardFilterKey, 'today'>];
+    return list.filter((r) => Number(r.statusCode) === wanted);
+  }
+
+  private applySearchOnList(list: AppointmentRow[], qRaw: string): AppointmentRow[] {
+    const q = (qRaw || '').trim().toLowerCase();
+    if (!q) return list;
+
+    return list.filter((r) => {
+      return (
+        (r.pid || '').toLowerCase().includes(q) ||
+        (r.name || '').toLowerCase().includes(q) ||
+        (r.phone || '').toLowerCase().includes(q)
+      );
+    });
   }
 
   // =========================
@@ -322,8 +375,13 @@ export class DashboardPage {
           (patientId ? `PID${String(patientId).padStart(3, '0')}` : '-')
       ).trim();
 
-      const name = String(patient?.fullName ?? x?.fullName ?? x?.patientName ?? 'NA').trim();
-      const phone = String(patient?.phoneNumber ?? x?.phoneNumber ?? x?.mobile ?? '-').trim();
+      const name = String(
+        patient?.fullName ?? x?.fullName ?? x?.patientName ?? 'NA'
+      ).trim();
+
+      const phone = String(
+        patient?.phoneNumber ?? x?.phoneNumber ?? x?.mobile ?? '-'
+      ).trim();
 
       const timeText =
         String(x?.appointmentTimeFormatted ?? '').trim() ||
