@@ -70,6 +70,15 @@
         <ion-label>Create Patient ID</ion-label>
       </ion-item>
 
+            <ion-item
+        button
+        *ngIf="role === 'Doctor' || role === 'Receptionist'"
+        (click)="go('/report')"
+      >
+        <ion-icon slot="start" name="person-add-outline"></ion-icon>
+        <ion-label>Reports</ion-label>
+      </ion-item>
+
          <ion-item
         button
         *ngIf="role === 'Doctor' || role === 'Receptionist'"

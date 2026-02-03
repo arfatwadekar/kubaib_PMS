@@ -1,0 +1,111 @@
+.page {
+  --background: #f4f6fb;
+}
+
+.table-card {
+  margin: 14px;
+  border: 1px solid #e3e8f5;
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.table-title {
+  padding: 14px 16px;
+  font-weight: 800;
+  font-size: 14px;
+  color: #20304a;
+  background: #f7faff;
+  border-bottom: 1px solid #e3e8f5;
+}
+
+.header-mini {
+  padding: 12px 16px;
+  border-bottom: 1px solid #eef2ff;
+}
+
+.mini-row {
+  display: grid;
+  grid-template-columns: 1.6fr 1.2fr 0.6fr 0.6fr;
+  gap: 12px;
+}
+
+.mini-field .mini-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.mini-field ion-input {
+  --background: #fff;
+  border: 1px solid #dde6fb;
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+/* table head */
+.thead {
+  display: grid;
+  grid-template-columns: 90px 1.2fr 1.2fr;
+  background: #f7faff;
+  border-top: 1px solid #e3e8f5;
+  border-bottom: 1px solid #e3e8f5;
+  font-weight: 800;
+  color: #20304a;
+}
+
+.th {
+  padding: 12px 14px;
+  font-size: 12px;
+}
+
+/* rows */
+.tbody .trow {
+  display: grid;
+  grid-template-columns: 90px 1.2fr 1.2fr;
+  border-bottom: 1px solid #eef2ff;
+  align-items: center;
+}
+
+.td {
+  padding: 12px 14px;
+  font-size: 13px;
+  color: #111827;
+}
+
+.td.sr {
+  font-weight: 800;
+  color: #24324a;
+}
+
+/* input like screenshot */
+.td.val ion-input {
+  --background: #fff;
+  border: 1px solid #dde6fb;
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+/* actions */
+.actions {
+  padding: 14px 16px;
+}
+
+/* mobile */
+@media (max-width: 768px) {
+  .mini-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .thead,
+  .tbody .trow {
+    grid-template-columns: 70px 1fr;
+  }
+
+  .th.val,
+  .td.val {
+    grid-column: 1 / -1;
+    padding-top: 0;
+  }
+}

@@ -1,0 +1,125 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Patient Report</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="page">
+  <form class="table-card" [formGroup]="form">
+
+    <!-- ===== TITLE ===== -->
+    <div class="table-title">PATIENT REPORT</div>
+
+    <!-- ===== TOP META FIELDS ===== -->
+    <div class="header-mini">
+      <ion-grid>
+        <ion-row>
+          <ion-col size="12" sizeMd="6">
+            <div class="mini-label">Report Name</div>
+            <ion-input
+              formControlName="reportName"
+              placeholder="e.g. Blood Report"
+            ></ion-input>
+          </ion-col>
+
+          <ion-col size="12" sizeMd="6">
+            <div class="mini-label">Report Date</div>
+            <ion-input
+              type="date"
+              formControlName="reportDate"
+            ></ion-input>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col size="12" sizeMd="6">
+            <div class="mini-label">Lab Name</div>
+            <ion-input
+              formControlName="labName"
+              placeholder="Lab / Hospital"
+            ></ion-input>
+          </ion-col>
+
+          <ion-col size="12" sizeMd="6">
+            <div class="mini-label">Referred By</div>
+            <ion-input
+              formControlName="referredBy"
+              placeholder="Doctor Name"
+            ></ion-input>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col size="12">
+            <div class="mini-label">Summary</div>
+            <ion-textarea
+              formControlName="summary"
+              placeholder="Short summary..."
+              autoGrow="true"
+            ></ion-textarea>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+
+    <!-- ===== TABLE HEADER ===== -->
+    <div class="thead">
+      <div class="th sr">SR NO</div>
+      <div class="th name">TEST NAME</div>
+      <div class="th val">VALUE</div>
+    </div>
+
+    <!-- ===== TABLE BODY ===== -->
+    <div class="tbody" formArrayName="items">
+      <div
+        class="trow"
+        *ngFor="let row of items.controls; let i = index"
+        [formGroupName]="i"
+      >
+        <div class="td sr">{{ i + 1 }}</div>
+
+        <div class="td name">
+          {{ row.get('label')?.value }}
+        </div>
+
+        <div class="td val">
+          <ion-input
+            formControlName="value"
+            placeholder="Enter value"
+          ></ion-input>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== ACTIONS ===== -->
+    <div class="actions">
+      <ion-button
+        expand="block"
+        (click)="save()"
+        [disabled]="loading"
+      >
+        {{ loading ? 'Saving...' : 'Save Report' }}
+      </ion-button>
+
+      <!-- ✅ optional autofill (remove if not needed) -->
+      <ion-button
+        expand="block"
+        fill="outline"
+        (click)="autofill()"
+        [disabled]="loading"
+      >
+        Autofill (Test)
+      </ion-button>
+
+      <ion-button
+        expand="block"
+        fill="outline"
+        (click)="reset()"
+        [disabled]="loading"
+      >
+        Reset
+      </ion-button>
+    </div>
+
+  </form>
+</ion-content>

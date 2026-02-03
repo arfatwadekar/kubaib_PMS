@@ -38,6 +38,25 @@ const routes: Routes = [
       },
       // src/app/app-routing.module.ts (snippet)
 
+          // ✅ Everyone (Doctor + Receptionist)
+      {
+        path: 'patients/create',
+        loadChildren: () =>
+          import('../../pages/patients/create-patient/create-patient.module').then(
+            (m) => m.CreatePatientPageModule,
+          ),
+      },
+      // src/app/app-routing.module.ts (snippet)
+
+         {
+        path: 'report',
+        loadChildren: () =>
+          import('../../pages/report/report.module').then(
+            (m) => m.ReportPageModule,
+          ),
+      },
+      // src/app/app-routing.module.ts (snippet)
+
 
       {
         path: 'patients/medical-examination',

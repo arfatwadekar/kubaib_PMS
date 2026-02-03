@@ -6,19 +6,14 @@ import { RouterModule, Routes } from '@angular/router';
 
 import { MedicalExaminationPage } from './medical-examination.page';
 
-const routes: Routes = [
-  {
-    path: '',
-    component: MedicalExaminationPage,
-  },
-];
+const routes: Routes = [{ path: '', component: MedicalExaminationPage }];
 
 @NgModule({
   declarations: [MedicalExaminationPage],
   imports: [
-    CommonModule,
+    CommonModule,        // ✅ ngClass, *ngIf, *ngFor
     IonicModule,
-    ReactiveFormsModule,
+    ReactiveFormsModule, // ✅ formGroup, formControlName
     RouterModule.forChild(routes),
   ],
 })

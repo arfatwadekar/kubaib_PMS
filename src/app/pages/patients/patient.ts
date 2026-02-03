@@ -1,13 +1,22 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription, takeUntil } from 'rxjs';
+
 import { PatientService } from 'src/app/services/patient.service';
+import {
+  PatientReportPayload,
+  PatientReportService,
+} from 'src/app/services/patient-report.service';
 
-type TabKey = 'prelim' | 'medical' | 'followup' | 'payment' | 'identity';
+type TabKey = 'prelim' | 'medical' | 'followup' | 'payment' | 'reports';
 type UserRole = 'Doctor' | 'Receptionist';
+type UiRow = { label: string; apiKey: keyof PatientReportPayload };
 
+// =====================
+// Helpers
+// =====================
 function onlyDigits(v: string) {
   return (v || '').replace(/\D/g, '');
 }
@@ -70,7 +79,7 @@ export class PatientPage implements OnInit, OnDestroy {
   activeTab: TabKey = 'prelim';
 
   // =====================
-  // PRELIM FORM STATE
+  // PATIENT FORM
   // =====================
   loading = false;
   isEditMode = false;
@@ -78,7 +87,15 @@ export class PatientPage implements OnInit, OnDestroy {
 
   private currentPatient: any = null;
   private sub = new Subscription();
+  private destroy$ = new Subject<void>();
 
+  get canEditReport(): boolean {
+    return this.role === 'Doctor';
+  }
+
+  // =====================
+  // PRELIM FORM
+  // =====================
   form = this.fb.group({
     fullName: ['', [Validators.required, Validators.minLength(2)]],
     gender: ['Male', [Validators.required]],
@@ -105,70 +122,137 @@ export class PatientPage implements OnInit, OnDestroy {
     referredBy: [''],
   });
 
+  // =====================
+  // REPORTS (CREATE ONLY)
+  // =====================
+  reportLoading = false;
+
+  rowsMeta: UiRow[] = [
+    { label: 'Cholesterol Total', apiKey: 'cholesterolTotal' },
+    { label: 'HDL', apiKey: 'hdl' },
+    { label: 'LDL', apiKey: 'ldl' },
+    { label: 'Triglycerides', apiKey: 'triglycerides' },
+    { label: 'Lipoprotein (a)', apiKey: 'lipoprotein_a' },
+    { label: 'PPBS', apiKey: 'ppbs' },
+    { label: 'FBS', apiKey: 'fbs' },
+    { label: 'HbA1c', apiKey: 'hbA1C' },
+    { label: 'Creatinine', apiKey: 'creatinine' },
+    { label: 'BUN / Urea', apiKey: 'buN_Urea' },
+    { label: 'eGFR', apiKey: 'eGFR' },
+    { label: 'Hb', apiKey: 'hb' },
+    { label: 'WBC', apiKey: 'wbc' },
+    { label: 'Platelet Count', apiKey: 'plateletCount' },
+    { label: 'Eosinophil Count', apiKey: 'eosinophilCount' },
+    { label: 'ESR', apiKey: 'esr' },
+    { label: 'Urine Routine', apiKey: 'urineRoutine' },
+    { label: 'Uric Acid', apiKey: 'uricAcid' },
+    { label: 'Vitamin D3', apiKey: 'vitaminD3' },
+    { label: 'Serum Iron', apiKey: 'serumIron' },
+    { label: 'TIBC', apiKey: 'tibc' },
+    { label: 'Iron Saturation', apiKey: 'ironSaturation' },
+    { label: 'CK-MB', apiKey: 'cK_MB' },
+    { label: 'CPK', apiKey: 'cpk' },
+    { label: 'Troponin', apiKey: 'troponin' },
+    { label: 'NT Pro BNP', apiKey: 'ntProBNP' },
+    { label: 'PT', apiKey: 'pt' },
+    { label: 'INR', apiKey: 'inr' },
+    { label: 'TSH', apiKey: 'tsh' },
+    { label: 'T3', apiKey: 't3' },
+    { label: 'T4', apiKey: 't4' },
+    { label: 'Sodium (Na)', apiKey: 'sodium' },
+    { label: 'Potassium (K)', apiKey: 'potassium' },
+    { label: 'Chloride (Cl)', apiKey: 'chloride' },
+    { label: 'Serum Calcium', apiKey: 'serumCalcium' },
+    { label: 'R. A. Test', apiKey: 'rA_Test' },
+    { label: 'Bilirubin', apiKey: 'bilirubin' },
+    { label: 'SGOT', apiKey: 'sgot' },
+    { label: 'SGPT', apiKey: 'sgpt' },
+    { label: 'Total Protein', apiKey: 'totalProtein' },
+    { label: 'Albumin', apiKey: 'albumin' },
+    { label: 'Globulin', apiKey: 'globulin' },
+    { label: 'HIV', apiKey: 'hiv' },
+    { label: 'HCV', apiKey: 'hcv' },
+  ];
+
+  reportForm: FormGroup = this.fb.group({
+    reportName: [''],
+    reportDate: [''], // YYYY-MM-DD
+    labName: [''],
+    referredBy: [''],
+    summary: [''],
+    items: this.fb.array([]),
+  });
+
+  get reportItems(): FormArray {
+    return this.reportForm.get('items') as FormArray;
+  }
+
   constructor(
     private fb: FormBuilder,
     private patient: PatientService,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private reportApi: PatientReportService
   ) {}
 
+  // =====================
+  // INIT / DESTROY
+  // =====================
   ngOnInit(): void {
-    // ✅ ROLE must come from localStorage
     this.loadRoleFromStorage();
     this.ensureAllowedTab();
 
-    // if opened with patientId => edit mode
- this.sub.add(
-  this.route.queryParams.subscribe((qp) => {
-    // ✅ always refresh role (in case login changed)
-    this.loadRoleFromStorage();
+    // ✅ report rows init
+    this.buildReportRows();
 
-    const id = Number(qp?.['patientId'] ?? 0) || 0;
+    this.sub.add(
+      this.route.queryParams.subscribe((qp) => {
+        this.loadRoleFromStorage();
 
-    // ✅ requested tab from dashboard
-    const requestedTab = String(qp?.['tab'] || '').trim() as TabKey;
+        const id = Number(qp?.['patientId'] ?? 0) || 0;
+        const requestedTab = String(qp?.['tab'] || '').trim() as TabKey;
 
-    // if tab is valid and allowed, open it; else fallback
-    if (requestedTab && this.isTabAllowed(requestedTab)) {
-      this.activeTab = requestedTab;
-    } else {
-      this.activeTab = 'prelim';
-    }
+        this.activeTab =
+          requestedTab && this.isTabAllowed(requestedTab) ? requestedTab : 'prelim';
 
-    if (id > 0) {
-      this.isEditMode = true;
-      this.patientId = id;
-      this.loadPatient(id);
-    } else {
-      this.isEditMode = false;
-      this.patientId = null;
-      this.currentPatient = null;
-      this.resetForm();
-    }
-  })
-);
+        if (id > 0) {
+          this.isEditMode = true;
+          this.patientId = id;
+          this.loadPatient(id);
+        } else {
+          this.isEditMode = false;
+          this.patientId = null;
+          this.currentPatient = null;
+          this.resetForm();
+          this.resetReportFormOnly();
+        }
 
+        // ✅ if user opens reports tab, prepare form
+        if (this.activeTab === 'reports') {
+          this.startNewReport();
+        }
+      })
+    );
   }
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // =====================
-  // ROLE LOAD
+  // ROLE + TAB PERMISSIONS
   // =====================
   private loadRoleFromStorage() {
     const raw = (localStorage.getItem('mhc_role') || '').trim().toLowerCase();
     this.role = raw === 'doctor' ? 'Doctor' : 'Receptionist';
   }
 
-  // =====================
-  // TAB PERMISSIONS
-  // =====================
   isTabAllowed(tab: TabKey): boolean {
-    if (this.role === 'Doctor') return true; // ✅ doctor all access
-    return tab === 'prelim' || tab === 'payment' || tab === 'identity'; // ✅ receptionist limited
+    if (this.role === 'Doctor') return true;
+    return tab === 'prelim' || tab === 'payment' || tab === 'reports';
   }
 
   isTabDisabled(tab: TabKey): boolean {
@@ -186,25 +270,16 @@ export class PatientPage implements OnInit, OnDestroy {
     const nextTab = (ev?.detail?.value || 'prelim') as TabKey;
 
     if (!this.isTabAllowed(nextTab)) {
-      this.toast('Access denied');
-      // revert visual selection
-      setTimeout(() => (this.activeTab = this.activeTab), 0);
+      void this.toast('Access denied');
       return;
     }
 
     this.activeTab = nextTab;
-  }
 
-  goTab(tab: TabKey): void {
-    if (!this.isTabAllowed(tab)) {
-      this.toast('Access denied');
-      return;
+    // ✅ open reports => start create form
+    if (this.activeTab === 'reports') {
+      this.startNewReport();
     }
-    this.activeTab = tab;
-  }
-
-  navigateToTab(tab: TabKey): void {
-    this.goTab(tab);
   }
 
   // =====================
@@ -234,8 +309,8 @@ export class PatientPage implements OnInit, OnDestroy {
     this.patient.getPatientById(id).subscribe({
       next: (res: any) => {
         const p = res?.data ?? res;
-
         this.currentPatient = p;
+
         this.resetForm();
 
         const fullName =
@@ -266,32 +341,36 @@ export class PatientPage implements OnInit, OnDestroy {
           panNumber: String(p?.panNumber ?? '').trim(),
           referredBy: String(p?.referredBy ?? '').trim(),
         });
+
+        // ✅ report form default
+        this.reportForm.patchValue({
+          referredBy: String(p?.referredBy ?? '').trim(),
+        });
       },
       error: (err) =>
-        this.toast(err?.error?.message || err?.message || 'Failed to load patient'),
+        void this.toast(err?.error?.message || err?.message || 'Failed to load patient'),
       complete: () => (this.loading = false),
     });
   }
 
   // =====================
-  // SUBMIT
+  // SUBMIT PATIENT (CREATE/UPDATE)
   // =====================
   submit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      this.toast('Full Name, DOB and Phone Number (10 digits) are required.');
+      void this.toast('Full Name, DOB and Phone Number (10 digits) are required.');
       return;
     }
 
     const phone = onlyDigits(this.form.value.phoneNumber || '').slice(0, 10);
     if (phone.length !== 10) {
-      this.toast('Phone Number must be exactly 10 digits.');
+      void this.toast('Phone Number must be exactly 10 digits.');
       return;
     }
 
     this.loading = true;
 
-    // update
     if (this.isEditMode && this.patientId) {
       const payload = this.buildUpdatePayload();
       this.patient.updatePatient(this.patientId, payload).subscribe({
@@ -301,13 +380,12 @@ export class PatientPage implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.loading = false;
-          this.toast(err?.error?.message || err?.message || 'Update Patient failed');
+          void this.toast(err?.error?.message || err?.message || 'Update Patient failed');
         },
       });
       return;
     }
 
-    // create
     const payload = this.buildCreatePayload();
     this.patient.createPatient(payload).subscribe({
       next: async () => {
@@ -317,7 +395,7 @@ export class PatientPage implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.loading = false;
-        this.toast(err?.error?.message || err?.message || 'Create Patient failed');
+        void this.toast(err?.error?.message || err?.message || 'Create Patient failed');
       },
     });
   }
@@ -412,7 +490,6 @@ export class PatientPage implements OnInit, OnDestroy {
         },
       ],
     });
-
     await alert.present();
   }
 
@@ -440,6 +517,183 @@ export class PatientPage implements OnInit, OnDestroy {
     });
   }
 
+  // =====================
+  // REPORTS: CREATE ONLY
+  // =====================
+  private buildReportRows() {
+    this.reportItems.clear();
+    this.rowsMeta.forEach((r) => {
+      this.reportItems.push(
+        this.fb.group({
+          label: [r.label],
+          apiKey: [r.apiKey],
+          value: [''],
+        })
+      );
+    });
+  }
+
+  startNewReport() {
+    if (!this.patientId) {
+      void this.toast('Open patient in edit mode to create report');
+      return;
+    }
+
+    this.resetReportFormOnly();
+
+    // default today's date
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    this.reportForm.patchValue({ reportDate: `${yyyy}-${mm}-${dd}` });
+  }
+
+  resetReportFormOnly() {
+    const keepRef = this.reportForm.value.referredBy || this.form.value.referredBy || '';
+
+    this.reportForm.reset({
+      reportName: '',
+      reportDate: '',
+      labName: '',
+      referredBy: keepRef,
+      summary: '',
+    });
+
+    this.buildReportRows();
+  }
+
+  private emptyReportPayload(): PatientReportPayload {
+    return {
+      patientId: this.patientId || 0,
+      reportName: '',
+      reportDate: new Date().toISOString(),
+      labName: '',
+      referredBy: '',
+      summary: '',
+
+      cholesterolTotal: '',
+      hdl: '',
+      ldl: '',
+      triglycerides: '',
+      lipoprotein_a: '',
+
+      ppbs: '',
+      fbs: '',
+      hbA1C: '',
+
+      creatinine: '',
+      buN_Urea: '',
+      eGFR: '',
+
+      hb: '',
+      wbc: '',
+      plateletCount: '',
+      eosinophilCount: '',
+      esr: '',
+
+      urineRoutine: '',
+      uricAcid: '',
+      vitaminD3: '',
+
+      serumIron: '',
+      tibc: '',
+      ironSaturation: '',
+
+      cK_MB: '',
+      cpk: '',
+      troponin: '',
+      ntProBNP: '',
+
+      pt: '',
+      inr: '',
+
+      tsh: '',
+      t3: '',
+      t4: '',
+
+      sodium: '',
+      potassium: '',
+      chloride: '',
+      serumCalcium: '',
+
+      rA_Test: '',
+      bilirubin: '',
+      sgot: '',
+      sgpt: '',
+      totalProtein: '',
+      albumin: '',
+      globulin: '',
+
+      hiv: '',
+      hcv: '',
+    };
+  }
+
+  private buildReportPayload(): PatientReportPayload {
+    const raw = this.reportForm.getRawValue();
+    const payload = this.emptyReportPayload();
+
+    payload.reportName = (raw.reportName || '').trim();
+    payload.labName = (raw.labName || '').trim();
+    payload.referredBy = (raw.referredBy || '').trim();
+    payload.summary = (raw.summary || '').trim();
+
+    payload.reportDate = raw.reportDate
+      ? new Date(raw.reportDate).toISOString()
+      : new Date().toISOString();
+
+    (raw.items || []).forEach((r: any) => {
+      const key = r?.apiKey as keyof PatientReportPayload;
+      if (key) (payload as any)[key] = String(r?.value ?? '');
+    });
+
+    return payload;
+  }
+
+  async saveReport() {
+    if (!this.patientId) {
+      await this.toast('PatientId missing. Open patient in edit mode.');
+      return;
+    }
+    if (this.reportLoading) return;
+
+    const payload = this.buildReportPayload();
+
+    this.reportLoading = true;
+    this.reportApi
+      .create(payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: async (res: any) => {
+          this.reportLoading = false;
+          await this.toast(res?.message || 'Report created successfully.');
+
+          // ✅ reset after create
+          this.resetReportFormOnly();
+        },
+        error: async (err) => {
+          this.reportLoading = false;
+
+          const msg =
+            err?.error?.message ||
+            err?.error?.detail ||
+            err?.message ||
+            'Failed to create report.';
+
+          const a = await this.alertCtrl.create({
+            header: 'Save Failed',
+            message: msg,
+            buttons: ['OK'],
+          });
+          await a.present();
+        },
+      });
+  }
+
+  // =====================
+  // Toast
+  // =====================
   private async toast(message: string) {
     const t = await this.toastCtrl.create({
       message,
@@ -449,9 +703,6 @@ export class PatientPage implements OnInit, OnDestroy {
     await t.present();
   }
 
-  // =====================
-  // AUTO FILL (demo)
-  // =====================
   autoFill() {
     this.form.patchValue({
       fullName: 'Test Patient',

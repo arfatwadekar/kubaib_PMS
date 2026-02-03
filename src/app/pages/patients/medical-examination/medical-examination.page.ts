@@ -1,13 +1,13 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
+import { FormBuilder } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
 import { Subject, takeUntil } from 'rxjs';
 
 import {
   ClinicalCaseService,
-  ComplaintType,
   ClinicalCasePayload,
+  ComplaintType,
 } from 'src/app/services/clinical-case.service';
 
 type ComplaintKey = 'chief' | 'associated' | 'past';
@@ -27,12 +27,12 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private isSaving = false;
 
-  // ✅ MAIN FORM (aligned with API schema)
+  // ✅ MAIN FORM
   form = this.fb.group({
     complaints: this.fb.group({
-      chief: this.fb.array([]),
-      associated: this.fb.array([]),
-      past: this.fb.array([]),
+      chief: this.complaintGroup(),
+      associated: this.complaintGroup(),
+      past: this.complaintGroup(),
     }),
 
     familyHistory: this.fb.group({
@@ -108,13 +108,17 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
       thermalState: [''],
     }),
 
+    // ✅ SECTION 7 (screenshot keys)
     physicalExamination: this.fb.group({
-      height: [''],
-      weight: [''],
-      bmi: [''],
-      weightCategory: [''],
+      // Vitals & BMI
+      heightMeters: [''],
+      weightKg: [''],
+      bmi: [{ value: '', disabled: true }],
+      bmiCategory: [{ value: '', disabled: true }],
+
+      // General Examination
       physicalAppearance: [''],
-      digestion: [''],
+      dejection: [''],
       temperature: [''],
       pulse: [''],
       bp: [''],
@@ -128,40 +132,52 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
       nose: [''],
       throat: [''],
       trachea: [''],
-      chestExpansion: [''],
-      spO2: [''],
-      percussion_RS: [''],
+
+      // Respiratory System (RS)
+      rsPercussion: [''],
       rr: [''],
       airEntry: [''],
+      chestExpansion: [''],
       breathSounds: [''],
-      pA_SizeShapeSkin: [''],
-      pA_Movement: [''],
-      pA_Percussion: [''],
-      hgt: [''],
-      soft_Tenderness_Rigidity_Guarding: [''],
+      spo2: [''],
+
+      // Per Abdomen (PA)
+      paSizeShapeSkin: [''],
+      paMovement: [''],
+      paPercussion: [''],
+      paSoftTenderRigidGuard: [''],
       bowelSound: [''],
       lump: [''],
+      hst: [''],
+
+      // Cardiovascular System (CVS)
       apexImpulse: [''],
       jvp: [''],
       thrill: [''],
-      percussion_CVS: [''],
+      cvsPercussion: [''],
       heartSounds: [''],
       murmur: [''],
       rub: [''],
+
+      // Central Nervous System (CNS)
       higherFunction: [''],
       motorFunction: [''],
       sensoryFunction: [''],
       cranialNerves: [''],
       reflexes: [''],
       coordination: [''],
-      inspection: [''],
+
+      // Musculoskeletal System (MSK)
+      mskInspection: [''],
       rom: [''],
       swelling: [''],
       warmth: [''],
       redness: [''],
       deformities: [''],
-      crepitations: [''],
+      crepitation: [''],
       muscleStrength: [''],
+
+      // optional
       investigations: [''],
     }),
 
@@ -188,7 +204,25 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
       rel_Finance_Status: [''],
       rel_Social_Status: [''],
       rel_Authority_Status: [''],
+
       mentalStateEvaluation: [''],
+
+      // ✅ INTELLECTUAL STATE SECTION (Update/Add these keys)
+  intellect_Value: [50], // Range slider (0-100)
+  intellect_Perception: [''],
+  intellect_Memory: [''],
+  intellect_Thinking: [''],
+  intellect_Decision: [''],
+  intellect_Confidence: [''],
+overall_Results: [''],
+
+      // ✅ 0 white, 1 green, 2 red
+      att_Anger_Score: [0],
+      att_Sadness_Score: [0],
+      att_Somatization_Score: [0],
+      angerSadnessTriangles_Remark: [''],
+      fearAnxietyTriangles_Remark: [''],
+
       att_Self: [''],
       att_Persons: [''],
       att_Family: [''],
@@ -197,17 +231,32 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
       att_Career: [''],
       att_Money: [''],
       att_Power: [''],
+
       spectrum_LoveHate: [0],
       spectrum_LaveHate_Remark: [''],
-      angerSadnessTriangles_Remark: [''],
-      fearAnxietyTriangles_Remark: [''],
-      intellect_Value: [0],
-      intellect_Perception: [''],
-      intellect_Memory: [''],
-      intellect_Thinking: [''],
-      intellect_Decision: [''],
-      intellect_Confidence: [''],
-      overall_Results: [''],
+
+      // intellect_Value: [0],
+      // intellect_Perception: [''],
+      // intellect_Memory: [''],
+      // intellect_Thinking: [''],
+      // intellect_Decision: [''],
+      // intellect_Confidence: [''],
+
+      // overall_Results: [''],
+    }),
+
+    emotionalState: this.fb.group({
+      // ✅ 0 white, 1 green, 2 red
+      att_Self_Score: [0],
+      att_Persons_Score: [0],
+      att_Family_Score: [0],
+      att_Objects_Score: [0],
+      att_Work_Score: [0],
+      att_Career_Score: [0],
+      att_Money_Score: [0],
+      att_Power_Score: [0],
+      spectrum_LoveHate: [0],
+      emotionalStateRemarks: [''],
     }),
 
     behavioralEvaluation: this.fb.group({
@@ -215,9 +264,11 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
       childhood_HomeEnvironment: [''],
       childhood_Finance: [''],
       childhood_Difficulties: [''],
+
       action_Speech: [''],
       action_Behaviour: [''],
       action_Description: [''],
+
       block_Emotional: [true],
       block_Motivational: [true],
       block_Intellectual: [true],
@@ -225,7 +276,9 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
       block_Social: [true],
       block_Domestic: [true],
       block_Work: [true],
+
       block_Notes: [''],
+
       sensory_Noise: [''],
       sensory_Odour: [''],
       sensory_Colour: [''],
@@ -234,8 +287,10 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
       sensory_Touch: [''],
       sensory_Rubbing: [''],
       sensory_Climate: [''],
+
       miasmatic_Fundamental: [''],
       miasmatic_Dominant: [''],
+
       rubrics: [''],
       provisionalDiagnosis: [''],
       finalDiagnosis: [''],
@@ -254,13 +309,16 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.ensureDefaultComplaintRows();
-
-    // ✅ patientId from query (?patientId=123)
+    // ✅ patientId from query params
     this.route.queryParams.pipe(takeUntil(this.destroy$)).subscribe((qp) => {
       const id = Number(qp?.['patientId'] ?? 0);
       this.patientId = id > 0 ? id : null;
     });
+
+    // ✅ BMI auto-calc
+    const pe = this.form.get('physicalExamination');
+    pe?.get('heightMeters')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.updateBMI());
+    pe?.get('weightKg')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => this.updateBMI());
   }
 
   ngOnDestroy(): void {
@@ -269,9 +327,9 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
   }
 
   // -----------------------------
-  // Complaint rows
+  // Complaints Group
   // -----------------------------
-  private complaintRow(): FormGroup {
+  private complaintGroup() {
     return this.fb.group({
       location: [''],
       sensation: [''],
@@ -280,38 +338,42 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
     });
   }
 
-  get chiefArr(): FormArray {
-    return this.form.get('complaints.chief') as FormArray;
-  }
-  get associatedArr(): FormArray {
-    return this.form.get('complaints.associated') as FormArray;
-  }
-  get pastArr(): FormArray {
-    return this.form.get('complaints.past') as FormArray;
-  }
-
-  private arr(key: ComplaintKey): FormArray {
-    if (key === 'chief') return this.chiefArr;
-    if (key === 'associated') return this.associatedArr;
-    return this.pastArr;
+  // -----------------------------
+  // BMI Helpers (fixed for disabled fields + string typing)
+  // -----------------------------
+  private toNum(v: any): number {
+    if (v === null || v === undefined || v === '') return 0;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : 0;
   }
 
-  addComplaintRow(key: ComplaintKey) {
-    this.arr(key).push(this.complaintRow());
-    this.form.markAsDirty();
-  }
+  private updateBMI() {
+    const pe = this.form.get('physicalExamination');
+    if (!pe) return;
 
-  removeComplaintRow(key: ComplaintKey, index: number) {
-    const a = this.arr(key);
-    if (a.length <= 1) return;
-    a.removeAt(index);
-    this.form.markAsDirty();
-  }
+    const h = this.toNum(pe.get('heightMeters')?.value);
+    const w = this.toNum(pe.get('weightKg')?.value);
 
-  private ensureDefaultComplaintRows() {
-    if (this.chiefArr.length === 0) this.chiefArr.push(this.complaintRow());
-    if (this.associatedArr.length === 0) this.associatedArr.push(this.complaintRow());
-    if (this.pastArr.length === 0) this.pastArr.push(this.complaintRow());
+    const bmiCtrl = pe.get('bmi');
+    const catCtrl = pe.get('bmiCategory');
+
+    if (!h || !w || h <= 0 || w <= 0) {
+      bmiCtrl?.setValue('', { emitEvent: false });
+      catCtrl?.setValue('', { emitEvent: false });
+      return;
+    }
+
+    const bmi = +(w / (h * h)).toFixed(2);
+
+    let cat = '';
+    if (bmi < 18.5) cat = 'Underweight';
+    else if (bmi < 25) cat = 'Normal';
+    else if (bmi < 30) cat = 'Overweight';
+    else cat = 'Obese';
+
+    // ✅ setValue works even if control is disabled
+    bmiCtrl?.setValue(String(bmi), { emitEvent: false });
+    catCtrl?.setValue(cat, { emitEvent: false });
   }
 
   // -----------------------------
@@ -330,7 +392,7 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
   }
 
   // -----------------------------
-  // Save to API (ONLY ON BUTTON CLICK)
+  // Save
   // -----------------------------
   async saveRecord() {
     if (!this.patientId) {
@@ -348,7 +410,6 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
       next: async (res) => {
         this.isSaving = false;
         this.loading = false;
-
         this.form.markAsPristine();
         await this.toast(res?.message || 'Clinical case saved.');
       },
@@ -373,24 +434,29 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
   }
 
   private buildPayload(): ClinicalCasePayload {
-    const v: any = this.form.value;
+    // ✅ includes disabled BMI fields
+    const v: any = this.form.getRawValue();
 
     const mapType = (k: ComplaintKey): ComplaintType =>
       k === 'chief' ? 'Chief' : k === 'associated' ? 'Associated' : 'PastHistory';
 
-    const flatten = (k: ComplaintKey) =>
-      (v?.complaints?.[k] || []).map((row: any) => ({
+    const one = (k: ComplaintKey) => {
+      const row = v?.complaints?.[k] || {};
+      return {
         complaintType: mapType(k),
         location: row?.location || '',
         sensation: row?.sensation || '',
         modality: row?.modality || '',
         concomitant: row?.concomitant || '',
-      }));
+      };
+    };
 
+    // ⚠️ NOTE:
+    // If ClinicalCasePayload type DOES NOT contain emotionalState,
+    // add it in service interface OR remove it from here.
     return {
       patientId: this.patientId!,
-      complaints: [...flatten('chief'), ...flatten('associated'), ...flatten('past')],
-
+      complaints: [one('chief'), one('associated'), one('past')],
       familyHistory: v?.familyHistory || {},
       personalStatus: v?.personalStatus || {},
       menstrualHistory: v?.menstrualHistory || {},
@@ -398,12 +464,13 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
       physicalReaction: v?.physicalReaction || {},
       physicalExamination: v?.physicalExamination || {},
       mentalState: v?.mentalState || {},
+      emotionalState: v?.emotionalState || {}, // ✅ requires payload interface support
       behavioralEvaluation: v?.behavioralEvaluation || {},
-    };
+    } as any;
   }
 
   // -----------------------------
-  // AutoFill (Testing) - DOES NOT SAVE
+  // AutoFill (Testing)
   // -----------------------------
   async autofill() {
     if (!this.patientId) {
@@ -411,30 +478,27 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
       return;
     }
 
-    this.ensureDefaultComplaintRows();
-
-    (this.chiefArr.at(0) as FormGroup).patchValue({
-      location: 'Head',
-      sensation: 'Throbbing pain',
-      modality: 'Worse in sunlight',
-      concomitant: 'Nausea',
-    });
-
-    (this.associatedArr.at(0) as FormGroup).patchValue({
-      location: 'Stomach',
-      sensation: 'Burning',
-      modality: 'Better after cold water',
-      concomitant: 'Acidity',
-    });
-
-    (this.pastArr.at(0) as FormGroup).patchValue({
-      location: 'Chest',
-      sensation: 'Tightness',
-      modality: 'Worse on exertion',
-      concomitant: 'Sweating',
-    });
-
     this.form.patchValue({
+      complaints: {
+        chief: {
+          location: 'Head',
+          sensation: 'Throbbing pain',
+          modality: 'Worse in sunlight',
+          concomitant: 'Nausea',
+        },
+        associated: {
+          location: 'Stomach',
+          sensation: 'Burning',
+          modality: 'Better after cold water',
+          concomitant: 'Acidity',
+        },
+        past: {
+          location: 'Chest',
+          sensation: 'Tightness',
+          modality: 'Worse on exertion',
+          concomitant: 'Sweating',
+        },
+      },
       familyHistory: {
         father: 'Diabetes',
         mother: 'Hypertension',
@@ -447,15 +511,27 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
         dreams: 'Anxiety dreams',
       },
       physicalExamination: {
-        height: '170 cm',
-        weight: '70 kg',
+        heightMeters: '1.7', // ✅ string (to avoid TS error)
+        weightKg: '70',      // ✅ string
         bp: '120/80',
         pulse: '78',
-        spO2: '98%',
+        spo2: '98%',
       },
       mentalState: {
         mentalStateEvaluation: 'Normal',
         overall_Results: 'Stable',
+      },
+      emotionalState: {
+        att_Self_Score: 0,
+        att_Persons_Score: 0,
+        att_Family_Score: 0,
+        att_Objects_Score: 0,
+        att_Work_Score: 0,
+        att_Career_Score: 0,
+        att_Money_Score: 0,
+        att_Power_Score: 0,
+        spectrum_LoveHate: 0,
+        emotionalStateRemarks: '',
       },
       behavioralEvaluation: {
         provisionalDiagnosis: 'Migraine',
@@ -465,10 +541,92 @@ export class MedicalExaminationPage implements OnInit, OnDestroy {
       },
     });
 
+    this.updateBMI();
     this.form.markAsDirty();
     await this.toast('Autofill applied (not saved).');
   }
 
+  // -----------------------------
+  // Mental State Buttons (good/danger/default)
+  // -----------------------------
+  getBtnClass(controlName: string): string {
+    const control = this.form.get('mentalState')?.get(controlName);
+    const val = control?.value;
+
+    if (val === 'good') return 'state-good';
+    if (val === 'danger') return 'state-danger';
+    return 'state-default';
+  }
+
+  toggleStatus(controlName: string) {
+    const control = this.form.get('mentalState')?.get(controlName);
+    if (!control) return;
+
+    const current = control.value;
+    let next = '';
+
+    if (!current || current === '') next = 'good';
+    else if (current === 'good') next = 'danger';
+    else next = '';
+
+    control.setValue(next);
+    this.form.markAsDirty();
+  }
+
+  // -----------------------------
+  // ✅ MentalState triangle scores (HTML calls toggleEmo3)
+  // 0 = white, 1 = green, 2 = red
+  // -----------------------------
+  toggleEmo3(ctrlName: string) {
+    const ctrl = this.form.get(['mentalState', ctrlName]);
+    if (!ctrl) return;
+
+    const cur = Number(ctrl.value ?? 0);
+    const next = (cur + 1) % 3;
+
+    ctrl.setValue(next);
+    ctrl.markAsDirty();
+    ctrl.markAsTouched();
+  }
+
+  // -----------------------------
+  // Emotional State (0=white,1=green,2=red)
+  // -----------------------------
+  toggleEmoScore(ctrlName: string) {
+    const ctrl = this.form.get(['emotionalState', ctrlName]);
+    if (!ctrl) return;
+
+    const cur = Number(ctrl.value ?? 0);
+    const next = (cur + 1) % 3;
+
+    ctrl.setValue(next);
+    ctrl.markAsDirty();
+    ctrl.markAsTouched();
+  }
+
+  getEmoBtnClass(ctrlName: string) {
+    // By default checking emotionalState (your existing pills)
+    const v = Number(this.form.get(['emotionalState', ctrlName])?.value ?? 0);
+    return {
+      'is-white': v === 0,
+      'is-green': v === 1,
+      'is-red': v === 2,
+    };
+  }
+
+  // If you have separate classes for mentalState triangle buttons, use this:
+  getMentalTriangleBtnClass(ctrlName: string) {
+    const v = Number(this.form.get(['mentalState', ctrlName])?.value ?? 0);
+    return {
+      'is-white': v === 0,
+      'is-green': v === 1,
+      'is-red': v === 2,
+    };
+  }
+
+  // -----------------------------
+  // Toast
+  // -----------------------------
   private async toast(message: string) {
     const t = await this.toastCtrl.create({
       message,
