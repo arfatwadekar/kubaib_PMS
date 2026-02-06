@@ -2,17 +2,14 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
-import { Subject, Subscription, takeUntil } from 'rxjs';
+import { Subject, Subscription, takeUntil, firstValueFrom } from 'rxjs';
 
 import { PatientService } from 'src/app/services/patient.service';
-import {
-  PatientReportPayload,
-  PatientReportService,
-} from 'src/app/services/patient-report.service';
+import { PatientReportPayload, PatientReportService } from 'src/app/services/patient-report.service';
+import { FollowUpService, FollowUpCriteriaDto } from 'src/app/services/follow-up.service';
 
 type TabKey = 'prelim' | 'medical' | 'followup' | 'payment' | 'reports';
 type UserRole = 'Doctor' | 'Receptionist';
-type UiRow = { label: string; apiKey: keyof PatientReportPayload };
 
 // =====================
 // Helpers
@@ -20,7 +17,6 @@ type UiRow = { label: string; apiKey: keyof PatientReportPayload };
 function onlyDigits(v: string) {
   return (v || '').replace(/\D/g, '');
 }
-
 function splitFullName(full: string) {
   const s = (full || '').trim().replace(/\s+/g, ' ');
   if (!s) return { firstName: 'NA', lastName: 'NA' };
@@ -28,7 +24,6 @@ function splitFullName(full: string) {
   if (parts.length === 1) return { firstName: parts[0], lastName: 'NA' };
   return { firstName: parts[0], lastName: parts.slice(1).join(' ') || 'NA' };
 }
-
 function toIso(dateOnlyOrIso: string): string | null {
   const s = (dateOnlyOrIso || '').toString().trim();
   if (!s) return null;
@@ -38,7 +33,6 @@ function toIso(dateOnlyOrIso: string): string | null {
   if (!y) return null;
   return new Date(Date.UTC(y, (m || 1) - 1, d || 1)).toISOString();
 }
-
 function toDateInput(isoOrDateOrYear: any): string {
   const s = (isoOrDateOrYear ?? '').toString().trim();
   if (!s) return '';
@@ -46,17 +40,14 @@ function toDateInput(isoOrDateOrYear: any): string {
   if (s.includes('T')) return s.slice(0, 10);
   return s;
 }
-
 function nullIfBlank(v: any): string | null {
   const s = (v ?? '').toString().trim();
   return s ? s : null;
 }
-
 function nullIfDigitsBlank(v: any, maxLen: number): string | null {
   const d = onlyDigits((v ?? '').toString()).slice(0, maxLen);
   return d ? d : null;
 }
-
 function normalizeMaritalSince(v: any): string | null {
   const s = (v ?? '').toString().trim();
   if (!s) return null;
@@ -64,6 +55,55 @@ function normalizeMaritalSince(v: any): string | null {
   if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return toIso(s);
   return s;
 }
+function safeStr(v: any): string {
+  return (v ?? '').toString().trim();
+}
+function safeNum(v: any): number {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+function todayYmd(): string {
+  const t = new Date();
+  const yyyy = t.getFullYear();
+  const mm = String(t.getMonth() + 1).padStart(2, '0');
+  const dd = String(t.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+function toIsoFromYmd(ymd: string): string {
+  return new Date(`${ymd}T00:00:00.000Z`).toISOString();
+}
+
+type UiRow = { label: string; apiKey: keyof PatientReportPayload };
+
+// =====================
+// FOLLOWUP UI TYPES
+// =====================
+type FuVisitListItem = {
+  entryId: number;
+  followUpDate: string; // YYYY-MM-DD
+  charge: number;
+  interpretation?: string;
+  temporaryProblems?: string;
+  raw: any;
+};
+
+// =====================
+// REPORTS TYPES
+// =====================
+type ReportSummary = {
+  patientReportId: number;
+  patientId: number;
+  reportName: string;
+  reportDate: string; // ISO
+  labName: string;
+  attachmentCount?: number;
+  createdOn?: string;
+};
+
+type ReportDetail = PatientReportPayload & {
+  patientReportId: number;
+  attachments?: any[];
+};
 
 @Component({
   selector: 'app-patient',
@@ -79,7 +119,7 @@ export class PatientPage implements OnInit, OnDestroy {
   activeTab: TabKey = 'prelim';
 
   // =====================
-  // PATIENT FORM
+  // PATIENT PAGE STATE
   // =====================
   loading = false;
   isEditMode = false;
@@ -88,10 +128,6 @@ export class PatientPage implements OnInit, OnDestroy {
   private currentPatient: any = null;
   private sub = new Subscription();
   private destroy$ = new Subject<void>();
-
-  get canEditReport(): boolean {
-    return this.role === 'Doctor';
-  }
 
   // =====================
   // PRELIM FORM
@@ -122,11 +158,49 @@ export class PatientPage implements OnInit, OnDestroy {
     referredBy: [''],
   });
 
-  // =====================
-  // REPORTS (CREATE ONLY)
-  // =====================
-  reportLoading = false;
+  // ============================================================
+  // ✅ FOLLOWUP (MATCH HTML NAMES)
+  // ============================================================
+  fuLoading = false;
+  fuCriteriaSaved = false;
+  fuShowVisitForm = false;
 
+  fuScoreCols: number[] = [];
+  fuVisits: FuVisitListItem[] = [];
+
+  private fuCriteriaFromDb: FollowUpCriteriaDto[] = [];
+
+  private readonly FU_INIT_ROWS = 6;
+  private readonly FU_ADD_STEP = 2;
+  private readonly FU_MAX_ROWS = 30;
+
+  fuCriteriaForm = this.fb.group({
+    symptoms: this.fb.array([]),
+  });
+
+  fuScheduleForm = this.fb.group({
+    followUpDate: [todayYmd(), Validators.required],
+    charge: [0],
+  });
+
+  fuVisitForm = this.fb.group({
+    followUpDate: [todayYmd(), Validators.required],
+    charge: [0],
+    interpretation: [''],
+    temporaryProblems: [''],
+    remarks: this.fb.array([]),
+  });
+
+  get fuSymptomsArr(): FormArray {
+    return this.fuCriteriaForm.get('symptoms') as FormArray;
+  }
+  get fuRemarksArr(): FormArray {
+    return this.fuVisitForm.get('remarks') as FormArray;
+  }
+
+  // =====================
+  // REPORTS (CREATE + MATRIX + DROPDOWNS)
+  // =====================
   rowsMeta: UiRow[] = [
     { label: 'Cholesterol Total', apiKey: 'cholesterolTotal' },
     { label: 'HDL', apiKey: 'hdl' },
@@ -174,9 +248,11 @@ export class PatientPage implements OnInit, OnDestroy {
     { label: 'HCV', apiKey: 'hcv' },
   ];
 
+  reportLoading = false;
+
   reportForm: FormGroup = this.fb.group({
     reportName: [''],
-    reportDate: [''], // YYYY-MM-DD
+    reportDate: [todayYmd()],
     labName: [''],
     referredBy: [''],
     summary: [''],
@@ -187,13 +263,46 @@ export class PatientPage implements OnInit, OnDestroy {
     return this.reportForm.get('items') as FormArray;
   }
 
+  // ✅ dropdown data for HTML
+  reportList: ReportSummary[] = []; // distinct report numbers
+  reportDates: string[] = []; // all available dates (YYYY-MM-DD)
+
+  selectedMatrixReportId: number | null = null;
+  selectedCompareDates: string[] = []; // multi-select (max 5)
+
+  // matrix state for render
+  displayDates: string[] = [];
+  selectedReportDate = '';
+  selectedReportId: number | null = null;
+
+  reportMatrix: Array<{
+    label: string;
+    apiKey: keyof PatientReportPayload;
+    values: Record<string, string>;
+  }> = [];
+
+  // internal caches
+  private reportSummaries: ReportSummary[] = [];
+  private reportDetailsMap: Record<number, ReportDetail> = {}; // id -> detail
+  private dateToReportId: Record<string, number> = {}; // date -> chosen reportId
+
+  // =====================
+  // PAYMENT (UI ONLY)
+  // =====================
+  payPendingAmount = 0;
+  payTotalCharges = 0;
+  payTotalPaid = 0;
+
+  payHistory: Array<{ date: string; amount: number; remark?: string }> = [];
+
   constructor(
     private fb: FormBuilder,
     private patient: PatientService,
+    private reportApi: PatientReportService,
+    private fuApi: FollowUpService,
     private toastCtrl: ToastController,
     private alertCtrl: AlertController,
-    private route: ActivatedRoute,
-    private reportApi: PatientReportService
+    private route: ActivatedRoute
   ) {}
 
   // =====================
@@ -202,35 +311,41 @@ export class PatientPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadRoleFromStorage();
     this.ensureAllowedTab();
-
-    // ✅ report rows init
-    this.buildReportRows();
+    this.initReportRows();
+    this.initFollowUpEmpty();
 
     this.sub.add(
       this.route.queryParams.subscribe((qp) => {
         this.loadRoleFromStorage();
 
-        const id = Number(qp?.['patientId'] ?? 0) || 0;
-        const requestedTab = String(qp?.['tab'] || '').trim() as TabKey;
+        const id = safeNum(qp?.['patientId']);
+        const requestedTab = safeStr(qp?.['tab']) as TabKey;
 
-        this.activeTab =
-          requestedTab && this.isTabAllowed(requestedTab) ? requestedTab : 'prelim';
+        this.activeTab = requestedTab && this.isTabAllowed(requestedTab) ? requestedTab : 'prelim';
 
         if (id > 0) {
           this.isEditMode = true;
           this.patientId = id;
+
           this.loadPatient(id);
+
+          if (this.activeTab === 'reports') {
+            this.startNewReport();
+            void this.loadReportMatrix(true);
+          }
+
+          if (this.activeTab === 'followup') {
+            void this.loadFollowUpTab(false);
+          }
         } else {
           this.isEditMode = false;
           this.patientId = null;
           this.currentPatient = null;
-          this.resetForm();
-          this.resetReportFormOnly();
-        }
 
-        // ✅ if user opens reports tab, prepare form
-        if (this.activeTab === 'reports') {
-          this.startNewReport();
+          this.resetPatientForm();
+          this.resetReportForm();
+          this.resetReportView();
+          this.resetFollowUpView();
         }
       })
     );
@@ -252,7 +367,7 @@ export class PatientPage implements OnInit, OnDestroy {
 
   isTabAllowed(tab: TabKey): boolean {
     if (this.role === 'Doctor') return true;
-    return tab === 'prelim' || tab === 'payment' || tab === 'reports';
+    return tab === 'prelim' || tab === 'payment' || tab === 'reports' || tab === 'followup';
   }
 
   isTabDisabled(tab: TabKey): boolean {
@@ -264,7 +379,7 @@ export class PatientPage implements OnInit, OnDestroy {
   }
 
   // =====================
-  // TAB ACTIONS
+  // TAB CHANGE
   // =====================
   onSegmentChange(ev: any): void {
     const nextTab = (ev?.detail?.value || 'prelim') as TabKey;
@@ -276,14 +391,18 @@ export class PatientPage implements OnInit, OnDestroy {
 
     this.activeTab = nextTab;
 
-    // ✅ open reports => start create form
     if (this.activeTab === 'reports') {
       this.startNewReport();
+      void this.loadReportMatrix(false);
+    }
+
+    if (this.activeTab === 'followup') {
+      void this.loadFollowUpTab(false);
     }
   }
 
   // =====================
-  // INPUT HELPERS
+  // PRELIM INPUT HELPERS
   // =====================
   onPhoneInput() {
     const cleaned = onlyDigits(this.form.value.phoneNumber || '').slice(0, 10);
@@ -311,50 +430,46 @@ export class PatientPage implements OnInit, OnDestroy {
         const p = res?.data ?? res;
         this.currentPatient = p;
 
-        this.resetForm();
+        this.resetPatientForm();
 
-        const fullName =
-          `${String(p?.firstName ?? '').trim()} ${String(p?.lastName ?? '').trim()}`.trim() ||
-          String(p?.fullName ?? '').trim();
+        const fullName = `${safeStr(p?.firstName)} ${safeStr(p?.lastName)}`.trim() || safeStr(p?.fullName);
 
         this.form.patchValue({
           fullName: fullName || '',
-          gender: p?.gender || 'Male',
+          gender: safeStr(p?.gender) || 'Male',
           dateOfBirth: toDateInput(p?.dateOfBirth),
-          phoneNumber: String(p?.phoneNumber ?? '').trim(),
-          alternateNumber: String(p?.alternateNumber ?? '').trim(),
-          email: String(p?.email ?? '').trim(),
-          address: String(p?.address ?? '').trim(),
-          city: String(p?.city ?? '').trim(),
-          state: String(p?.state ?? '').trim(),
-          pinCode: String(p?.pinCode ?? '').trim(),
+          phoneNumber: safeStr(p?.phoneNumber),
+          alternateNumber: safeStr(p?.alternateNumber),
+          email: safeStr(p?.email),
+          address: safeStr(p?.address),
+          city: safeStr(p?.city),
+          state: safeStr(p?.state),
+          pinCode: safeStr(p?.pinCode),
 
-          maritalStatus: p?.maritalStatus || 'Single',
+          maritalStatus: safeStr(p?.maritalStatus) || 'Single',
           maritalStatusSince: toDateInput(p?.maritalStatusSince),
 
-          religion: String(p?.religion ?? '').trim(),
-          diet: String(p?.diet ?? '').trim(),
-          education: String(p?.education ?? '').trim(),
-          occupation: String(p?.occupation ?? '').trim(),
+          religion: safeStr(p?.religion),
+          diet: safeStr(p?.diet),
+          education: safeStr(p?.education),
+          occupation: safeStr(p?.occupation),
 
-          aadharNumber: String(p?.aadharNumber ?? '').trim(),
-          panNumber: String(p?.panNumber ?? '').trim(),
-          referredBy: String(p?.referredBy ?? '').trim(),
+          aadharNumber: safeStr(p?.aadharNumber),
+          panNumber: safeStr(p?.panNumber),
+          referredBy: safeStr(p?.referredBy),
         });
 
-        // ✅ report form default
-        this.reportForm.patchValue({
-          referredBy: String(p?.referredBy ?? '').trim(),
-        });
+        this.reportForm.patchValue({ referredBy: safeStr(p?.referredBy) }, { emitEvent: false });
       },
-      error: (err) =>
-        void this.toast(err?.error?.message || err?.message || 'Failed to load patient'),
+      error: (err) => {
+        void this.toast(err?.error?.message || err?.message || 'Failed to load patient');
+      },
       complete: () => (this.loading = false),
     });
   }
 
   // =====================
-  // SUBMIT PATIENT (CREATE/UPDATE)
+  // SUBMIT PATIENT
   // =====================
   submit() {
     if (this.form.invalid) {
@@ -391,7 +506,7 @@ export class PatientPage implements OnInit, OnDestroy {
       next: async () => {
         this.loading = false;
         await this.toast('Patient created successfully.');
-        this.resetForm();
+        this.resetPatientForm();
       },
       error: (err) => {
         this.loading = false;
@@ -411,7 +526,7 @@ export class PatientPage implements OnInit, OnDestroy {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       dateOfBirth: toIso(v.dateOfBirth || ''),
-      gender: (v.gender || 'Male').toString(),
+      gender: safeStr(v.gender) || 'Male',
 
       phoneNumber: phone,
       alternateNumber: alt.length === 10 ? alt : phone,
@@ -451,7 +566,7 @@ export class PatientPage implements OnInit, OnDestroy {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       dateOfBirth: toIso(v.dateOfBirth || ''),
-      gender: (v.gender || base?.gender || 'Male').toString(),
+      gender: safeStr(v.gender) || safeStr(base?.gender) || 'Male',
 
       phoneNumber: phone,
       alternateNumber: alt.length === 10 ? alt : phone,
@@ -493,7 +608,7 @@ export class PatientPage implements OnInit, OnDestroy {
     await alert.present();
   }
 
-  private resetForm() {
+  private resetPatientForm() {
     this.form.reset({
       fullName: '',
       gender: 'Male',
@@ -517,10 +632,353 @@ export class PatientPage implements OnInit, OnDestroy {
     });
   }
 
+  // ============================================================
+  // ✅ FOLLOWUP TAB LOGIC
+  // ============================================================
+  private initFollowUpEmpty() {
+    if (this.fuSymptomsArr.length === 0) this.addFuRows(this.FU_INIT_ROWS);
+    if (this.fuRemarksArr.length === 0) this.addFuRemarkRows(this.FU_INIT_ROWS);
+
+    this.sub.add(
+      this.fuSymptomsArr.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
+        if (this.fuCriteriaSaved) return;
+        this.autoGrowFuCriteriaRows();
+      })
+    );
+
+    this.refreshFuScoreCols();
+  }
+
+  private resetFollowUpView() {
+    this.fuLoading = false;
+    this.fuCriteriaSaved = false;
+    this.fuShowVisitForm = false;
+    this.fuVisits = [];
+    this.fuCriteriaFromDb = [];
+
+    this.fuCriteriaForm.reset();
+    (this.fuCriteriaForm.get('symptoms') as FormArray).clear();
+
+    this.fuScheduleForm.reset({ followUpDate: todayYmd(), charge: 0 });
+
+    this.fuVisitForm.reset({
+      followUpDate: todayYmd(),
+      charge: 0,
+      interpretation: '',
+      temporaryProblems: '',
+    });
+    (this.fuVisitForm.get('remarks') as FormArray).clear();
+
+    this.addFuRows(this.FU_INIT_ROWS);
+    this.addFuRemarkRows(this.FU_INIT_ROWS);
+    this.refreshFuScoreCols();
+  }
+
+  private addFuRows(count: number) {
+    for (let i = 0; i < count; i++) {
+      if (this.fuSymptomsArr.length >= this.FU_MAX_ROWS) break;
+      this.fuSymptomsArr.push(this.fb.control(''));
+    }
+  }
+
+  private addFuRemarkRows(count: number) {
+    for (let i = 0; i < count; i++) {
+      if (this.fuRemarksArr.length >= this.FU_MAX_ROWS) break;
+      this.fuRemarksArr.push(this.fb.control(''));
+    }
+    this.refreshFuScoreCols();
+  }
+
+  private refreshFuScoreCols() {
+    this.fuScoreCols = Array.from({ length: this.fuRemarksArr.length }, (_, i) => i + 1);
+  }
+
+  onCriteriaInput(i: number) {
+    if (this.fuCriteriaSaved) return;
+
+    const isLast = i === this.fuSymptomsArr.length - 1;
+    if (!isLast) return;
+
+    const v = (this.fuSymptomsArr.at(i).value ?? '').toString().trim();
+    if (!v) return;
+
+    this.addFuRows(this.FU_ADD_STEP);
+    this.addFuRemarkRows(this.FU_ADD_STEP);
+  }
+
+  private autoGrowFuCriteriaRows() {
+    const len = this.fuSymptomsArr.length;
+    if (!len) return;
+    const last = (this.fuSymptomsArr.at(len - 1).value ?? '').toString().trim();
+    if (!last) return;
+    this.addFuRows(this.FU_ADD_STEP);
+    this.addFuRemarkRows(this.FU_ADD_STEP);
+  }
+
+  private async loadFollowUpTab(debug = false) {
+    if (!this.patientId) return;
+
+    this.fuLoading = true;
+    try {
+      await this.loadFollowUpCriteria(debug);
+      await this.loadFollowUpVisits(debug);
+      this.fuShowVisitForm = false;
+    } catch (e: any) {
+      await this.toast(e?.error?.message || e?.message || 'Failed to load follow up');
+    } finally {
+      this.fuLoading = false;
+    }
+  }
+
+  private async loadFollowUpCriteria(debug = false) {
+    if (!this.patientId) return;
+
+    const res: any = await firstValueFrom(this.fuApi.getCriteriaByPatient(this.patientId));
+    const list = this.extractArray(res);
+
+    this.fuCriteriaFromDb = (Array.isArray(list) ? list : []) as FollowUpCriteriaDto[];
+    this.fuCriteriaSaved = this.fuCriteriaFromDb.length > 0;
+
+    if (this.fuCriteriaSaved) {
+      const names = this.fuCriteriaFromDb
+        .map((x: any) => (x?.criteriaName ?? '').toString().trim())
+        .filter(Boolean);
+
+      while (this.fuSymptomsArr.length < names.length) this.addFuRows(this.FU_ADD_STEP);
+      while (this.fuRemarksArr.length < names.length) this.addFuRemarkRows(this.FU_ADD_STEP);
+
+      for (let i = 0; i < this.fuSymptomsArr.length; i++) {
+        this.fuSymptomsArr.at(i).setValue(names[i] || '', { emitEvent: false });
+        this.fuSymptomsArr.at(i).disable({ emitEvent: false });
+      }
+    } else {
+      for (let i = 0; i < this.fuSymptomsArr.length; i++) {
+        this.fuSymptomsArr.at(i).enable({ emitEvent: false });
+      }
+    }
+
+    if (debug) {
+      console.group('[FOLLOWUP][CRITERIA]');
+      console.log(res);
+      console.table(
+        this.fuCriteriaFromDb.map((x: any) => ({
+          id: safeNum(x?.patientFollowUpCriteriaId),
+          name: x?.criteriaName,
+        }))
+      );
+      console.groupEnd();
+    }
+  }
+
+  private async loadFollowUpVisits(debug = false) {
+    if (!this.patientId) return;
+
+    const res: any = await firstValueFrom(this.fuApi.getFollowUpsByPatient(this.patientId));
+    const list = this.extractArray(res);
+
+    const rows: FuVisitListItem[] = (Array.isArray(list) ? list : []).map((x: any) => ({
+      entryId: safeNum(x?.patientFollowUpEntryId ?? x?.entryId ?? x?.id),
+      followUpDate: this.toYmdSafe(x?.followUpDate ?? x?.date),
+      charge: safeNum(x?.charge ?? x?.consultationCharges ?? x?.amount),
+      interpretation: safeStr(x?.interpretation),
+      temporaryProblems: safeStr(x?.temporaryProblems),
+      raw: x,
+    }));
+
+    rows.sort((a, b) => (b.followUpDate || '').localeCompare(a.followUpDate || ''));
+    this.fuVisits = rows;
+
+    if (debug) {
+      console.group('[FOLLOWUP][VISITS]');
+      console.log(res);
+      console.table(this.fuVisits.map((v) => ({ id: v.entryId, date: v.followUpDate, charge: v.charge })));
+      console.groupEnd();
+    }
+  }
+
+  async saveFirstVisitFollowUp() {
+    if (!this.patientId) {
+      await this.toast('PatientId missing. Open patient in edit mode.');
+      return;
+    }
+
+    if (this.fuScheduleForm.invalid) {
+      this.fuScheduleForm.markAllAsTouched();
+      await this.toast('Follow up date required');
+      return;
+    }
+
+    const names = (this.fuCriteriaForm.getRawValue().symptoms || [])
+      .map((x: any) => (x ?? '').toString().trim())
+      .filter(Boolean);
+
+    if (names.length === 0) {
+      await this.toast('Enter at least 1 symptom');
+      return;
+    }
+
+    this.fuLoading = true;
+    try {
+      await firstValueFrom(
+        this.fuApi.createCriteria({
+          patientId: this.patientId,
+          criteriaNames: names,
+        })
+      );
+
+      await this.loadFollowUpCriteria(false);
+
+      const followUpDate = (this.fuScheduleForm.value.followUpDate || todayYmd()).toString();
+      const charge = safeNum(this.fuScheduleForm.value.charge || 0);
+
+      await this.createFollowUpEntrySimple(followUpDate, charge);
+      await this.createAppointment(followUpDate);
+      await this.loadFollowUpVisits(false);
+
+      await this.toast('Saved');
+    } catch (e: any) {
+      await this.presentSimpleAlert('Save Failed', e?.error?.message || e?.message || 'Failed to save');
+    } finally {
+      this.fuLoading = false;
+    }
+  }
+
+  openFollowUpVisit() {
+    if (!this.patientId) return;
+    this.fuShowVisitForm = true;
+
+    this.fuVisitForm.patchValue(
+      {
+        followUpDate: todayYmd(),
+        charge: 0,
+        interpretation: '',
+        temporaryProblems: '',
+      },
+      { emitEvent: false }
+    );
+
+    this.fuRemarksArr.controls.forEach((c) => c.setValue('', { emitEvent: false }));
+    this.refreshFuScoreCols();
+  }
+
+  closeVisitForm() {
+    this.fuShowVisitForm = false;
+  }
+
+  async saveFollowUpVisit() {
+    if (!this.patientId) return;
+
+    if (this.fuVisitForm.invalid) {
+      this.fuVisitForm.markAllAsTouched();
+      await this.toast('Please select Follow Up date.');
+      return;
+    }
+
+    if (!this.fuCriteriaSaved) {
+      await this.toast('Please save criteria first.');
+      return;
+    }
+
+    this.fuLoading = true;
+    try {
+      await this.createFollowUpEntryFromVisitForm();
+      await this.createAppointment((this.fuVisitForm.value.followUpDate || todayYmd()).toString());
+      await this.loadFollowUpVisits(false);
+
+      this.fuShowVisitForm = false;
+      await this.toast('Saved');
+    } catch (e: any) {
+      await this.presentSimpleAlert('Save Failed', e?.error?.message || e?.message || 'Failed to save');
+    } finally {
+      this.fuLoading = false;
+    }
+  }
+
+  private async createFollowUpEntrySimple(dateYmd: string, charge: number) {
+    const criteria = this.fuCriteriaFromDb.map((c: any) => ({
+      id: safeNum(c?.patientFollowUpCriteriaId),
+      name: safeStr(c?.criteriaName),
+    }));
+
+    const statusRecords = criteria.map((c, idx) => ({
+      patientFollowUpStatusId: 0,
+      patientFollowUpCriteriaId: c.id,
+      criteriaName: c.name || `Criteria ${idx + 1}`,
+      remarks: '',
+    }));
+
+    const payload: any = {
+      patientFollowUpEntryId: 0,
+      patientId: this.patientId!,
+      followUpDate: toIsoFromYmd(dateYmd),
+      interpretation: '',
+      temporaryProblems: '',
+      charge: charge || 0,
+      statusRecords,
+    };
+
+    await firstValueFrom(this.fuApi.createFollowUp(payload));
+  }
+
+  private async createFollowUpEntryFromVisitForm() {
+    const v = this.fuVisitForm.getRawValue();
+
+    const criteria = this.fuCriteriaFromDb.map((c: any) => ({
+      id: safeNum(c?.patientFollowUpCriteriaId),
+      name: safeStr(c?.criteriaName),
+    }));
+
+    const remarks = (v.remarks || []).map((x: any) => (x ?? '').toString());
+    while (remarks.length < criteria.length) remarks.push('');
+
+    const statusRecords = criteria.map((c, idx) => ({
+      patientFollowUpStatusId: 0,
+      patientFollowUpCriteriaId: c.id,
+      criteriaName: c.name || `Criteria ${idx + 1}`,
+      remarks: remarks[idx] || '',
+    }));
+
+    const payload: any = {
+      patientFollowUpEntryId: 0,
+      patientId: this.patientId!,
+      followUpDate: toIsoFromYmd((v.followUpDate || todayYmd()).toString()),
+      interpretation: safeStr(v.interpretation),
+      temporaryProblems: safeStr(v.temporaryProblems),
+      charge: safeNum(v.charge || 0),
+      statusRecords,
+    };
+
+    await firstValueFrom(this.fuApi.createFollowUp(payload));
+  }
+
+  private async createAppointment(dateYmd: string) {
+    const payload: any = {
+      patientId: this.patientId!,
+      appointmentDate: dateYmd,
+      appointmentTime: '00:00:00',
+      remark: 'Auto-created from Follow Up',
+    };
+    await firstValueFrom(this.fuApi.createAppointment(payload));
+  }
+
+  private toYmdSafe(v: any): string {
+    const s = (v ?? '').toString().trim();
+    if (!s) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    if (s.includes('T')) return s.slice(0, 10);
+
+    const d = new Date(s);
+    if (isNaN(d.getTime())) return '';
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
   // =====================
-  // REPORTS: CREATE ONLY
+  // REPORTS: CREATE FORM
   // =====================
-  private buildReportRows() {
+  private initReportRows() {
     this.reportItems.clear();
     this.rowsMeta.forEach((r) => {
       this.reportItems.push(
@@ -533,34 +991,38 @@ export class PatientPage implements OnInit, OnDestroy {
     });
   }
 
+  private resetReportForm() {
+    this.reportForm.reset({
+      reportName: '',
+      reportDate: todayYmd(),
+      labName: '',
+      referredBy: '',
+      summary: '',
+    });
+    this.initReportRows();
+  }
+
   startNewReport() {
     if (!this.patientId) {
       void this.toast('Open patient in edit mode to create report');
       return;
     }
 
-    this.resetReportFormOnly();
+    this.selectedReportDate = '';
+    this.selectedReportId = null;
 
-    // default today's date
-    const today = new Date();
-    const yyyy = today.getFullYear();
-    const mm = String(today.getMonth() + 1).padStart(2, '0');
-    const dd = String(today.getDate()).padStart(2, '0');
-    this.reportForm.patchValue({ reportDate: `${yyyy}-${mm}-${dd}` });
-  }
+    this.reportForm.patchValue(
+      {
+        reportName: '',
+        reportDate: todayYmd(),
+        labName: '',
+        referredBy: safeStr(this.form.value.referredBy),
+        summary: '',
+      },
+      { emitEvent: false }
+    );
 
-  resetReportFormOnly() {
-    const keepRef = this.reportForm.value.referredBy || this.form.value.referredBy || '';
-
-    this.reportForm.reset({
-      reportName: '',
-      reportDate: '',
-      labName: '',
-      referredBy: keepRef,
-      summary: '',
-    });
-
-    this.buildReportRows();
+    this.initReportRows();
   }
 
   private emptyReportPayload(): PatientReportPayload {
@@ -634,14 +1096,12 @@ export class PatientPage implements OnInit, OnDestroy {
     const raw = this.reportForm.getRawValue();
     const payload = this.emptyReportPayload();
 
-    payload.reportName = (raw.reportName || '').trim();
-    payload.labName = (raw.labName || '').trim();
-    payload.referredBy = (raw.referredBy || '').trim();
-    payload.summary = (raw.summary || '').trim();
+    payload.reportName = safeStr(raw.reportName);
+    payload.labName = safeStr(raw.labName);
+    payload.referredBy = safeStr(raw.referredBy);
+    payload.summary = safeStr(raw.summary);
 
-    payload.reportDate = raw.reportDate
-      ? new Date(raw.reportDate).toISOString()
-      : new Date().toISOString();
+    payload.reportDate = raw.reportDate ? new Date(raw.reportDate).toISOString() : new Date().toISOString();
 
     (raw.items || []).forEach((r: any) => {
       const key = r?.apiKey as keyof PatientReportPayload;
@@ -659,41 +1119,273 @@ export class PatientPage implements OnInit, OnDestroy {
     if (this.reportLoading) return;
 
     const payload = this.buildReportPayload();
-
     this.reportLoading = true;
+
     this.reportApi
       .create(payload)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: async (res: any) => {
           this.reportLoading = false;
-          await this.toast(res?.message || 'Report created successfully.');
-
-          // ✅ reset after create
-          this.resetReportFormOnly();
+          await this.toast(res?.message || 'Report saved successfully.');
+          await this.loadReportMatrix(false);
+          this.startNewReport();
         },
         error: async (err) => {
           this.reportLoading = false;
-
-          const msg =
-            err?.error?.message ||
-            err?.error?.detail ||
-            err?.message ||
-            'Failed to create report.';
-
-          const a = await this.alertCtrl.create({
-            header: 'Save Failed',
-            message: msg,
-            buttons: ['OK'],
-          });
-          await a.present();
+          await this.presentSimpleAlert('Save Failed', err?.error?.message || err?.message || 'Failed to save report.');
         },
       });
   }
 
   // =====================
-  // Toast
+  // REPORTS: MATRIX (dropdown-driven, From/To removed)
   // =====================
+  async loadReportMatrix(debug = false) {
+    if (!this.patientId) return;
+
+    this.reportLoading = true;
+    try {
+      const res: any = await firstValueFrom(this.reportApi.getByPatient(this.patientId));
+      const list = this.extractArray(res);
+
+      this.reportSummaries = (Array.isArray(list) ? list : [])
+        .map((x: any) => ({
+          patientReportId: safeNum(x?.patientReportId ?? x?.reportId ?? x?.id),
+          patientId: safeNum(x?.patientId),
+          reportName: safeStr(x?.reportName),
+          reportDate: safeStr(x?.reportDate),
+          labName: safeStr(x?.labName),
+          attachmentCount: safeNum(x?.attachmentCount),
+          createdOn: safeStr(x?.createdOn),
+        }))
+        .filter((x) => x.patientReportId > 0 && !!x.reportDate);
+
+      // for dropdown 1
+      this.reportList = [...this.reportSummaries].sort((a, b) => b.patientReportId - a.patientReportId);
+
+      // for dropdown 2 (dates)
+      this.reportDates = Array.from(
+        new Set(this.reportSummaries.map((r) => this.toYmdReport(r.reportDate)).filter(Boolean))
+      ).sort();
+
+      // default: latest 1 report selected, latest 1 date selected
+      if (!this.selectedMatrixReportId && this.reportList.length) {
+        this.selectedMatrixReportId = this.reportList[0].patientReportId;
+      }
+
+      if (!this.selectedCompareDates?.length && this.reportDates.length) {
+        this.selectedCompareDates = this.reportDates.slice(Math.max(0, this.reportDates.length - 1));
+      }
+
+      // build matrix based on current selections
+      await this.applyMatrixSelections();
+
+      if (debug) {
+        console.log('[REPORTS] reportList:', this.reportList.length);
+        console.log('[REPORTS] reportDates:', this.reportDates);
+        console.log('[REPORTS] selectedMatrixReportId:', this.selectedMatrixReportId);
+        console.log('[REPORTS] selectedCompareDates:', this.selectedCompareDates);
+      }
+    } catch (err: any) {
+      await this.toast(err?.error?.message || err?.message || 'Failed to load reports');
+    } finally {
+      this.reportLoading = false;
+    }
+  }
+
+  onMatrixReportChange() {
+    void this.applyMatrixSelections();
+  }
+
+  onCompareDatesChange(ev: any) {
+    // max 5 dates
+    const v = (ev?.detail?.value || []) as string[];
+    if (v.length > 5) {
+      // keep last 5
+      const fixed = v.slice(v.length - 5);
+      this.selectedCompareDates = fixed;
+      void this.toast('Max 5 dates allowed');
+    } else {
+      this.selectedCompareDates = v;
+    }
+    void this.applyMatrixSelections();
+  }
+
+  clearCompareSelection() {
+    this.selectedMatrixReportId = null;
+    this.selectedCompareDates = [];
+    this.displayDates = [];
+    this.reportMatrix = [];
+    this.selectedReportDate = '';
+    this.selectedReportId = null;
+    this.dateToReportId = {};
+  }
+
+  private async applyMatrixSelections() {
+    // decide displayDates
+    const dates = (this.selectedCompareDates || [])
+      .map((d) => (d || '').toString().trim())
+      .filter(Boolean)
+      .slice(0, 5)
+      .sort();
+
+    this.displayDates = dates;
+
+    // if no dates => clear table
+    if (this.displayDates.length === 0) {
+      this.reportMatrix = [];
+      this.dateToReportId = {};
+      this.selectedReportDate = '';
+      this.selectedReportId = null;
+      return;
+    }
+
+    // choose report id for each date:
+    // ✅ if reportNo selected, use it for all selected dates (but only if that report is on that date)
+    // ✅ else use latest report of that date
+    this.dateToReportId = {};
+    for (const d of this.displayDates) {
+      const candidates = this.reportSummaries.filter((r) => this.toYmdReport(r.reportDate) === d);
+
+      let chosenId = 0;
+      if (this.selectedMatrixReportId) {
+        const exact = candidates.find((c) => c.patientReportId === this.selectedMatrixReportId);
+        if (exact) chosenId = exact.patientReportId;
+      }
+      if (!chosenId) {
+        // pick latest by ISO
+        const best = candidates.sort((a, b) => (b.reportDate || '').localeCompare(a.reportDate || ''))[0];
+        chosenId = best?.patientReportId || 0;
+      }
+
+      if (chosenId) this.dateToReportId[d] = chosenId;
+    }
+
+    // prefetch details
+    await this.prefetchDetails(Object.values(this.dateToReportId));
+
+    // build matrix
+    this.reportMatrix = this.rowsMeta.map((meta) => {
+      const values: Record<string, string> = {};
+      for (const d of this.displayDates) {
+        const id = this.dateToReportId[d];
+        const det = this.reportDetailsMap[id];
+        const raw = det ? String((det as any)?.[meta.apiKey] ?? '') : '';
+        values[d] = raw.trim() ? raw.trim() : '-';
+      }
+      return { label: meta.label, apiKey: meta.apiKey, values };
+    });
+
+    // keep selection valid
+    if (this.selectedReportDate && !this.displayDates.includes(this.selectedReportDate)) {
+      this.selectedReportDate = '';
+      this.selectedReportId = null;
+    }
+  }
+
+  private async prefetchDetails(ids: number[]) {
+    const uniq = Array.from(new Set((ids || []).filter((x) => !!x)));
+    const missing = uniq.filter((id) => !this.reportDetailsMap[id]);
+
+    if (missing.length === 0) return;
+
+    await Promise.all(
+      missing.map(async (id) => {
+        const res: any = await firstValueFrom(this.reportApi.getById(id));
+        const det = (res?.data ?? res) as ReportDetail;
+        this.reportDetailsMap[id] = det;
+      })
+    );
+  }
+
+  onDateHeaderClick(dateYmd: string) {
+    const id = this.dateToReportId[dateYmd];
+    if (!id) return;
+
+    const det = this.reportDetailsMap[id];
+    if (!det) return;
+
+    this.selectedReportDate = dateYmd;
+    this.selectedReportId = id;
+
+    this.fillCreateFormFromDetail(det);
+  }
+
+  private fillCreateFormFromDetail(r: any) {
+    this.reportForm.patchValue(
+      {
+        reportName: safeStr(r?.reportName),
+        reportDate: this.toYmdReport(r?.reportDate),
+        labName: safeStr(r?.labName),
+        referredBy: safeStr(r?.referredBy),
+        summary: safeStr(r?.summary),
+      },
+      { emitEvent: false }
+    );
+
+    this.reportItems.controls.forEach((ctrl) => {
+      const key = ctrl.get('apiKey')?.value as keyof PatientReportPayload;
+      const val = String(r?.[key] ?? '');
+      ctrl.patchValue({ value: val }, { emitEvent: false });
+    });
+  }
+
+  private toYmdReport(iso: any): string {
+    const s = (iso ?? '').toString().trim();
+    if (!s) return '';
+    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+    if (s.includes('T')) return s.slice(0, 10);
+    const dt = new Date(s);
+    if (isNaN(dt.getTime())) return '';
+    const yyyy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, '0');
+    const dd = String(dt.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  private resetReportView() {
+    this.reportList = [];
+    this.reportDates = [];
+    this.selectedMatrixReportId = null;
+    this.selectedCompareDates = [];
+    this.displayDates = [];
+    this.reportMatrix = [];
+    this.reportSummaries = [];
+    this.reportDetailsMap = {};
+    this.dateToReportId = {};
+    this.selectedReportDate = '';
+    this.selectedReportId = null;
+  }
+
+  // =====================
+  // PAYMENT
+  // =====================
+  openAddPayment() {
+    void this.toast('Add Payment (UI only)');
+  }
+
+  goPrevFollowUp() {
+    const prev: TabKey = 'followup';
+    if (!this.isTabAllowed(prev)) {
+      void this.toast('Access denied');
+      return;
+    }
+    this.activeTab = prev;
+  }
+
+  finalizePatient() {
+    this.submit();
+  }
+
+  // =====================
+  // UTIL
+  // =====================
+  private extractArray(res: any): any[] {
+    const list = res?.data ?? res?.list ?? res?.result ?? res?.items ?? res ?? [];
+    return Array.isArray(list) ? list : [];
+  }
+
   private async toast(message: string) {
     const t = await this.toastCtrl.create({
       message,
@@ -703,6 +1395,21 @@ export class PatientPage implements OnInit, OnDestroy {
     await t.present();
   }
 
+  private async presentSimpleAlert(header: string, message: string) {
+    const a = await this.alertCtrl.create({
+      header,
+      message,
+      buttons: ['OK'],
+    });
+    await a.present();
+  }
+
+  // ========= template helpers (REQUIRED by HTML) =========
+  trackByIndex(index: number) {
+    return index;
+  }
+
+  // Demo helper (if HTML calls autoFill())
   autoFill() {
     this.form.patchValue({
       fullName: 'Test Patient',
@@ -712,5 +1419,60 @@ export class PatientPage implements OnInit, OnDestroy {
       city: 'Mumbai',
       state: 'MH',
     });
+  }
+
+  // Reports demo helper (if HTML calls autoFillReport())
+  autoFillReport() {
+    if (!this.patientId) return;
+
+    this.reportForm.patchValue({
+      reportName: '',
+      reportDate: todayYmd(),
+      labName: '',
+      referredBy: safeStr(this.form.value.referredBy),
+      summary: '',
+    });
+
+    const map: Record<string, string> = {
+      cholesterolTotal: '130',
+      hdl: '30',
+      ldl: '135',
+      triglycerides: '264',
+      ppbs: '81',
+      creatinine: '0.7',
+      hb: '13.7',
+      wbc: '6100',
+      plateletCount: '306',
+      urineRoutine: '5-10',
+      uricAcid: '9.85',
+      cpk: '17.9',
+      cK_MB: '9.20',
+    };
+
+    this.reportItems.controls.forEach((ctrl) => {
+      const key = String(ctrl.get('apiKey')?.value || '');
+      if (map[key] !== undefined) {
+        ctrl.patchValue({ value: map[key] }, { emitEvent: false });
+      }
+    });
+  }
+
+  // Buttons in HTML expect these names
+  goPrevPhysicalExam() {
+    const prev: TabKey = 'medical';
+    if (!this.isTabAllowed(prev)) {
+      void this.toast('Access denied');
+      return;
+    }
+    this.activeTab = prev;
+  }
+
+  goNextPayment() {
+    const next: TabKey = 'payment';
+    if (!this.isTabAllowed(next)) {
+      void this.toast('Access denied');
+      return;
+    }
+    this.activeTab = next;
   }
 }

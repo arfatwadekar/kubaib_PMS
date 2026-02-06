@@ -95,6 +95,9 @@ export class DashboardPage {
     private router: Router
   ) {}
 
+  // =========================
+  // LIFECYCLE
+  // =========================
   ionViewWillEnter() {
     this.loadToday();
   }
@@ -111,12 +114,6 @@ export class DashboardPage {
     this.activeCard = key;
     this.recomputeVisible();
   }
-
-  // if you want toggle behavior (click same card to reset)
-  // onCardClick(key: CardFilterKey) {
-  //   this.activeCard = this.activeCard === key ? 'today' : key;
-  //   this.recomputeVisible();
-  // }
 
   // =========================
   // LOAD TODAY
@@ -140,7 +137,7 @@ export class DashboardPage {
         .subscribe(async (res) => {
           const list = this.extractList(res);
 
-          // /today sometimes returns mixed dates -> strict filter by local today
+          // ✅ Strict filter: show only local-today rows
           const mapped = this.mapRows(list).filter((r) => {
             const d = this.toISODate_LocalSafe(r.raw?.appointmentDate);
             return d === todayISO;
@@ -151,8 +148,6 @@ export class DashboardPage {
           );
 
           this.cards = this.buildCards(this.rows);
-
-          // keep existing filters (card + search)
           this.recomputeVisible();
 
           if (!res) await this.toast('Failed to load today appointments.');
@@ -161,7 +156,7 @@ export class DashboardPage {
   }
 
   // =========================
-  // SEARCH (exact like screenshot)
+  // SEARCH
   // =========================
   onSearchClick() {
     this.lastAppliedSearch = (this.search || '').trim();
@@ -171,36 +166,30 @@ export class DashboardPage {
   onClearClick() {
     this.search = '';
     this.lastAppliedSearch = '';
-    this.activeCard = 'today'; // ✅ reset KPI filter also (recommended)
+    this.activeCard = 'today';
     this.recomputeVisible();
   }
 
   // =========================
   // NAV
   // =========================
-  // openPatient(row: AppointmentRow) {
-  //   if (!row?.patientId) return;
-  //   this.router.navigate(['/patients'], {
-  //     queryParams: { patientId: row.patientId },
-  //   });
-  // }
-
   openPatient(row: AppointmentRow) {
-  if (!row?.patientId) return;
+    if (!row?.patientId) return;
 
-  const role = (localStorage.getItem('mhc_role') || '').trim().toLowerCase();
+    const role = (localStorage.getItem('mhc_role') || '')
+      .trim()
+      .toLowerCase();
 
-  this.router.navigate(['/patients'], {
-    queryParams: {
-      patientId: row.patientId,
-      tab: role === 'doctor' ? 'medical' : 'prelim', // ✅ doctor -> medical
-    },
-  });
-}
-
+    this.router.navigate(['/patients'], {
+      queryParams: {
+        patientId: row.patientId,
+        tab: role === 'doctor' ? 'medical' : 'prelim',
+      },
+    });
+  }
 
   // =========================
-  // ACTIONS
+  // ACTIONS (Popover)
   // =========================
   openActions(ev: any, row: AppointmentRow) {
     ev?.stopPropagation();
@@ -218,14 +207,17 @@ export class DashboardPage {
   allowedNextStatuses(row: AppointmentRow): number[] {
     const s = row?.statusCode;
 
-    if (s === AppointmentStatus.Pending)
+    if (s === AppointmentStatus.Pending) {
       return [AppointmentStatus.InPatient, AppointmentStatus.Cancelled];
+    }
 
-    if (s === AppointmentStatus.InPatient)
+    if (s === AppointmentStatus.InPatient) {
       return [AppointmentStatus.AwaitingPayment, AppointmentStatus.Cancelled];
+    }
 
-    if (s === AppointmentStatus.AwaitingPayment)
+    if (s === AppointmentStatus.AwaitingPayment) {
       return [AppointmentStatus.OutPatient];
+    }
 
     return [];
   }
@@ -243,9 +235,8 @@ export class DashboardPage {
     }
 
     const apptId = selected.appointmentId;
-
-    // re-find live row (avoid stale object reference)
     const row = this.rows.find((x) => x.appointmentId === apptId);
+
     if (!row) {
       await this.toast('Appointment not found');
       this.closeActions();
@@ -268,11 +259,11 @@ export class DashboardPage {
         next: async (updated: any) => {
           const newCode = Number(updated?.status ?? nextStatus);
           row.statusCode = newCode;
-          row.statusText = String(updated?.statusText || this.statusLabel(newCode));
+          row.statusText = String(
+            updated?.statusText || this.statusLabel(newCode)
+          );
 
           this.cards = this.buildCards(this.rows);
-
-          // keep filters
           this.recomputeVisible();
 
           await this.toast('Status updated');
@@ -293,13 +284,9 @@ export class DashboardPage {
   // FILTER PIPELINE (CARD + SEARCH)
   // =========================
   private recomputeVisible() {
-    // 1) base = rows
     let base = [...this.rows];
 
-    // 2) apply KPI filter
     base = this.applyCardFilter(base, this.activeCard);
-
-    // 3) apply search (only if applied)
     base = this.applySearchOnList(base, this.lastAppliedSearch);
 
     this.visibleRows = base;
@@ -355,7 +342,7 @@ export class DashboardPage {
   }
 
   // =========================
-  // MAPPING
+  // MAPPING (✅ FIXED PID MISMATCH)
   // =========================
   private extractList(res: any): any[] {
     if (!res) return [];
@@ -375,19 +362,49 @@ export class DashboardPage {
     return [];
   }
 
+  /** Accepts P-1035 / PID036 / 36 etc */
+  private normalizePid(v: any): string {
+    const s = String(v ?? '').trim();
+    if (!s) return '';
+
+    if (/^p-\d+$/i.test(s)) return s.toUpperCase();   // P-1035
+    if (/^pid\d+$/i.test(s)) return s.toUpperCase();  // PID036
+    if (/^\d+$/.test(s)) return `PID${String(s).padStart(3, '0')}`;
+
+    return s;
+  }
+
+  /**
+   * ✅ RULE:
+   * - patientId is for navigation
+   * - pid is for display and must come from API first (x.pid or x.patient.pid)
+   * - fallback only if pid missing
+   */
   private mapRows(list: any[]): AppointmentRow[] {
     return (list || []).map((x: any) => {
-      const patient = x?.patient || {};
+      const patient = x?.patient ?? {};
 
       const appointmentId = this.toNum(x?.appointmentId ?? x?.id);
-      const patientId = this.toNum(patient?.patientId ?? x?.patientId);
 
-      const pid = String(
-        patient?.patientIdFormatted ??
-          x?.patientIdFormatted ??
-          x?.pid ??
-          (patientId ? `PID${String(patientId).padStart(3, '0')}` : '-')
-      ).trim();
+      // ✅ patientId FK for patient page navigation
+      const patientId = this.toNum(
+        x?.patientId ?? patient?.patientId ?? patient?.patientsId
+      );
+
+      // ✅ PID source-of-truth from backend
+      const pidRaw =
+        x?.pid ??
+        x?.patientPid ??
+        patient?.pid ??
+        patient?.patientPid ??
+        patient?.patientCode ??
+        x?.patientCode ??
+        x?.patientUID ??
+        '';
+
+      const pid =
+        this.normalizePid(pidRaw) ||
+        (patientId ? `PID${String(patientId).padStart(3, '0')}` : '-');
 
       const name = String(
         patient?.fullName ?? x?.fullName ?? x?.patientName ?? 'NA'
@@ -402,7 +419,17 @@ export class DashboardPage {
         this.timeFromRaw(x?.appointmentTime);
 
       const statusCode = this.toNum(x?.status);
-      const statusText = String(x?.statusText ?? '').trim() || this.statusLabel(statusCode);
+      const statusText =
+        String(x?.statusText ?? '').trim() || this.statusLabel(statusCode);
+
+      // ✅ DEBUG: see mismatch
+      console.log('[DASH][ROW]', {
+        appointmentId,
+        patientId,
+        pidRaw,
+        pidShown: pid,
+        appointmentDate: x?.appointmentDate,
+      });
 
       return {
         appointmentId,

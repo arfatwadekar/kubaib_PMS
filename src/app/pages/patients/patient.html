@@ -256,31 +256,318 @@
     <div class="card">MEDICAL TAB CONTENT</div>
   </div>
 
-  <!-- ==========================
-       FOLLOWUP TAB
-  =========================== -->
-  <div *ngIf="activeTab === 'followup'">
-    <div class="page-title">
-      <div class="h1">Follow Up</div>
-    </div>
-    <div class="card">FOLLOW UP TAB CONTENT</div>
-  </div>
-
-  <!-- ==========================
-       PAYMENT TAB
-  =========================== -->
-  <div *ngIf="activeTab === 'payment'">
-    <div class="page-title">
-      <div class="h1">Payment</div>
-    </div>
-    <div class="card">PAYMENT TAB CONTENT</div>
-  </div>
-
-  <!-- ==========================
-       IDENTITY TAB
-  =========================== -->
 <!-- ==========================
-     REPORTS TAB (CREATE ONLY)
+     FOLLOWUP TAB
+========================== -->
+<div *ngIf="activeTab === 'followup'" class="fu-wrap">
+  <!-- Title -->
+  <div class="page-title fu-page-title">
+    <div class="h1">Follow Up</div>
+  </div>
+
+  <div class="fu-card">
+    <!-- Header -->
+    <div class="fu-title">
+      <div class="h1">
+        <ion-icon name="clipboard-outline" class="ic"></ion-icon>
+        Follow Up Criteria
+      </div>
+      <div class="h2">Monitor clinical symptoms and patient progress over time.</div>
+    </div>
+
+    <!-- ================== Reference Symptoms ================== -->
+    <div class="panel">
+      <div class="panel-h">
+        PATIENT SYMPTOMS (REFERENCE)
+
+        <span class="panel-sub" *ngIf="fuCriteriaSaved">Saved</span>
+        <span class="panel-sub warn" *ngIf="!fuCriteriaSaved">First visit</span>
+      </div>
+
+      <form [formGroup]="fuCriteriaForm">
+        <div class="tbl">
+          <div class="tbl-head">
+            <div class="c-no">SR NO</div>
+            <div class="c-sym">SYMPTOMS</div>
+          </div>
+
+          <div formArrayName="symptoms">
+            <div
+              class="tbl-row"
+              *ngFor="let _ of fuSymptomsArr.controls; let i = index; trackBy: trackByIndex"
+            >
+              <div class="c-no">{{ i + 1 }}</div>
+
+              <div class="c-sym">
+                <input
+                  class="inp"
+                  [formControlName]="i"
+                  placeholder="Enter symptom..."
+                  [readonly]="fuCriteriaSaved"
+                  (input)="onCriteriaInput(i)"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="hint" *ngIf="!fuCriteriaSaved">
+            Start with 6 rows. Last row filled → 2 new rows auto add.
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- ================== First visit: show schedule inputs below criteria ================== -->
+    <div class="fu-first-visit" *ngIf="!fuCriteriaSaved">
+      <div class="fu-inline">
+        <div class="fu-field">
+          <div class="lbl">FOLLOW UP DATE</div>
+          <input class="inp" type="date" [formControl]="fuScheduleForm.controls.followUpDate" />
+          <div class="err" *ngIf="fuScheduleForm.controls.followUpDate.touched && fuScheduleForm.controls.followUpDate.invalid">
+            Follow up date required
+          </div>
+        </div>
+
+        <div class="fu-field">
+          <div class="lbl">CONSULTATION CHARGES</div>
+          <div class="money">
+            <span>₹</span>
+            <input class="money-inp" type="number" inputmode="numeric" [formControl]="fuScheduleForm.controls.charge" />
+          </div>
+        </div>
+      </div>
+
+      <div class="fu-actions">
+        <button class="btn success" type="button" (click)="saveFirstVisitFollowUp()" [disabled]="fuLoading">
+          {{ fuLoading ? 'Saving...' : 'Save Record' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ================== Returning: CTA ================== -->
+    <div class="visit-btn-wrap" *ngIf="fuCriteriaSaved && !fuShowVisitForm">
+      <button class="btn primary" type="button" (click)="openFollowUpVisit()">
+        <ion-icon name="add-outline"></ion-icon>
+        Follow Up Visit
+      </button>
+    </div>
+
+    <!-- ================== Visit Section ================== -->
+    <div class="visit-panel">
+      <!-- Empty state -->
+      <div class="empty" *ngIf="fuCriteriaSaved && !fuShowVisitForm && fuVisits.length === 0">
+        <div class="empty-ic">
+          <ion-icon name="time-outline"></ion-icon>
+        </div>
+        <div class="empty-t1">No follow-up records found.</div>
+        <div class="empty-t2">Click “Follow Up Visit” to document a new visit.</div>
+      </div>
+
+      <!-- Visit form -->
+      <div class="visit-card" *ngIf="fuShowVisitForm" [formGroup]="fuVisitForm">
+        <div class="visit-head">
+          <div class="vh-left">
+            <ion-icon name="calendar-outline"></ion-icon>
+            <div>
+              Follow Up Date:
+              <b>{{ fuVisitForm.value.followUpDate || '—' }}</b>
+            </div>
+          </div>
+
+          <div class="vh-right">
+            <div class="tag">RECENT ENTRY</div>
+          </div>
+        </div>
+
+        <div class="visit-grid">
+          <!-- Date -->
+          <div class="v-left">
+            <label class="lbl">FOLLOW UP DATE</label>
+            <input class="inp" type="date" formControlName="followUpDate" />
+            <div class="err" *ngIf="fuVisitForm.controls.followUpDate.touched && fuVisitForm.controls.followUpDate.invalid">
+              Date is required
+            </div>
+
+            <div style="height:10px"></div>
+
+            <label class="lbl">CONSULTATION CHARGES</label>
+            <div class="money">
+              <span>₹</span>
+              <input class="money-inp" type="number" inputmode="numeric" formControlName="charge" />
+            </div>
+          </div>
+
+          <!-- Score table -->
+          <div class="v-right">
+            <div class="score-table">
+              <div class="score-head">
+                <div class="s-lbl">SR</div>
+                <div class="s-col" *ngFor="let i of fuScoreCols">{{ i }}</div>
+              </div>
+
+              <div class="score-row" formArrayName="remarks">
+                <div class="s-lbl">Remark</div>
+                <div class="s-col" *ngFor="let _ of fuRemarksArr.controls; let i = index; trackBy: trackByIndex">
+                  <input class="score-inp" [formControlName]="i" placeholder="-" />
+                </div>
+              </div>
+            </div>
+
+            <div class="hint">
+              Remarks per symptom (e.g., intensity, improvement, frequency).
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom fields -->
+        <div class="visit-bottom">
+          <div class="box">
+            <div class="box-h">INTERPRETATION</div>
+            <textarea class="ta" formControlName="interpretation" placeholder="Clinical interpretation of symptoms..."></textarea>
+          </div>
+
+          <div class="box">
+            <div class="box-h">TEMPORARY PROBLEMS</div>
+            <textarea class="ta" formControlName="temporaryProblems" placeholder="Short-term clinical issues..."></textarea>
+          </div>
+
+          <div class="visit-actions">
+            <button class="btn ghost" type="button" (click)="closeVisitForm()">Cancel</button>
+            <button class="btn success" type="button" (click)="saveFollowUpVisit()" [disabled]="fuLoading">
+              {{ fuLoading ? 'Saving...' : 'Save Record' }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Saved preview list -->
+      <div class="saved-preview" *ngIf="fuCriteriaSaved && !fuShowVisitForm && fuVisits.length > 0">
+        <div class="saved-pill">Last Saved: {{ fuVisits[0]?.followUpDate }}</div>
+
+        <div class="saved-list">
+          <div class="saved-item" *ngFor="let v of fuVisits; let i = index; trackBy: trackByIndex">
+            <div class="si-left">
+              <div class="si-date">{{ v.followUpDate }}</div>
+              <div class="si-sub">{{ v.interpretation || '—' }}</div>
+            </div>
+            <div class="si-right">₹ {{ v.charge || 0 }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- bottom nav buttons optional (agar followup ke andar chahiye) -->
+    <div class="bottom-actions">
+      <button class="btn outline" type="button" (click)="goPrevPhysicalExam()">
+        Previous: Physical Exam
+      </button>
+
+      <div class="right">
+        <button class="btn primary" type="button" (click)="goNextPayment()">
+          Next: Payment
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ==========================
+     PAYMENT TAB
+========================== -->
+<div *ngIf="activeTab === 'payment'" class="pay-wrap">
+  <!-- Title -->
+  <div class="page-title pay-page-title">
+    <div class="h1">Billing & Payments</div>
+    <div class="h2">Manage patient account balance and track payment history</div>
+  </div>
+
+  <!-- KPI Cards -->
+  <div class="pay-kpi-grid">
+    <!-- Pending Amount -->
+    <div class="pay-kpi pay-kpi--pending">
+      <div class="pay-kpi-label">PENDING AMOUNT</div>
+      <div class="pay-kpi-value">
+        <span class="rs">₹</span>
+        {{ payPendingAmount || 0 }}
+      </div>
+    </div>
+
+    <!-- Total Consultation Charges -->
+    <div class="pay-kpi">
+      <div class="pay-kpi-label">TOTAL CONSULTATION CHARGES</div>
+      <div class="pay-kpi-value">
+        <span class="rs">₹</span>
+        {{ payTotalCharges || 0 }}
+      </div>
+    </div>
+
+    <!-- Total Amount Paid -->
+    <div class="pay-kpi pay-kpi--paid">
+      <div class="pay-kpi-label">TOTAL AMOUNT PAID</div>
+      <div class="pay-kpi-value pay-kpi-value--green">
+        <span class="rs">₹</span>
+        {{ payTotalPaid || 0 }}
+      </div>
+    </div>
+  </div>
+
+  <!-- Add payment -->
+  <div class="pay-action-row">
+    <button class="btn primary pay-add" type="button" (click)="openAddPayment()">
+      <ion-icon name="add-outline"></ion-icon>
+      Add New Payment
+    </button>
+  </div>
+
+  <!-- History -->
+  <div class="pay-history">
+    <!-- Empty -->
+    <div class="pay-empty" *ngIf="payHistory.length === 0">
+      <div class="pay-empty-ic">
+        <ion-icon name="document-text-outline"></ion-icon>
+      </div>
+      <div class="pay-empty-t1">No Payment History</div>
+      <div class="pay-empty-t2">
+        Pending payments will appear here once collected.
+      </div>
+    </div>
+
+    <!-- List (when available) -->
+    <div class="pay-list" *ngIf="payHistory.length > 0">
+      <div class="pay-row pay-row--head">
+        <div>Date</div>
+        <div>Remark</div>
+        <div class="right">Amount</div>
+      </div>
+
+      <div class="pay-row" *ngFor="let p of payHistory; trackBy: trackByIndex">
+        <div>{{ p.date }}</div>
+        <div class="muted">{{ p.remark || '-' }}</div>
+        <div class="right">₹ {{ p.amount || 0 }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom actions -->
+  <div class="pay-bottom">
+    <button class="btn outline" type="button" (click)="goPrevFollowUp()">
+      Previous: Follow Up
+    </button>
+
+    <button class="btn success" type="button" (click)="finalizePatient()">
+      Finalize &amp; Save Patient Record
+    </button>
+  </div>
+</div>
+
+
+<!-- ==========================
+     REPORTS TAB (CREATE + MATRIX)
+========================== -->
+<!-- ==========================
+     REPORTS TAB (CREATE + MATRIX + COMPARE DROPDOWNS)
+     ✅ From/To removed
 ========================== -->
 <div *ngIf="activeTab === 'reports'" class="reports-wrap">
 
@@ -288,98 +575,268 @@
   <ion-card class="reports-header-card">
     <ion-card-content class="reports-header">
       <div class="title-area">
-        <div class="title">Create Patient Report</div>
+        <div class="title">Patient Reports</div>
         <div class="sub">
-          {{ patientId ? ('Patient ID: ' + patientId) : 'Open patient in edit mode to create report' }}
+          {{ patientId ? ('Patient ID: ' + patientId) : 'Open patient in edit mode to create & compare reports' }}
         </div>
+      </div>
+
+      <div class="header-actions">
+        <ion-button
+          size="small"
+          fill="outline"
+          (click)="startNewReport()"
+          [disabled]="!patientId || reportLoading"
+        >
+          New
+        </ion-button>
+
+        <ion-button
+          size="small"
+          (click)="loadReportMatrix()"
+          [disabled]="!patientId || reportLoading"
+        >
+          {{ reportLoading ? 'Loading...' : 'Refresh' }}
+        </ion-button>
       </div>
     </ion-card-content>
   </ion-card>
 
-  <!-- CREATE FORM ONLY -->
-  <form class="table-card" [formGroup]="reportForm">
+  <!-- ==========================
+       CREATE FORM
+  ========================== -->
+  <ion-card class="reports-card">
+    <ion-card-content>
 
-    <!-- Top fields -->
-    <div class="form-top">
-      <ion-grid>
-        <ion-row>
-          <ion-col size="12" sizeMd="6">
-            <div class="mini-label">Report Name</div>
-            <ion-input formControlName="reportName" placeholder="e.g. Blood Report"></ion-input>
-          </ion-col>
+      <div class="report-state" *ngIf="!patientId">
+        Open patient in edit mode to create report.
+      </div>
 
-          <ion-col size="12" sizeMd="6">
-            <div class="mini-label">Report Date</div>
-            <ion-input type="date" formControlName="reportDate"></ion-input>
-          </ion-col>
-        </ion-row>
+      <form *ngIf="patientId" [formGroup]="reportForm">
 
-        <ion-row>
-          <ion-col size="12" sizeMd="6">
-            <div class="mini-label">Lab Name</div>
-            <ion-input formControlName="labName" placeholder="e.g. City Lab"></ion-input>
-          </ion-col>
+        <ion-grid class="report-top-grid">
+          <ion-row>
+            <ion-col size="12" sizeMd="4">
+              <div class="mini-label">Report Name</div>
+              <ion-input formControlName="reportName" placeholder="e.g. Blood Report"></ion-input>
+            </ion-col>
 
-          <ion-col size="12" sizeMd="6">
-            <div class="mini-label">Referred By</div>
-            <ion-input formControlName="referredBy" placeholder="Doctor name"></ion-input>
-          </ion-col>
-        </ion-row>
+            <ion-col size="12" sizeMd="4">
+              <div class="mini-label">Report Date</div>
+              <ion-input type="date" formControlName="reportDate"></ion-input>
+            </ion-col>
 
-        <ion-row>
-          <ion-col size="12">
-            <div class="mini-label">Summary</div>
-            <ion-textarea formControlName="summary" autoGrow="true" placeholder="Notes..."></ion-textarea>
-          </ion-col>
-        </ion-row>
-      </ion-grid>
-    </div>
+            <ion-col size="12" sizeMd="4">
+              <div class="mini-label">Lab Name</div>
+              <ion-input formControlName="labName" placeholder="e.g. ABC Lab"></ion-input>
+            </ion-col>
 
-    <!-- Table header -->
-    <div class="thead sticky">
-      <div class="th sr">SR</div>
-      <div class="th name">Test</div>
-      <div class="th val">Value</div>
-    </div>
+            <ion-col size="12" sizeMd="6">
+              <div class="mini-label">Referred By</div>
+              <ion-input formControlName="referredBy" placeholder="Doctor name"></ion-input>
+            </ion-col>
 
-    <!-- Rows -->
-    <div class="tbody" formArrayName="items">
-      <div
-        class="trow"
-        *ngFor="let row of reportItems.controls; let i = index"
-        [formGroupName]="i"
-      >
-        <div class="td sr">{{ i + 1 }}</div>
-        <div class="td name">{{ row.get('label')?.value }}</div>
-        <div class="td val">
-          <ion-input
-            formControlName="value"
-            placeholder="Enter value"
-          ></ion-input>
+            <ion-col size="12" sizeMd="6">
+              <div class="mini-label">Summary</div>
+              <ion-input formControlName="summary" placeholder="optional"></ion-input>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+
+        <!-- TABLE: test + value -->
+        <div class="report-table">
+          <div class="t-head">
+            <div class="c1">Test</div>
+            <div class="c2">Value</div>
+          </div>
+
+          <div class="t-body" formArrayName="items">
+            <div
+              class="t-row"
+              *ngFor="let row of reportItems.controls; let i = index; trackBy: trackByIndex"
+            >
+              <div class="c1">
+                {{ row.get('label')?.value }}
+              </div>
+
+              <div class="c2" [formGroupName]="i">
+                <ion-input
+                  class="value-input"
+                  formControlName="value"
+                  placeholder="-"
+                  inputmode="decimal"
+                ></ion-input>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="report-actions">
+          <ion-button
+            fill="outline"
+            size="small"
+            (click)="autoFillReport()"
+            [disabled]="reportLoading"
+          >
+            AutoFill
+          </ion-button>
+
+          <ion-button
+            size="small"
+            (click)="saveReport()"
+            [disabled]="reportLoading"
+          >
+            {{ reportLoading ? 'Saving...' : 'Save' }}
+          </ion-button>
+        </div>
+
+      </form>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- ==========================
+       MATRIX + COMPARE CONTROLS
+       ✅ Dropdown 1: Report No (distinct)
+       ✅ Dropdown 2: Multi-select dates (max 5)
+       ✅ From/To removed
+  ========================== -->
+  <ion-card class="reports-card reports-card--matrix">
+    <ion-card-content>
+
+      <div class="reports-topbar">
+        <div class="left-info">
+          <div class="mini-title">Reports Matrix</div>
+          <div class="mini-sub">Select report + dates to compare (max 5)</div>
+        </div>
+
+        <div class="matrix-controls">
+
+          <!-- ✅ 1) Report dropdown -->
+          <div class="ctrl">
+            <div class="mini-label">Report No</div>
+            <ion-item lines="none" class="select-item">
+              <ion-select
+                interface="popover"
+                placeholder="Select report"
+                [(ngModel)]="selectedMatrixReportId"
+                [ngModelOptions]="{ standalone: true }"
+                (ionChange)="onMatrixReportChange()"
+                [disabled]="!patientId || reportLoading"
+              >
+                <ion-select-option
+                  *ngFor="let r of reportList; trackBy: trackByIndex"
+                  [value]="r.patientReportId"
+                >
+                  #{{ r.patientReportId }} • {{ r.reportName || 'Report' }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+
+          <!-- ✅ 2) Date multi-select (checkbox) -->
+          <div class="ctrl">
+            <div class="mini-label">Compare Dates (max 5)</div>
+            <ion-item lines="none" class="select-item">
+              <ion-select
+                interface="popover"
+                multiple="true"
+                placeholder="Select dates"
+                [(ngModel)]="selectedCompareDates"
+                [ngModelOptions]="{ standalone: true }"
+                (ionChange)="onCompareDatesChange($event)"
+                [disabled]="!patientId || reportLoading || !reportDates?.length"
+              >
+                <ion-select-option
+                  *ngFor="let d of reportDates"
+                  [value]="d"
+                >
+                  {{ d }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+
+            <!-- small helper text -->
+            <div class="mini-hint" *ngIf="selectedCompareDates?.length">
+              Selected: {{ selectedCompareDates.length }}/5
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="ctrl-actions">
+            <ion-button
+              size="small"
+              fill="outline"
+              (click)="clearCompareSelection()"
+              [disabled]="reportLoading || (!selectedCompareDates?.length && !selectedMatrixReportId)"
+            >
+              Clear
+            </ion-button>
+
+            <ion-button
+              size="small"
+              (click)="loadReportMatrix()"
+              [disabled]="!patientId || reportLoading"
+            >
+              {{ reportLoading ? 'Loading...' : 'Refresh' }}
+            </ion-button>
+          </div>
+
         </div>
       </div>
-    </div>
 
-    <!-- Actions -->
-    <div class="actions">
-      <ion-button
-        expand="block"
-        (click)="saveReport()"
-        [disabled]="reportLoading || !patientId"
-      >
-        {{ reportLoading ? 'Saving...' : 'Save Report' }}
-      </ion-button>
+      <!-- Loading / empty -->
+      <div class="report-state" *ngIf="reportLoading">Loading reports...</div>
+      <div class="report-state" *ngIf="!reportLoading && !patientId">
+        Open patient in edit mode to view matrix.
+      </div>
+      <div class="report-state" *ngIf="!reportLoading && patientId && displayDates.length === 0">
+        No reports found.
+      </div>
 
-      <ion-button
-        expand="block"
-        fill="outline"
-        (click)="resetReportFormOnly()"
-        [disabled]="reportLoading"
-      >
-        Reset Form
-      </ion-button>
-    </div>
-  </form>
+      <!-- MATRIX -->
+      <div class="matrix-wrap" *ngIf="!reportLoading && patientId && displayDates.length > 0">
+        <div class="matrix">
+
+          <!-- header row -->
+          <div class="m-head">
+            <div class="m-cell m-sticky m-test">Test</div>
+
+            <div
+              class="m-cell m-date"
+              role="button"
+              tabindex="0"
+              *ngFor="let d of displayDates"
+              (click)="onDateHeaderClick(d)"
+              [class.is-active]="selectedReportDate === d"
+            >
+              {{ d }}
+            </div>
+          </div>
+
+          <!-- rows -->
+          <div class="m-row" *ngFor="let row of reportMatrix; trackBy: trackByIndex">
+            <div class="m-cell m-sticky m-test">{{ row.label }}</div>
+
+            <div
+              class="m-cell"
+              *ngFor="let d of displayDates"
+              [class.is-active]="selectedReportDate === d"
+            >
+              {{ row.values[d] || '-' }}
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="matrix-hint" *ngIf="!reportLoading && patientId && displayDates.length > 0">
+        Tip: Date header pe click karo → form auto-fill ho jayega.
+      </div>
+
+    </ion-card-content>
+  </ion-card>
+
 </div>
 
 
