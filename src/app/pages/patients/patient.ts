@@ -6,10 +6,22 @@ import { Subject, Subscription, takeUntil, firstValueFrom } from 'rxjs';
 
 import { PatientService } from 'src/app/services/patient.service';
 import { PatientReportPayload, PatientReportService } from 'src/app/services/patient-report.service';
-import { FollowUpService, FollowUpCriteriaDto } from 'src/app/services/follow-up.service';
+import { FollowUpService, FollowUpCriteriaDto, AppointmentStatus } from 'src/app/services/follow-up.service';
+
+// ✅ NEW: Clinical Case
+// import { ClinicalCaseService, ClinicalCasePayload } from 'src/app/services/clinical-case.service';
+import { MedicalExaminationService, ClinicalCasePayload } from 'src/app/services/medical-examination.service';
 
 type TabKey = 'prelim' | 'medical' | 'followup' | 'payment' | 'reports';
 type UserRole = 'Doctor' | 'Receptionist';
+
+type Complaint = {
+  complaintType: string;
+  location: string;
+  sensation: string;
+  modality: string;
+  concomitant: string;
+};
 
 // =====================
 // Helpers
@@ -28,7 +40,6 @@ function toIso(dateOnlyOrIso: string): string | null {
   const s = (dateOnlyOrIso || '').toString().trim();
   if (!s) return null;
   if (s.includes('T')) return s;
-
   const [y, m, d] = s.split('-').map(Number);
   if (!y) return null;
   return new Date(Date.UTC(y, (m || 1) - 1, d || 1)).toISOString();
@@ -69,36 +80,29 @@ function todayYmd(): string {
   const dd = String(t.getDate()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd}`;
 }
-function toIsoFromYmd(ymd: string): string {
-  return new Date(`${ymd}T00:00:00.000Z`).toISOString();
+
+/** UI date label: DD/MM/YYYY */
+function toUiDate(isoOrDate: string): string {
+  const s = (isoOrDate || '').toString().trim();
+  if (!s) return '';
+  const iso = s.includes('T') ? s : `${s}T00:00:00.000Z`;
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return s;
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+
+/** yyyy-mm-dd key */
+function toKeyYmd(isoOrDate: string): string {
+  const s = (isoOrDate || '').toString().trim();
+  if (!s) return '';
+  if (s.includes('T')) return s.slice(0, 10);
+  return s.length >= 10 ? s.slice(0, 10) : s;
 }
 
 type UiRow = { label: string; apiKey: keyof PatientReportPayload };
-
-// =====================
-// FOLLOWUP UI TYPES
-// =====================
-type FuVisitListItem = {
-  entryId: number;
-  followUpDate: string; // YYYY-MM-DD
-  charge: number;
-  interpretation?: string;
-  temporaryProblems?: string;
-  raw: any;
-};
-
-// =====================
-// REPORTS TYPES
-// =====================
-type ReportSummary = {
-  patientReportId: number;
-  patientId: number;
-  reportName: string;
-  reportDate: string; // ISO
-  labName: string;
-  attachmentCount?: number;
-  createdOn?: string;
-};
 
 type ReportDetail = PatientReportPayload & {
   patientReportId: number;
@@ -118,12 +122,17 @@ export class PatientPage implements OnInit, OnDestroy {
   role: UserRole = 'Receptionist';
   activeTab: TabKey = 'prelim';
 
+  // ✅ Medical record state
+medicalExists = false;      // DB me record hai?
+medicalSaving = false;      // saving indicator alag rakho (optional)
+
   // =====================
   // PATIENT PAGE STATE
   // =====================
   loading = false;
   isEditMode = false;
   patientId: number | null = null;
+  currentAppointmentId: number | null = null;
 
   private currentPatient: any = null;
   private sub = new Subscription();
@@ -159,47 +168,320 @@ export class PatientPage implements OnInit, OnDestroy {
   });
 
   // ============================================================
-  // ✅ FOLLOWUP (MATCH HTML NAMES)
+  // ✅ MEDICAL (CLINICAL CASE) FORM
+  // ============================================================
+  openSection: string = 's1';
+
+  medicalForm = this.fb.group({
+    complaints: this.fb.group({
+      chief: this.fb.group({
+        location: [''],
+        sensation: [''],
+        modality: [''],
+        concomitant: [''],
+      }),
+      associated: this.fb.group({
+        location: [''],
+        sensation: [''],
+        modality: [''],
+        concomitant: [''],
+      }),
+      past: this.fb.group({
+        location: [''],
+        sensation: [''],
+        modality: [''],
+        concomitant: [''],
+      }),
+    }),
+
+    familyHistory: this.fb.group({
+      father: [''],
+      mother: [''],
+      paternalUncle: [''],
+      maternalUncle: [''],
+      paternalGrandParents: [''],
+      maternalGrandParents: [''],
+      brothers: [''],
+      sisters: [''],
+      remarks: [''],
+    }),
+
+    personalStatus: this.fb.group({
+      skin: [''],
+      woundHealing: [''],
+      hairs: [''],
+      nails: [''],
+      perspiration: [''],
+      thirst: [''],
+      appetite: [''],
+      cravings: [''],
+      aversions: [''],
+      addictions: [''],
+      food: [''],
+      fasting: [''],
+      stool: [''],
+      urine: [''],
+      sleep: [''],
+      dreams: [''],
+    }),
+
+    menstrualHistory: this.fb.group({
+      menses: [''],
+      beforeMenses: [''],
+      betweenMenses: [''],
+      afterMenses: [''],
+      staining: [''],
+      clots: [''],
+      pads: [''],
+      leucorrhoea: [''],
+      pregnancy: [''],
+    }),
+
+    maleSexualFunction: this.fb.group({
+      masturbation: [''],
+      erection: [''],
+      nocturnalEmission: [''],
+    }),
+
+    physicalReaction: this.fb.group({
+      summer_Fan: [''],
+      summer_AC: [''],
+      summer_Coverings: [''],
+      summer_Woolens: [''],
+      summer_Bath: [''],
+      monsoon_Fan: [''],
+      monsoon_AC: [''],
+      monsoon_Coverings: [''],
+      monsoon_Woolens: [''],
+      monsoon_Bath: [''],
+      winter_Fan: [''],
+      winter_AC: [''],
+      winter_Coverings: [''],
+      winter_Woolens: [''],
+      winter_Bath: [''],
+      bus: [''],
+      sun: [''],
+      coldAir: [''],
+      draft: [''],
+      wetGetting: [''],
+      thermalState: [''],
+    }),
+
+    physicalExamination: this.fb.group({
+      // UI keys (from your html)
+      heightMeters: [''],
+      weightKg: [''],
+      bmi: [''],
+      bmiCategory: [''],
+
+      physicalAppearance: [''],
+      dejection: [''], // map -> digestion
+      temperature: [''],
+      pulse: [''],
+      bp: [''],
+      tongue: [''],
+      lips: [''],
+      teeth: [''],
+      gums: [''],
+      nails: [''],
+      skin: [''],
+      glands: [''],
+      nose: [''],
+      throat: [''],
+      trachea: [''],
+
+      rsPercussion: [''], // map -> percussion_RS
+      rr: [''],
+      airEntry: [''],
+      chestExpansion: [''],
+      breathSounds: [''],
+      spo2: [''], // map -> spO2
+
+      paSizeShapeSkin: [''], // map -> pA_SizeShapeSkin
+      paMovement: [''], // map -> pA_Movement
+      paPercussion: [''], // map -> pA_Percussion
+      paSoftTenderRigidGuard: [''], // map -> soft_Tenderness_Rigidity_Guarding
+      bowelSound: [''],
+      lump: [''],
+      hst: [''], // map -> hgt (swagger)
+
+      apexImpulse: [''],
+      jvp: [''],
+      thrill: [''],
+      cvsPercussion: [''], // map -> percussion_CVS
+      heartSounds: [''],
+      murmur: [''],
+      rub: [''],
+
+      higherFunction: [''],
+      motorFunction: [''],
+      sensoryFunction: [''],
+      cranialNerves: [''],
+      reflexes: [''],
+      coordination: [''],
+
+      mskInspection: [''], // map -> inspection
+      rom: [''],
+      swelling: [''],
+      warmth: [''],
+      redness: [''],
+      deformities: [''],
+      crepitation: [''], // map -> crepitations
+      muscleStrength: [''],
+
+      investigations: [''],
+    }),
+
+    mentalState: this.fb.group({
+      // relationship buttons
+      rel_Father_Status: [''],
+      rel_Mother_Status: [''],
+      rel_Brother_Status: [''],
+      rel_Sister_Status: [''],
+      rel_Husband_Status: [''],
+      rel_Wife_Status: [''],
+      rel_Son_Status: [''],
+      rel_Daughter_Status: [''],
+      rel_PaternalGrandfather_Status: [''],
+      rel_PaternalGrandmother_Status: [''],
+      rel_MaternalGrandfather_Status: [''],
+      rel_MaternalGrandmother_Status: [''],
+      rel_FatherInLaw_Status: [''],
+      rel_MotherInLaw_Status: [''],
+      rel_BrotherInLaw_Status: [''],
+      rel_SisterInLaw_Status: [''],
+      rel_Family_Status: [''],
+      rel_Work_Status: [''],
+      rel_Friends_Status: [''],
+      rel_Finance_Status: [''],
+      rel_Social_Status: [''],
+      rel_Authority_Status: [''],
+
+      mentalStateEvaluation: [''],
+      angerSadnessTriangles_Remark: [''],
+      fearAnxietyTriangles_Remark: [''],
+
+      // emotional grid remarks (your UI)
+      remarkAngerSadness: [''],
+      remarkAttachments: [''],
+      remarkLoveHate: [''],
+      remarkFearAnxiety: [''],
+    }),
+
+    intellectualState: this.fb.group({
+      capacityPerformanceRatio: [0],
+      perception: [''],
+      memory: [''],
+      thinking: [''],
+      decision: [''],
+      confidence: [''],
+    }),
+
+    behavioralEvaluation: this.fb.group({
+      childhood_Scholastic: [''],
+      childhood_HomeEnvironment: [''],
+      childhood_Finance: [''],
+      childhood_Difficulties: [''],
+
+      action_Speech: [''],
+      action_Behaviour: [''],
+      action_Description: [''],
+
+      block_Emotional: [false],
+      block_Motivational: [false],
+      block_Intellectual: [false],
+      block_IPR: [false],
+      block_Social: [false],
+      block_Domestic: [false],
+      block_Work: [false],
+      block_Notes: [''],
+
+      sensory_Noise: [''],
+      sensory_Odour: [''],
+      sensory_Colour: [''],
+      sensory_Light: [''],
+      sensory_Music: [''],
+      sensory_Touch: [''],
+      sensory_Rubbing: [''],
+      sensory_Climate: [''],
+
+      miasmatic_Fundamental: [''],
+      miasmatic_Dominant: [''],
+
+      rubrics: [''],
+      provisionalDiagnosis: [''],
+      finalDiagnosis: [''],
+      firstPrescription: [''],
+      generalInstructions: [''],
+    }),
+  });
+
+  // ============================================================
+  // ✅ FOLLOWUP STEP-1 + NEXT FLOW
   // ============================================================
   fuLoading = false;
   fuCriteriaSaved = false;
-  fuShowVisitForm = false;
-
-  fuScoreCols: number[] = [];
-  fuVisits: FuVisitListItem[] = [];
-
   private fuCriteriaFromDb: FollowUpCriteriaDto[] = [];
 
   private readonly FU_INIT_ROWS = 6;
   private readonly FU_ADD_STEP = 2;
   private readonly FU_MAX_ROWS = 30;
 
+  private readonly APPT_STATUS_AWAIT_PAYMENT = AppointmentStatus.AwaitingPayment;
+
+  // ===== Waive-Off UI state =====
+  waiveOffVerified = false;
+  waiveOffVerifyErr = '';
+  showWaveOffAmount = false;
+
+  private waiveOffPasswordCache: string | null = null;
+  fuNextPaymentError = '';
+
   fuCriteriaForm = this.fb.group({
     symptoms: this.fb.array([]),
   });
 
-  fuScheduleForm = this.fb.group({
-    followUpDate: [todayYmd(), Validators.required],
-    charge: [0],
+  fuNextApptForm = this.fb.group({
+    followUpDate: [''],
+    followUpTime: ['14:30:00'],
   });
 
-  fuVisitForm = this.fb.group({
-    followUpDate: [todayYmd(), Validators.required],
-    charge: [0],
-    interpretation: [''],
-    temporaryProblems: [''],
-    remarks: this.fb.array([]),
+  fuPaymentForm = this.fb.group({
+    consultationCharges: [0, [Validators.required, Validators.min(1)]],
+    waveOffAmount: [0],
+    amountPaid: [0, [Validators.required, Validators.min(0)]],
+    paymentMode: ['Cash', Validators.required],
+    waveOffPassword: [''],
   });
 
   get fuSymptomsArr(): FormArray {
     return this.fuCriteriaForm.get('symptoms') as FormArray;
   }
-  get fuRemarksArr(): FormArray {
-    return this.fuVisitForm.get('remarks') as FormArray;
+
+  get fuHasAtLeastOneSymptom(): boolean {
+    const names = (this.fuCriteriaForm.getRawValue().symptoms || [])
+      .map((x: any) => (x ?? '').toString().trim())
+      .filter(Boolean);
+    return names.length > 0;
+  }
+
+  get fuCanProceedNextPayment(): boolean {
+    if (!this.patientId) return false;
+    if (!this.fuCriteriaSaved) return false;
+
+    const charges = safeNum(this.fuPaymentForm.controls.consultationCharges.value ?? 0);
+    const paid = safeNum(this.fuPaymentForm.controls.amountPaid.value ?? 0);
+    const wave = safeNum(this.fuPaymentForm.controls.waveOffAmount.value ?? 0);
+    const mode = (this.fuPaymentForm.controls.paymentMode.value ?? '').toString().trim();
+
+    if (charges <= 0) return false;
+    if (!mode) return false;
+    if (paid < 0 || wave < 0) return false;
+    return true;
   }
 
   // =====================
-  // REPORTS (CREATE + MATRIX + DROPDOWNS)
+  // REPORTS (IMAGE-LIKE ENTRY + COMPARE)
   // =====================
   rowsMeta: UiRow[] = [
     { label: 'Cholesterol Total', apiKey: 'cholesterolTotal' },
@@ -248,43 +530,34 @@ export class PatientPage implements OnInit, OnDestroy {
     { label: 'HCV', apiKey: 'hcv' },
   ];
 
-  reportLoading = false;
-
   reportForm: FormGroup = this.fb.group({
     reportName: [''],
     reportDate: [todayYmd()],
     labName: [''],
     referredBy: [''],
     summary: [''],
-    items: this.fb.array([]),
   });
 
-  get reportItems(): FormArray {
-    return this.reportForm.get('items') as FormArray;
-  }
+  // entry UI rows
+  repMode: 'entry' | 'compare' = 'entry';
+  repReportDate: string = todayYmd();
+  repSelectedPrevReportId: number | null = null;
+  repRows: Array<{ label: string; apiKey: keyof PatientReportPayload; value: string }> = [];
 
-  // ✅ dropdown data for HTML
-  reportList: ReportSummary[] = []; // distinct report numbers
-  reportDates: string[] = []; // all available dates (YYYY-MM-DD)
+  // summary lists
+  repSummaryList: Array<{ patientReportId: number; reportName: string; reportDateYmd: string; uiDate: string }> = [];
+  repAllUiDates: string[] = [];
+  repSelectedUiDates: string[] = [];
+  repDisplayUiDates: string[] = [];
+  repSelectedHeaderDate: string = '';
 
-  selectedMatrixReportId: number | null = null;
-  selectedCompareDates: string[] = []; // multi-select (max 5)
+  // matrix
+  repMatrix: Array<{ label: string; apiKey: keyof PatientReportPayload; values: Record<string, string> }> = [];
 
-  // matrix state for render
-  displayDates: string[] = [];
-  selectedReportDate = '';
-  selectedReportId: number | null = null;
+  reportLoading = false;
 
-  reportMatrix: Array<{
-    label: string;
-    apiKey: keyof PatientReportPayload;
-    values: Record<string, string>;
-  }> = [];
-
-  // internal caches
-  private reportSummaries: ReportSummary[] = [];
-  private reportDetailsMap: Record<number, ReportDetail> = {}; // id -> detail
-  private dateToReportId: Record<string, number> = {}; // date -> chosen reportId
+  private repDetailsMap: Record<number, ReportDetail> = {};
+  private repUiDateToReportId: Record<string, number> = {};
 
   // =====================
   // PAYMENT (UI ONLY)
@@ -292,7 +565,6 @@ export class PatientPage implements OnInit, OnDestroy {
   payPendingAmount = 0;
   payTotalCharges = 0;
   payTotalPaid = 0;
-
   payHistory: Array<{ date: string; amount: number; remark?: string }> = [];
 
   constructor(
@@ -300,9 +572,10 @@ export class PatientPage implements OnInit, OnDestroy {
     private patient: PatientService,
     private reportApi: PatientReportService,
     private fuApi: FollowUpService,
-    private toastCtrl: ToastController,
+private medicalExamApi: MedicalExaminationService, // ✅ only this
     private alertCtrl: AlertController,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+      private toastCtrl: ToastController,   // ✅ MUST be here with same name
   ) {}
 
   // =====================
@@ -311,8 +584,11 @@ export class PatientPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadRoleFromStorage();
     this.ensureAllowedTab();
-    this.initReportRows();
+
+    // init UI
+    this.initReportEntryRows();
     this.initFollowUpEmpty();
+    this.initMedicalBmiAutoCalc(); // ✅ BMI auto-calc
 
     this.sub.add(
       this.route.queryParams.subscribe((qp) => {
@@ -320,6 +596,9 @@ export class PatientPage implements OnInit, OnDestroy {
 
         const id = safeNum(qp?.['patientId']);
         const requestedTab = safeStr(qp?.['tab']) as TabKey;
+
+        const apptId = safeNum(qp?.['appointmentId']);
+        this.currentAppointmentId = apptId > 0 ? apptId : null;
 
         this.activeTab = requestedTab && this.isTabAllowed(requestedTab) ? requestedTab : 'prelim';
 
@@ -331,21 +610,28 @@ export class PatientPage implements OnInit, OnDestroy {
 
           if (this.activeTab === 'reports') {
             this.startNewReport();
-            void this.loadReportMatrix(true);
+            void this.loadReportsForPatient(false);
           }
 
           if (this.activeTab === 'followup') {
-            void this.loadFollowUpTab(false);
+            void this.loadFollowUpCriteria(false);
           }
+
+          if (this.activeTab === 'medical') {
+  void this.loadClinicalCaseIfExists();
+}
+
+          // if (this.activeTab === 'medical') { ... optional load clinical case ... }
         } else {
           this.isEditMode = false;
           this.patientId = null;
+          this.currentAppointmentId = null;
           this.currentPatient = null;
 
           this.resetPatientForm();
-          this.resetReportForm();
-          this.resetReportView();
+          this.resetReportsAll();
           this.resetFollowUpView();
+          this.resetMedicalForm();
         }
       })
     );
@@ -367,7 +653,7 @@ export class PatientPage implements OnInit, OnDestroy {
 
   isTabAllowed(tab: TabKey): boolean {
     if (this.role === 'Doctor') return true;
-    return tab === 'prelim' || tab === 'payment' || tab === 'reports' || tab === 'followup';
+    return tab === 'prelim' || tab === 'payment' || tab === 'reports' || tab === 'followup' || tab === 'medical';
   }
 
   isTabDisabled(tab: TabKey): boolean {
@@ -393,12 +679,19 @@ export class PatientPage implements OnInit, OnDestroy {
 
     if (this.activeTab === 'reports') {
       this.startNewReport();
-      void this.loadReportMatrix(false);
+      void this.loadReportsForPatient(false);
     }
 
     if (this.activeTab === 'followup') {
-      void this.loadFollowUpTab(false);
+      void this.loadFollowUpCriteria(false);
     }
+
+    if (this.activeTab === 'medical') {
+  void this.loadClinicalCaseIfExists();
+}
+
+
+    // medical: nothing mandatory on switch
   }
 
   // =====================
@@ -459,6 +752,7 @@ export class PatientPage implements OnInit, OnDestroy {
           referredBy: safeStr(p?.referredBy),
         });
 
+        // default referredBy to reports form too
         this.reportForm.patchValue({ referredBy: safeStr(p?.referredBy) }, { emitEvent: false });
       },
       error: (err) => {
@@ -633,11 +927,259 @@ export class PatientPage implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // ✅ FOLLOWUP TAB LOGIC
+  // ✅ MEDICAL: BMI AUTO CALC
+  // ============================================================
+  private initMedicalBmiAutoCalc() {
+    const pe = this.medicalForm.get('physicalExamination') as FormGroup;
+
+    const recalc = () => {
+      const h = Number(pe.controls['heightMeters']?.value || 0);
+      const w = Number(pe.controls['weightKg']?.value || 0);
+
+      if (!h || !w) {
+        pe.patchValue({ bmi: '', bmiCategory: '' }, { emitEvent: false });
+        return;
+      }
+
+      const bmi = w / (h * h);
+      const bmiStr = Number.isFinite(bmi) ? bmi.toFixed(2) : '';
+
+      let cat = '';
+      if (bmi < 18.5) cat = 'Underweight';
+      else if (bmi < 25) cat = 'Normal';
+      else if (bmi < 30) cat = 'Overweight';
+      else cat = 'Obese';
+
+      pe.patchValue({ bmi: bmiStr, bmiCategory: cat }, { emitEvent: false });
+    };
+
+    pe.controls['heightMeters'].valueChanges.pipe(takeUntil(this.destroy$)).subscribe(recalc);
+    pe.controls['weightKg'].valueChanges.pipe(takeUntil(this.destroy$)).subscribe(recalc);
+  }
+
+  private resetMedicalForm() {
+    this.medicalForm.reset();
+    this.openSection = 's1';
+  }
+
+  // ============================================================
+  // ✅ MEDICAL: RELATIONSHIP BUTTONS (from your html)
+  // ============================================================
+  toggleStatus(key: string) {
+    const g = this.medicalForm.get('mentalState') as FormGroup;
+    const cur = (g?.get(key)?.value ?? '').toString().trim();
+
+    // cycle: '' -> 'P' -> 'N' -> ''
+    const next = cur === '' ? 'P' : cur === 'P' ? 'N' : '';
+    g?.patchValue({ [key]: next }, { emitEvent: false });
+    g?.markAsDirty();
+  }
+
+  getBtnClass(key: string): string {
+    const g = this.medicalForm.get('mentalState') as FormGroup;
+    const v = (g?.get(key)?.value ?? '').toString().trim();
+    if (v === 'P') return 'status-positive';
+    if (v === 'N') return 'status-negative';
+    return 'status-neutral';
+  }
+
+  // ============================================================
+  // ✅ MEDICAL: autofill() (your header button uses autofill())
+  // ============================================================
+  autofill() {
+    if (!this.patientId) return;
+
+    this.medicalForm.patchValue({
+      complaints: {
+        chief: { location: 'Head', sensation: 'Pain', modality: 'Worse at night', concomitant: 'Nausea' },
+        associated: { location: 'Stomach', sensation: 'Burning', modality: 'After spicy', concomitant: '' },
+        past: { location: '', sensation: '', modality: '', concomitant: '' },
+      },
+      physicalExamination: {
+        heightMeters: '1.70',
+        weightKg: '75',
+        temperature: '98.6',
+        pulse: '78',
+        bp: '120/80',
+        spo2: '99',
+      },
+      behavioralEvaluation: {
+        childhood_Scholastic: 'Average',
+        action_Speech: 'Normal',
+      },
+    });
+  }
+
+  // ============================================================
+  // ✅ MEDICAL: SAVE RECORD -> POST /api/ClinicalCase
+  // ============================================================
+  private s(v: any): string {
+    return (v ?? '').toString().trim();
+  }
+  private complaintFrom(group: any, complaintType: string) {
+    return {
+      complaintType,
+      location: this.s(group?.location),
+      sensation: this.s(group?.sensation),
+      modality: this.s(group?.modality),
+      concomitant: this.s(group?.concomitant),
+    };
+  }
+
+  private buildClinicalCasePayload(): ClinicalCasePayload {
+  const v = this.medicalForm.getRawValue();
+
+  // ✅ Backend valid ComplaintType values (case-sensitive)
+  const chief = this.complaintFrom(v?.complaints?.chief, 'Chief');
+  const associated = this.complaintFrom(v?.complaints?.associated, 'Associated');
+  const pastHistory = this.complaintFrom(v?.complaints?.past, 'PastHistory');
+
+  const pe: any = v?.physicalExamination || {};
+  const ms: any = v?.mentalState || {};
+  const intel: any = v?.intellectualState || {};
+
+  const payload: ClinicalCasePayload = {
+    patientId: this.patientId || 0,
+
+    complaints: [chief, associated, pastHistory],
+
+    familyHistory: { ...(v?.familyHistory || {}) },
+    personalStatus: { ...(v?.personalStatus || {}) },
+    menstrualHistory: { ...(v?.menstrualHistory || {}) },
+    maleSexualFunction: { ...(v?.maleSexualFunction || {}) },
+    physicalReaction: { ...(v?.physicalReaction || {}) },
+
+    // ✅ UI -> API keys mapping (swagger)
+    physicalExamination: {
+      height: this.s(pe?.heightMeters),
+      weight: this.s(pe?.weightKg),
+      bmi: this.s(pe?.bmi),
+      weightCategory: this.s(pe?.bmiCategory),
+
+      physicalAppearance: this.s(pe?.physicalAppearance),
+      digestion: this.s(pe?.dejection), // UI "dejection" => API "digestion"
+      temperature: this.s(pe?.temperature),
+      pulse: this.s(pe?.pulse),
+      bp: this.s(pe?.bp),
+      tongue: this.s(pe?.tongue),
+      lips: this.s(pe?.lips),
+      teeth: this.s(pe?.teeth),
+      gums: this.s(pe?.gums),
+      nails: this.s(pe?.nails),
+      skin: this.s(pe?.skin),
+      glands: this.s(pe?.glands),
+      nose: this.s(pe?.nose),
+      throat: this.s(pe?.throat),
+      trachea: this.s(pe?.trachea),
+
+      chestExpansion: this.s(pe?.chestExpansion),
+      spO2: this.s(pe?.spo2),                 // UI spo2 => API spO2
+      percussion_RS: this.s(pe?.rsPercussion), // UI rsPercussion => API percussion_RS
+      rr: this.s(pe?.rr),
+      airEntry: this.s(pe?.airEntry),
+      breathSounds: this.s(pe?.breathSounds),
+
+      pA_SizeShapeSkin: this.s(pe?.paSizeShapeSkin),
+      pA_Movement: this.s(pe?.paMovement),
+      pA_Percussion: this.s(pe?.paPercussion),
+      hgt: this.s(pe?.hst), // UI hst => API hgt
+      soft_Tenderness_Rigidity_Guarding: this.s(pe?.paSoftTenderRigidGuard),
+
+      bowelSound: this.s(pe?.bowelSound),
+      lump: this.s(pe?.lump),
+
+      apexImpulse: this.s(pe?.apexImpulse),
+      jvp: this.s(pe?.jvp),
+      thrill: this.s(pe?.thrill),
+      percussion_CVS: this.s(pe?.cvsPercussion),
+      heartSounds: this.s(pe?.heartSounds),
+      murmur: this.s(pe?.murmur),
+      rub: this.s(pe?.rub),
+
+      higherFunction: this.s(pe?.higherFunction),
+      motorFunction: this.s(pe?.motorFunction),
+      sensoryFunction: this.s(pe?.sensoryFunction),
+      cranialNerves: this.s(pe?.cranialNerves),
+      reflexes: this.s(pe?.reflexes),
+      coordination: this.s(pe?.coordination),
+
+      inspection: this.s(pe?.mskInspection),
+      rom: this.s(pe?.rom),
+      swelling: this.s(pe?.swelling),
+      warmth: this.s(pe?.warmth),
+      redness: this.s(pe?.redness),
+      deformities: this.s(pe?.deformities),
+      crepitations: this.s(pe?.crepitation),
+      muscleStrength: this.s(pe?.muscleStrength),
+
+      investigations: this.s(pe?.investigations),
+    },
+
+    mentalState: {
+      // keep API fields if already present
+      ...(ms || {}),
+
+      // ✅ ensure remarks go to swagger keys
+      angerSadnessTriangles_Remark: this.s(ms?.remarkAngerSadness || ms?.angerSadnessTriangles_Remark),
+      fearAnxietyTriangles_Remark: this.s(ms?.remarkFearAnxiety || ms?.fearAnxietyTriangles_Remark),
+
+      // swagger required-ish fields
+      spectrum_LoveHate: safeNum(ms?.spectrum_LoveHate ?? 0),
+      spectrum_LaveHate_Remark: this.s(ms?.remarkLoveHate || ms?.spectrum_LaveHate_Remark),
+
+      // intellect values come from intellectualState group
+      intellect_Value: safeNum(intel?.capacityPerformanceRatio),
+      intellect_Perception: this.s(intel?.perception),
+      intellect_Memory: this.s(intel?.memory),
+      intellect_Thinking: this.s(intel?.thinking),
+      intellect_Decision: this.s(intel?.decision),
+      intellect_Confidence: this.s(intel?.confidence),
+    },
+
+    behavioralEvaluation: { ...(v?.behavioralEvaluation || {}) },
+  };
+
+  return payload;
+}
+
+
+async saveRecord() {
+  if (!this.patientId) {
+    await this.toast('PatientId missing. Open patient in edit mode.');
+    return;
+  }
+  if (this.loading) return;
+
+  const payload = this.buildClinicalCasePayload();
+  this.loading = true;
+
+  try {
+    if (this.medicalExists) {
+      // ✅ UPDATE (PUT)
+      await firstValueFrom(this.medicalExamApi.update(payload));
+      this.medicalForm.markAsPristine();
+      await this.toast('Clinical case updated');
+    } else {
+      // ✅ CREATE (POST)
+      await firstValueFrom(this.medicalExamApi.create(payload));
+      this.medicalForm.markAsPristine();
+      this.medicalExists = true; // ✅ now it exists
+      await this.toast('Clinical case saved');
+    }
+  } catch (e: any) {
+    await this.presentSimpleAlert('Save Failed', e?.error?.message || e?.message || 'Failed to save clinical case');
+  } finally {
+    this.loading = false;
+  }
+}
+
+
+
+  // ============================================================
+  // ✅ FOLLOWUP (unchanged logic)
   // ============================================================
   private initFollowUpEmpty() {
     if (this.fuSymptomsArr.length === 0) this.addFuRows(this.FU_INIT_ROWS);
-    if (this.fuRemarksArr.length === 0) this.addFuRemarkRows(this.FU_INIT_ROWS);
 
     this.sub.add(
       this.fuSymptomsArr.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
@@ -645,33 +1187,26 @@ export class PatientPage implements OnInit, OnDestroy {
         this.autoGrowFuCriteriaRows();
       })
     );
-
-    this.refreshFuScoreCols();
   }
 
   private resetFollowUpView() {
     this.fuLoading = false;
     this.fuCriteriaSaved = false;
-    this.fuShowVisitForm = false;
-    this.fuVisits = [];
     this.fuCriteriaFromDb = [];
 
     this.fuCriteriaForm.reset();
     (this.fuCriteriaForm.get('symptoms') as FormArray).clear();
 
-    this.fuScheduleForm.reset({ followUpDate: todayYmd(), charge: 0 });
-
-    this.fuVisitForm.reset({
-      followUpDate: todayYmd(),
-      charge: 0,
-      interpretation: '',
-      temporaryProblems: '',
+    this.fuNextApptForm.reset({ followUpDate: todayYmd(), followUpTime: '14:30:00' });
+    this.fuPaymentForm.reset({
+      consultationCharges: 0,
+      waveOffAmount: 0,
+      amountPaid: 0,
+      paymentMode: 'Cash',
+      waveOffPassword: '',
     });
-    (this.fuVisitForm.get('remarks') as FormArray).clear();
 
     this.addFuRows(this.FU_INIT_ROWS);
-    this.addFuRemarkRows(this.FU_INIT_ROWS);
-    this.refreshFuScoreCols();
   }
 
   private addFuRows(count: number) {
@@ -679,18 +1214,6 @@ export class PatientPage implements OnInit, OnDestroy {
       if (this.fuSymptomsArr.length >= this.FU_MAX_ROWS) break;
       this.fuSymptomsArr.push(this.fb.control(''));
     }
-  }
-
-  private addFuRemarkRows(count: number) {
-    for (let i = 0; i < count; i++) {
-      if (this.fuRemarksArr.length >= this.FU_MAX_ROWS) break;
-      this.fuRemarksArr.push(this.fb.control(''));
-    }
-    this.refreshFuScoreCols();
-  }
-
-  private refreshFuScoreCols() {
-    this.fuScoreCols = Array.from({ length: this.fuRemarksArr.length }, (_, i) => i + 1);
   }
 
   onCriteriaInput(i: number) {
@@ -703,7 +1226,6 @@ export class PatientPage implements OnInit, OnDestroy {
     if (!v) return;
 
     this.addFuRows(this.FU_ADD_STEP);
-    this.addFuRemarkRows(this.FU_ADD_STEP);
   }
 
   private autoGrowFuCriteriaRows() {
@@ -712,22 +1234,6 @@ export class PatientPage implements OnInit, OnDestroy {
     const last = (this.fuSymptomsArr.at(len - 1).value ?? '').toString().trim();
     if (!last) return;
     this.addFuRows(this.FU_ADD_STEP);
-    this.addFuRemarkRows(this.FU_ADD_STEP);
-  }
-
-  private async loadFollowUpTab(debug = false) {
-    if (!this.patientId) return;
-
-    this.fuLoading = true;
-    try {
-      await this.loadFollowUpCriteria(debug);
-      await this.loadFollowUpVisits(debug);
-      this.fuShowVisitForm = false;
-    } catch (e: any) {
-      await this.toast(e?.error?.message || e?.message || 'Failed to load follow up');
-    } finally {
-      this.fuLoading = false;
-    }
   }
 
   private async loadFollowUpCriteria(debug = false) {
@@ -736,7 +1242,7 @@ export class PatientPage implements OnInit, OnDestroy {
     const res: any = await firstValueFrom(this.fuApi.getCriteriaByPatient(this.patientId));
     const list = this.extractArray(res);
 
-    this.fuCriteriaFromDb = (Array.isArray(list) ? list : []) as FollowUpCriteriaDto[];
+    this.fuCriteriaFromDb = (Array.isArray(list) ? list : []) as any[];
     this.fuCriteriaSaved = this.fuCriteriaFromDb.length > 0;
 
     if (this.fuCriteriaSaved) {
@@ -745,7 +1251,6 @@ export class PatientPage implements OnInit, OnDestroy {
         .filter(Boolean);
 
       while (this.fuSymptomsArr.length < names.length) this.addFuRows(this.FU_ADD_STEP);
-      while (this.fuRemarksArr.length < names.length) this.addFuRemarkRows(this.FU_ADD_STEP);
 
       for (let i = 0; i < this.fuSymptomsArr.length; i++) {
         this.fuSymptomsArr.at(i).setValue(names[i] || '', { emitEvent: false });
@@ -757,54 +1262,12 @@ export class PatientPage implements OnInit, OnDestroy {
       }
     }
 
-    if (debug) {
-      console.group('[FOLLOWUP][CRITERIA]');
-      console.log(res);
-      console.table(
-        this.fuCriteriaFromDb.map((x: any) => ({
-          id: safeNum(x?.patientFollowUpCriteriaId),
-          name: x?.criteriaName,
-        }))
-      );
-      console.groupEnd();
-    }
+    if (debug) console.log('[FU][criteria]', res);
   }
 
-  private async loadFollowUpVisits(debug = false) {
-    if (!this.patientId) return;
-
-    const res: any = await firstValueFrom(this.fuApi.getFollowUpsByPatient(this.patientId));
-    const list = this.extractArray(res);
-
-    const rows: FuVisitListItem[] = (Array.isArray(list) ? list : []).map((x: any) => ({
-      entryId: safeNum(x?.patientFollowUpEntryId ?? x?.entryId ?? x?.id),
-      followUpDate: this.toYmdSafe(x?.followUpDate ?? x?.date),
-      charge: safeNum(x?.charge ?? x?.consultationCharges ?? x?.amount),
-      interpretation: safeStr(x?.interpretation),
-      temporaryProblems: safeStr(x?.temporaryProblems),
-      raw: x,
-    }));
-
-    rows.sort((a, b) => (b.followUpDate || '').localeCompare(a.followUpDate || ''));
-    this.fuVisits = rows;
-
-    if (debug) {
-      console.group('[FOLLOWUP][VISITS]');
-      console.log(res);
-      console.table(this.fuVisits.map((v) => ({ id: v.entryId, date: v.followUpDate, charge: v.charge })));
-      console.groupEnd();
-    }
-  }
-
-  async saveFirstVisitFollowUp() {
+  async saveFollowUpCriteria() {
     if (!this.patientId) {
       await this.toast('PatientId missing. Open patient in edit mode.');
-      return;
-    }
-
-    if (this.fuScheduleForm.invalid) {
-      this.fuScheduleForm.markAllAsTouched();
-      await this.toast('Follow up date required');
       return;
     }
 
@@ -812,10 +1275,12 @@ export class PatientPage implements OnInit, OnDestroy {
       .map((x: any) => (x ?? '').toString().trim())
       .filter(Boolean);
 
-    if (names.length === 0) {
+    if (!names.length) {
       await this.toast('Enter at least 1 symptom');
       return;
     }
+
+    if (this.fuLoading) return;
 
     this.fuLoading = true;
     try {
@@ -827,171 +1292,40 @@ export class PatientPage implements OnInit, OnDestroy {
       );
 
       await this.loadFollowUpCriteria(false);
-
-      const followUpDate = (this.fuScheduleForm.value.followUpDate || todayYmd()).toString();
-      const charge = safeNum(this.fuScheduleForm.value.charge || 0);
-
-      await this.createFollowUpEntrySimple(followUpDate, charge);
-      await this.createAppointment(followUpDate);
-      await this.loadFollowUpVisits(false);
-
-      await this.toast('Saved');
+      await this.toast('Criteria saved');
     } catch (e: any) {
-      await this.presentSimpleAlert('Save Failed', e?.error?.message || e?.message || 'Failed to save');
+      await this.presentSimpleAlert('Save Failed', e?.error?.message || e?.message || 'Failed to save criteria');
     } finally {
       this.fuLoading = false;
     }
   }
 
-  openFollowUpVisit() {
-    if (!this.patientId) return;
-    this.fuShowVisitForm = true;
-
-    this.fuVisitForm.patchValue(
-      {
-        followUpDate: todayYmd(),
-        charge: 0,
-        interpretation: '',
-        temporaryProblems: '',
-      },
-      { emitEvent: false }
-    );
-
-    this.fuRemarksArr.controls.forEach((c) => c.setValue('', { emitEvent: false }));
-    this.refreshFuScoreCols();
-  }
-
-  closeVisitForm() {
-    this.fuShowVisitForm = false;
-  }
-
-  async saveFollowUpVisit() {
-    if (!this.patientId) return;
-
-    if (this.fuVisitForm.invalid) {
-      this.fuVisitForm.markAllAsTouched();
-      await this.toast('Please select Follow Up date.');
-      return;
-    }
-
-    if (!this.fuCriteriaSaved) {
-      await this.toast('Please save criteria first.');
-      return;
-    }
-
-    this.fuLoading = true;
-    try {
-      await this.createFollowUpEntryFromVisitForm();
-      await this.createAppointment((this.fuVisitForm.value.followUpDate || todayYmd()).toString());
-      await this.loadFollowUpVisits(false);
-
-      this.fuShowVisitForm = false;
-      await this.toast('Saved');
-    } catch (e: any) {
-      await this.presentSimpleAlert('Save Failed', e?.error?.message || e?.message || 'Failed to save');
-    } finally {
-      this.fuLoading = false;
-    }
-  }
-
-  private async createFollowUpEntrySimple(dateYmd: string, charge: number) {
-    const criteria = this.fuCriteriaFromDb.map((c: any) => ({
-      id: safeNum(c?.patientFollowUpCriteriaId),
-      name: safeStr(c?.criteriaName),
+  // ============================================================
+  // ✅ REPORTS (your existing code - unchanged)
+  // ============================================================
+  private initReportEntryRows() {
+    this.repRows = this.rowsMeta.map((m) => ({
+      label: m.label,
+      apiKey: m.apiKey,
+      value: '',
     }));
-
-    const statusRecords = criteria.map((c, idx) => ({
-      patientFollowUpStatusId: 0,
-      patientFollowUpCriteriaId: c.id,
-      criteriaName: c.name || `Criteria ${idx + 1}`,
-      remarks: '',
-    }));
-
-    const payload: any = {
-      patientFollowUpEntryId: 0,
-      patientId: this.patientId!,
-      followUpDate: toIsoFromYmd(dateYmd),
-      interpretation: '',
-      temporaryProblems: '',
-      charge: charge || 0,
-      statusRecords,
-    };
-
-    await firstValueFrom(this.fuApi.createFollowUp(payload));
   }
 
-  private async createFollowUpEntryFromVisitForm() {
-    const v = this.fuVisitForm.getRawValue();
+  private resetReportsAll() {
+    this.repMode = 'entry';
+    this.repReportDate = todayYmd();
+    this.repSelectedPrevReportId = null;
 
-    const criteria = this.fuCriteriaFromDb.map((c: any) => ({
-      id: safeNum(c?.patientFollowUpCriteriaId),
-      name: safeStr(c?.criteriaName),
-    }));
+    this.repSummaryList = [];
+    this.repAllUiDates = [];
+    this.repSelectedUiDates = [];
+    this.repDisplayUiDates = [];
+    this.repSelectedHeaderDate = '';
 
-    const remarks = (v.remarks || []).map((x: any) => (x ?? '').toString());
-    while (remarks.length < criteria.length) remarks.push('');
+    this.repMatrix = [];
+    this.repUiDateToReportId = {};
+    this.repDetailsMap = {};
 
-    const statusRecords = criteria.map((c, idx) => ({
-      patientFollowUpStatusId: 0,
-      patientFollowUpCriteriaId: c.id,
-      criteriaName: c.name || `Criteria ${idx + 1}`,
-      remarks: remarks[idx] || '',
-    }));
-
-    const payload: any = {
-      patientFollowUpEntryId: 0,
-      patientId: this.patientId!,
-      followUpDate: toIsoFromYmd((v.followUpDate || todayYmd()).toString()),
-      interpretation: safeStr(v.interpretation),
-      temporaryProblems: safeStr(v.temporaryProblems),
-      charge: safeNum(v.charge || 0),
-      statusRecords,
-    };
-
-    await firstValueFrom(this.fuApi.createFollowUp(payload));
-  }
-
-  private async createAppointment(dateYmd: string) {
-    const payload: any = {
-      patientId: this.patientId!,
-      appointmentDate: dateYmd,
-      appointmentTime: '00:00:00',
-      remark: 'Auto-created from Follow Up',
-    };
-    await firstValueFrom(this.fuApi.createAppointment(payload));
-  }
-
-  private toYmdSafe(v: any): string {
-    const s = (v ?? '').toString().trim();
-    if (!s) return '';
-    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-    if (s.includes('T')) return s.slice(0, 10);
-
-    const d = new Date(s);
-    if (isNaN(d.getTime())) return '';
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  }
-
-  // =====================
-  // REPORTS: CREATE FORM
-  // =====================
-  private initReportRows() {
-    this.reportItems.clear();
-    this.rowsMeta.forEach((r) => {
-      this.reportItems.push(
-        this.fb.group({
-          label: [r.label],
-          apiKey: [r.apiKey],
-          value: [''],
-        })
-      );
-    });
-  }
-
-  private resetReportForm() {
     this.reportForm.reset({
       reportName: '',
       reportDate: todayYmd(),
@@ -999,7 +1333,13 @@ export class PatientPage implements OnInit, OnDestroy {
       referredBy: '',
       summary: '',
     });
-    this.initReportRows();
+
+    this.initReportEntryRows();
+  }
+
+  setReportMode(mode: 'entry' | 'compare') {
+    this.repMode = mode;
+    this.refreshMatrixCssCols();
   }
 
   startNewReport() {
@@ -1008,13 +1348,14 @@ export class PatientPage implements OnInit, OnDestroy {
       return;
     }
 
-    this.selectedReportDate = '';
-    this.selectedReportId = null;
+    this.repSelectedPrevReportId = null;
+    this.repReportDate = todayYmd();
+    this.repSelectedHeaderDate = '';
 
     this.reportForm.patchValue(
       {
         reportName: '',
-        reportDate: todayYmd(),
+        reportDate: this.repReportDate,
         labName: '',
         referredBy: safeStr(this.form.value.referredBy),
         summary: '',
@@ -1022,7 +1363,240 @@ export class PatientPage implements OnInit, OnDestroy {
       { emitEvent: false }
     );
 
-    this.initReportRows();
+    this.initReportEntryRows();
+  }
+
+  onReportDateChange() {
+    // ui-only (entry date)
+  }
+
+  async onLoadPrevChange() {
+    const rid = safeNum(this.repSelectedPrevReportId);
+    if (!rid) {
+      this.startNewReport();
+      return;
+    }
+
+    const detail = await this.ensureReportDetail(rid);
+    if (!detail) {
+      await this.toast('Failed to load previous report');
+      return;
+    }
+
+    const uiDate = this.findUiDateByReportId(rid);
+    this.applyDetailToEntry(detail, uiDate || '');
+  }
+
+  async loadReportsForPatient(debug = false) {
+    if (!this.patientId) return;
+
+    this.reportLoading = true;
+    try {
+      const res: any = await firstValueFrom(this.reportApi.getByPatient(this.patientId));
+      const list = this.extractArray(res);
+
+      const summaries = (Array.isArray(list) ? list : []).map((x: any) => {
+        const reportId = safeNum(x?.patientReportId ?? x?.reportId ?? x?.id);
+        const ymd = toKeyYmd(safeStr(x?.reportDate));
+        const uiDate = toUiDate(ymd);
+
+        return {
+          patientReportId: reportId,
+          reportName: safeStr(x?.reportName),
+          reportDateYmd: ymd,
+          uiDate,
+        };
+      });
+
+      this.repSummaryList = summaries.sort((a, b) => b.patientReportId - a.patientReportId);
+
+      // ui date -> reportId
+      this.repUiDateToReportId = {};
+      for (const s of summaries) {
+        if (s.uiDate) this.repUiDateToReportId[s.uiDate] = s.patientReportId;
+      }
+
+      this.repAllUiDates = Array.from(new Set(summaries.map((s) => s.uiDate).filter(Boolean)));
+
+      // keep compare selection valid
+      this.repSelectedUiDates = (this.repSelectedUiDates || []).filter((d) => this.repAllUiDates.includes(d));
+      this.repDisplayUiDates = this.repSelectedUiDates.slice(0, 5);
+
+      // prefetch details for displayed
+      for (const d of this.repDisplayUiDates) {
+        const id = this.repUiDateToReportId[d];
+        if (id) await this.ensureReportDetail(id);
+      }
+
+      this.buildMatrixFromCache();
+      this.refreshMatrixCssCols();
+
+      if (debug) console.log('[REPORTS]', { summaries: this.repSummaryList, dates: this.repAllUiDates });
+    } catch (e: any) {
+      await this.toast(e?.error?.message || e?.message || 'Failed to load reports');
+    } finally {
+      this.reportLoading = false;
+    }
+  }
+
+  async toggleCompareDate(d: string, ev: any) {
+    const checked = !!ev?.detail?.checked;
+
+    if (checked) {
+      if (this.repSelectedUiDates.includes(d)) return;
+
+      if (this.repSelectedUiDates.length >= 5) {
+        await this.toast('Max 5 reports compare allowed');
+        return;
+      }
+      this.repSelectedUiDates = [...this.repSelectedUiDates, d];
+    } else {
+      this.repSelectedUiDates = this.repSelectedUiDates.filter((x) => x !== d);
+    }
+
+    this.repDisplayUiDates = this.repSelectedUiDates.slice(0, 5);
+
+    for (const uiDate of this.repDisplayUiDates) {
+      const id = this.repUiDateToReportId[uiDate];
+      if (id) await this.ensureReportDetail(id);
+    }
+
+    this.buildMatrixFromCache();
+    this.refreshMatrixCssCols();
+
+    // UX: if only one date selected -> autofill
+    if (this.repDisplayUiDates.length === 1) {
+      await this.onDateHeaderClick(this.repDisplayUiDates[0]);
+    } else {
+      if (this.repSelectedHeaderDate && !this.repDisplayUiDates.includes(this.repSelectedHeaderDate)) {
+        this.repSelectedHeaderDate = '';
+      }
+    }
+  }
+
+  async onDateHeaderClick(uiDate: string) {
+    if (!uiDate) return;
+
+    const rid = this.repUiDateToReportId[uiDate];
+    if (!rid) return;
+
+    const detail = await this.ensureReportDetail(rid);
+    if (!detail) {
+      await this.toast('Report detail not found');
+      return;
+    }
+
+    this.repSelectedHeaderDate = uiDate;
+    this.applyDetailToEntry(detail, uiDate);
+  }
+
+  saveReport() {
+    void this.saveReportInternal();
+  }
+
+  private async saveReportInternal() {
+    if (!this.patientId) {
+      await this.toast('PatientId missing');
+      return;
+    }
+    if (this.reportLoading) return;
+
+    const payload = this.emptyReportPayload();
+    payload.patientId = this.patientId;
+
+    const raw = this.reportForm.getRawValue();
+    payload.reportName = safeStr(raw.reportName);
+    payload.labName = safeStr(raw.labName);
+    payload.referredBy = safeStr(raw.referredBy);
+    payload.summary = safeStr(raw.summary);
+
+    const ymd = this.repReportDate || safeStr(raw.reportDate) || todayYmd();
+    payload.reportDate = new Date(`${ymd}T00:00:00.000Z`).toISOString();
+
+    for (const r of this.repRows) {
+      (payload as any)[r.apiKey] = safeStr(r.value);
+    }
+
+    this.reportLoading = true;
+    this.reportApi.create(payload).subscribe({
+      next: async () => {
+        this.reportLoading = false;
+        await this.toast('Report saved');
+
+        await this.loadReportsForPatient(false);
+        this.startNewReport();
+      },
+      error: async (err) => {
+        this.reportLoading = false;
+        await this.presentSimpleAlert('Save Failed', err?.error?.message || err?.message || 'Failed to save report');
+      },
+    });
+  }
+
+  private applyDetailToEntry(detail: ReportDetail, uiDate: string) {
+    this.repReportDate = toKeyYmd(safeStr((detail as any).reportDate)) || todayYmd();
+
+    this.reportForm.patchValue(
+      {
+        reportName: safeStr((detail as any).reportName),
+        reportDate: this.repReportDate,
+        labName: safeStr((detail as any).labName),
+        referredBy: safeStr((detail as any).referredBy) || safeStr(this.form.value.referredBy),
+        summary: safeStr((detail as any).summary),
+      },
+      { emitEvent: false }
+    );
+
+    for (const r of this.repRows) {
+      r.value = safeStr((detail as any)[r.apiKey]);
+    }
+
+    if (uiDate) this.repSelectedHeaderDate = uiDate;
+  }
+
+  private buildMatrixFromCache() {
+    const dates = [...(this.repDisplayUiDates || [])];
+
+    this.repMatrix = this.rowsMeta.map((m) => {
+      const values: Record<string, string> = {};
+      for (const uiDate of dates) {
+        const id = this.repUiDateToReportId[uiDate];
+        const detail = id ? this.repDetailsMap[id] : null;
+        values[uiDate] = detail ? safeStr((detail as any)[m.apiKey]) : '';
+      }
+      return { label: m.label, apiKey: m.apiKey, values };
+    });
+  }
+
+  private refreshMatrixCssCols() {
+    const cols = Math.max(1, this.repDisplayUiDates?.length || 0);
+    document.documentElement.style.setProperty('--rep-cols', String(cols));
+  }
+
+  private findUiDateByReportId(reportId: number): string {
+    const s = this.repSummaryList.find((x) => x.patientReportId === reportId);
+    return s?.uiDate || '';
+  }
+
+  private async ensureReportDetail(reportId: number): Promise<ReportDetail | null> {
+    if (!reportId || reportId <= 0) return null;
+    if (this.repDetailsMap[reportId]) return this.repDetailsMap[reportId];
+
+    try {
+      const res: any = await firstValueFrom(this.reportApi.getById(reportId));
+      const data = res?.data ?? res ?? null;
+      if (!data) return null;
+
+      const detail: ReportDetail = {
+        ...(data as any),
+        patientReportId: safeNum(data?.patientReportId ?? data?.reportId ?? data?.id ?? reportId),
+      };
+
+      this.repDetailsMap[reportId] = detail;
+      return detail;
+    } catch {
+      return null;
+    }
   }
 
   private emptyReportPayload(): PatientReportPayload {
@@ -1092,277 +1666,23 @@ export class PatientPage implements OnInit, OnDestroy {
     };
   }
 
-  private buildReportPayload(): PatientReportPayload {
-    const raw = this.reportForm.getRawValue();
-    const payload = this.emptyReportPayload();
-
-    payload.reportName = safeStr(raw.reportName);
-    payload.labName = safeStr(raw.labName);
-    payload.referredBy = safeStr(raw.referredBy);
-    payload.summary = safeStr(raw.summary);
-
-    payload.reportDate = raw.reportDate ? new Date(raw.reportDate).toISOString() : new Date().toISOString();
-
-    (raw.items || []).forEach((r: any) => {
-      const key = r?.apiKey as keyof PatientReportPayload;
-      if (key) (payload as any)[key] = String(r?.value ?? '');
-    });
-
-    return payload;
-  }
-
-  async saveReport() {
-    if (!this.patientId) {
-      await this.toast('PatientId missing. Open patient in edit mode.');
-      return;
-    }
-    if (this.reportLoading) return;
-
-    const payload = this.buildReportPayload();
-    this.reportLoading = true;
-
-    this.reportApi
-      .create(payload)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: async (res: any) => {
-          this.reportLoading = false;
-          await this.toast(res?.message || 'Report saved successfully.');
-          await this.loadReportMatrix(false);
-          this.startNewReport();
-        },
-        error: async (err) => {
-          this.reportLoading = false;
-          await this.presentSimpleAlert('Save Failed', err?.error?.message || err?.message || 'Failed to save report.');
-        },
-      });
-  }
-
-  // =====================
-  // REPORTS: MATRIX (dropdown-driven, From/To removed)
-  // =====================
-  async loadReportMatrix(debug = false) {
-    if (!this.patientId) return;
-
-    this.reportLoading = true;
-    try {
-      const res: any = await firstValueFrom(this.reportApi.getByPatient(this.patientId));
-      const list = this.extractArray(res);
-
-      this.reportSummaries = (Array.isArray(list) ? list : [])
-        .map((x: any) => ({
-          patientReportId: safeNum(x?.patientReportId ?? x?.reportId ?? x?.id),
-          patientId: safeNum(x?.patientId),
-          reportName: safeStr(x?.reportName),
-          reportDate: safeStr(x?.reportDate),
-          labName: safeStr(x?.labName),
-          attachmentCount: safeNum(x?.attachmentCount),
-          createdOn: safeStr(x?.createdOn),
-        }))
-        .filter((x) => x.patientReportId > 0 && !!x.reportDate);
-
-      // for dropdown 1
-      this.reportList = [...this.reportSummaries].sort((a, b) => b.patientReportId - a.patientReportId);
-
-      // for dropdown 2 (dates)
-      this.reportDates = Array.from(
-        new Set(this.reportSummaries.map((r) => this.toYmdReport(r.reportDate)).filter(Boolean))
-      ).sort();
-
-      // default: latest 1 report selected, latest 1 date selected
-      if (!this.selectedMatrixReportId && this.reportList.length) {
-        this.selectedMatrixReportId = this.reportList[0].patientReportId;
-      }
-
-      if (!this.selectedCompareDates?.length && this.reportDates.length) {
-        this.selectedCompareDates = this.reportDates.slice(Math.max(0, this.reportDates.length - 1));
-      }
-
-      // build matrix based on current selections
-      await this.applyMatrixSelections();
-
-      if (debug) {
-        console.log('[REPORTS] reportList:', this.reportList.length);
-        console.log('[REPORTS] reportDates:', this.reportDates);
-        console.log('[REPORTS] selectedMatrixReportId:', this.selectedMatrixReportId);
-        console.log('[REPORTS] selectedCompareDates:', this.selectedCompareDates);
-      }
-    } catch (err: any) {
-      await this.toast(err?.error?.message || err?.message || 'Failed to load reports');
-    } finally {
-      this.reportLoading = false;
-    }
-  }
-
-  onMatrixReportChange() {
-    void this.applyMatrixSelections();
-  }
-
-  onCompareDatesChange(ev: any) {
-    // max 5 dates
-    const v = (ev?.detail?.value || []) as string[];
-    if (v.length > 5) {
-      // keep last 5
-      const fixed = v.slice(v.length - 5);
-      this.selectedCompareDates = fixed;
-      void this.toast('Max 5 dates allowed');
-    } else {
-      this.selectedCompareDates = v;
-    }
-    void this.applyMatrixSelections();
-  }
-
-  clearCompareSelection() {
-    this.selectedMatrixReportId = null;
-    this.selectedCompareDates = [];
-    this.displayDates = [];
-    this.reportMatrix = [];
-    this.selectedReportDate = '';
-    this.selectedReportId = null;
-    this.dateToReportId = {};
-  }
-
-  private async applyMatrixSelections() {
-    // decide displayDates
-    const dates = (this.selectedCompareDates || [])
-      .map((d) => (d || '').toString().trim())
-      .filter(Boolean)
-      .slice(0, 5)
-      .sort();
-
-    this.displayDates = dates;
-
-    // if no dates => clear table
-    if (this.displayDates.length === 0) {
-      this.reportMatrix = [];
-      this.dateToReportId = {};
-      this.selectedReportDate = '';
-      this.selectedReportId = null;
-      return;
-    }
-
-    // choose report id for each date:
-    // ✅ if reportNo selected, use it for all selected dates (but only if that report is on that date)
-    // ✅ else use latest report of that date
-    this.dateToReportId = {};
-    for (const d of this.displayDates) {
-      const candidates = this.reportSummaries.filter((r) => this.toYmdReport(r.reportDate) === d);
-
-      let chosenId = 0;
-      if (this.selectedMatrixReportId) {
-        const exact = candidates.find((c) => c.patientReportId === this.selectedMatrixReportId);
-        if (exact) chosenId = exact.patientReportId;
-      }
-      if (!chosenId) {
-        // pick latest by ISO
-        const best = candidates.sort((a, b) => (b.reportDate || '').localeCompare(a.reportDate || ''))[0];
-        chosenId = best?.patientReportId || 0;
-      }
-
-      if (chosenId) this.dateToReportId[d] = chosenId;
-    }
-
-    // prefetch details
-    await this.prefetchDetails(Object.values(this.dateToReportId));
-
-    // build matrix
-    this.reportMatrix = this.rowsMeta.map((meta) => {
-      const values: Record<string, string> = {};
-      for (const d of this.displayDates) {
-        const id = this.dateToReportId[d];
-        const det = this.reportDetailsMap[id];
-        const raw = det ? String((det as any)?.[meta.apiKey] ?? '') : '';
-        values[d] = raw.trim() ? raw.trim() : '-';
-      }
-      return { label: meta.label, apiKey: meta.apiKey, values };
-    });
-
-    // keep selection valid
-    if (this.selectedReportDate && !this.displayDates.includes(this.selectedReportDate)) {
-      this.selectedReportDate = '';
-      this.selectedReportId = null;
-    }
-  }
-
-  private async prefetchDetails(ids: number[]) {
-    const uniq = Array.from(new Set((ids || []).filter((x) => !!x)));
-    const missing = uniq.filter((id) => !this.reportDetailsMap[id]);
-
-    if (missing.length === 0) return;
-
-    await Promise.all(
-      missing.map(async (id) => {
-        const res: any = await firstValueFrom(this.reportApi.getById(id));
-        const det = (res?.data ?? res) as ReportDetail;
-        this.reportDetailsMap[id] = det;
-      })
-    );
-  }
-
-  onDateHeaderClick(dateYmd: string) {
-    const id = this.dateToReportId[dateYmd];
-    if (!id) return;
-
-    const det = this.reportDetailsMap[id];
-    if (!det) return;
-
-    this.selectedReportDate = dateYmd;
-    this.selectedReportId = id;
-
-    this.fillCreateFormFromDetail(det);
-  }
-
-  private fillCreateFormFromDetail(r: any) {
-    this.reportForm.patchValue(
-      {
-        reportName: safeStr(r?.reportName),
-        reportDate: this.toYmdReport(r?.reportDate),
-        labName: safeStr(r?.labName),
-        referredBy: safeStr(r?.referredBy),
-        summary: safeStr(r?.summary),
-      },
-      { emitEvent: false }
-    );
-
-    this.reportItems.controls.forEach((ctrl) => {
-      const key = ctrl.get('apiKey')?.value as keyof PatientReportPayload;
-      const val = String(r?.[key] ?? '');
-      ctrl.patchValue({ value: val }, { emitEvent: false });
+  // ============================================================
+  // TEMPLATE MISSING (keep)
+  // ============================================================
+  autoFill() {
+    // prelim autofill
+    this.form.patchValue({
+      fullName: 'Test Patient',
+      gender: 'Male',
+      dateOfBirth: '1995-01-01',
+      phoneNumber: '9999999999',
+      city: 'Mumbai',
+      state: 'MH',
     });
   }
 
-  private toYmdReport(iso: any): string {
-    const s = (iso ?? '').toString().trim();
-    if (!s) return '';
-    if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
-    if (s.includes('T')) return s.slice(0, 10);
-    const dt = new Date(s);
-    if (isNaN(dt.getTime())) return '';
-    const yyyy = dt.getFullYear();
-    const mm = String(dt.getMonth() + 1).padStart(2, '0');
-    const dd = String(dt.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  }
-
-  private resetReportView() {
-    this.reportList = [];
-    this.reportDates = [];
-    this.selectedMatrixReportId = null;
-    this.selectedCompareDates = [];
-    this.displayDates = [];
-    this.reportMatrix = [];
-    this.reportSummaries = [];
-    this.reportDetailsMap = {};
-    this.dateToReportId = {};
-    this.selectedReportDate = '';
-    this.selectedReportId = null;
-  }
-
-  // =====================
-  // PAYMENT
-  // =====================
   openAddPayment() {
-    void this.toast('Add Payment (UI only)');
+    void this.toast('Add Payment clicked (UI only)');
   }
 
   goPrevFollowUp() {
@@ -1376,6 +1696,24 @@ export class PatientPage implements OnInit, OnDestroy {
 
   finalizePatient() {
     this.submit();
+  }
+
+  goPrevPhysicalExam() {
+    const prev: TabKey = 'medical';
+    if (!this.isTabAllowed(prev)) {
+      void this.toast('Access denied');
+      return;
+    }
+    this.activeTab = prev;
+  }
+
+  goNextPayment() {
+    const next: TabKey = 'payment';
+    if (!this.isTabAllowed(next)) {
+      void this.toast('Access denied');
+      return;
+    }
+    this.activeTab = next;
   }
 
   // =====================
@@ -1404,75 +1742,345 @@ export class PatientPage implements OnInit, OnDestroy {
     await a.present();
   }
 
-  // ========= template helpers (REQUIRED by HTML) =========
   trackByIndex(index: number) {
     return index;
   }
 
-  // Demo helper (if HTML calls autoFill())
-  autoFill() {
-    this.form.patchValue({
-      fullName: 'Test Patient',
-      gender: 'Male',
-      dateOfBirth: '1995-01-01',
-      phoneNumber: '9999999999',
-      city: 'Mumbai',
-      state: 'MH',
+  // ============================================================
+  // Waive-off modal + nextPaymentFirstVisit (unchanged)
+  // ============================================================
+  async openWaiveOffModal() {
+    this.waiveOffVerifyErr = '';
+
+    const alert = await this.alertCtrl.create({
+      header: 'Admin Password',
+      message: this.waiveOffVerifyErr
+        ? `<span style="color:#d00">${this.waiveOffVerifyErr}</span>`
+        : 'Enter admin password to enable waive-off.',
+      inputs: [
+        {
+          name: 'password',
+          type: 'password',
+          placeholder: 'Enter admin password',
+        },
+      ],
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Verify',
+          handler: async (data) => {
+            const password = (data?.password ?? '').toString().trim();
+            if (!password) {
+              this.waiveOffVerifyErr = 'Password is required';
+              setTimeout(() => this.openWaiveOffModal(), 0);
+              return false;
+            }
+
+            try {
+              const res: any = await firstValueFrom(this.fuApi.verifyWaveOffPassword({ password }));
+
+              const ok =
+                res?.ok === true ||
+                res?.isValid === true ||
+                res?.valid === true ||
+                res?.data === true ||
+                res?.data?.valid === true;
+
+              if (!ok) {
+                this.waiveOffVerifyErr = res?.message || 'Invalid password';
+                setTimeout(() => this.openWaiveOffModal(), 0);
+                return false;
+              }
+
+              this.waiveOffVerified = true;
+              this.showWaveOffAmount = true;
+              this.waiveOffPasswordCache = password;
+              this.waiveOffVerifyErr = '';
+              return true;
+            } catch (e: any) {
+              this.waiveOffVerifyErr = e?.error?.message || e?.message || 'Verify failed';
+              setTimeout(() => this.openWaiveOffModal(), 0);
+              return false;
+            }
+          },
+        },
+      ],
+      backdropDismiss: false,
     });
+
+    await alert.present();
   }
 
-  // Reports demo helper (if HTML calls autoFillReport())
-  autoFillReport() {
-    if (!this.patientId) return;
+  async nextPaymentFirstVisit() {
+    this.fuNextPaymentError = '';
 
-    this.reportForm.patchValue({
-      reportName: '',
-      reportDate: todayYmd(),
-      labName: '',
-      referredBy: safeStr(this.form.value.referredBy),
-      summary: '',
-    });
+    if (!this.patientId) {
+      await this.toast('PatientId missing');
+      return;
+    }
 
-    const map: Record<string, string> = {
-      cholesterolTotal: '130',
-      hdl: '30',
-      ldl: '135',
-      triglycerides: '264',
-      ppbs: '81',
-      creatinine: '0.7',
-      hb: '13.7',
-      wbc: '6100',
-      plateletCount: '306',
-      urineRoutine: '5-10',
-      uricAcid: '9.85',
-      cpk: '17.9',
-      cK_MB: '9.20',
-    };
+    if (!this.fuCanProceedNextPayment) {
+      this.fuNextPaymentError = 'Fill required payment fields first.';
+      await this.toast(this.fuNextPaymentError);
+      return;
+    }
 
-    this.reportItems.controls.forEach((ctrl) => {
-      const key = String(ctrl.get('apiKey')?.value || '');
-      if (map[key] !== undefined) {
-        ctrl.patchValue({ value: map[key] }, { emitEvent: false });
+    if (this.fuLoading) return;
+
+    this.fuLoading = true;
+
+    try {
+      // 1) find current appointment
+      const apptRes: any = await firstValueFrom(this.fuApi.getCurrentAppointments(this.patientId));
+      const apptList = this.extractArray(apptRes);
+
+      const current = apptList?.[0];
+      const apptId = safeNum(current?.appointmentId ?? current?.id ?? current?.appointmentsId);
+
+      if (!apptId || apptId <= 0) {
+        this.fuNextPaymentError = 'Current appointment not found';
+        await this.toast(this.fuNextPaymentError);
+        return;
       }
-    });
+
+      this.currentAppointmentId = apptId;
+
+      // 2) update status
+      await firstValueFrom(
+        this.fuApi.updateAppointmentStatus(apptId, {
+          status: this.APPT_STATUS_AWAIT_PAYMENT,
+        })
+      );
+
+      // 3) optional: create next appointment
+      const nextDate = (this.fuNextApptForm.controls.followUpDate.value ?? '').toString().trim();
+      const nextTime =
+        (this.fuNextApptForm.controls.followUpTime.value ?? '14:30:00').toString().trim() || '14:30:00';
+
+      if (nextDate) {
+        await firstValueFrom(
+          this.fuApi.createAppointment({
+            patientId: this.patientId,
+            appointmentDate: nextDate,
+            appointmentTime: nextTime,
+            remark: 'Next follow-up booked from Follow Up',
+          })
+        );
+      }
+
+      // 4) payment
+      const consultationCharges = safeNum(this.fuPaymentForm.controls.consultationCharges.value ?? 0);
+      const waveOffAmount = safeNum(this.fuPaymentForm.controls.waveOffAmount.value ?? 0);
+      const amountPaid = safeNum(this.fuPaymentForm.controls.amountPaid.value ?? 0);
+      const paymentMode = (this.fuPaymentForm.controls.paymentMode.value ?? '').toString().trim();
+
+      const waveOffPasswordRaw = (this.fuPaymentForm.controls.waveOffPassword.value ?? '').toString().trim();
+      const waveOffPassword = this.waiveOffVerified
+        ? waveOffPasswordRaw || this.waiveOffPasswordCache || undefined
+        : undefined;
+
+      await firstValueFrom(
+        this.fuApi.createPayment({
+          patientId: this.patientId,
+          appointmentId: apptId,
+          consultationCharges,
+          waveOffAmount,
+          amountPaid,
+          paymentMode,
+          paymentDate: new Date().toISOString(),
+          waveOffPassword,
+        })
+      );
+
+      await this.toast('Payment saved');
+      this.activeTab = 'payment';
+    } catch (e: any) {
+      const msg = e?.error?.message || e?.message || 'Something went wrong';
+      await this.presentSimpleAlert('Failed', msg);
+    } finally {
+      this.fuLoading = false;
+    }
   }
 
-  // Buttons in HTML expect these names
-  goPrevPhysicalExam() {
-    const prev: TabKey = 'medical';
-    if (!this.isTabAllowed(prev)) {
-      void this.toast('Access denied');
-      return;
-    }
-    this.activeTab = prev;
+  goPrevIdentity() {
+  const prev: TabKey = 'prelim'; // Identity tab tumhare flow me prelim hai
+  if (!this.isTabAllowed(prev)) {
+    void this.toast('Access denied');
+    return;
   }
+  this.activeTab = prev;
+}
 
-  goNextPayment() {
-    const next: TabKey = 'payment';
-    if (!this.isTabAllowed(next)) {
-      void this.toast('Access denied');
+goNextFollowUp() {
+  const next: TabKey = 'followup';
+  if (!this.isTabAllowed(next)) {
+    void this.toast('Access denied');
+    return;
+  }
+  this.activeTab = next;
+
+  // optional: load criteria when entering
+  if (this.patientId) void this.loadFollowUpCriteria(false);
+}
+
+
+async loadClinicalCaseIfExists() {
+  if (!this.patientId) return;
+
+  try {
+    const res: any = await firstValueFrom(this.medicalExamApi.getByPatientId(this.patientId));
+    const data = res?.data ?? res;  // ✅ agar backend wrap kare
+
+    if (!data) {
+      this.medicalExists = false;
       return;
     }
-    this.activeTab = next;
+
+    this.patchMedicalFormFromApi(data);
+    this.medicalForm.markAsPristine();
+    this.medicalExists = true;   // ✅ record exists
+  } catch (e: any) {
+    if (e?.status === 404) {
+      this.medicalExists = false; // ✅ not found => create mode
+      return;
+    }
+    console.error(e);
+    await this.toast(e?.error?.message || e?.message || 'Failed to load clinical case');
   }
+}
+
+
+private patchMedicalFormFromApi(api: ClinicalCasePayload) {
+  const complaints: Complaint[] = Array.isArray(api?.complaints)
+    ? (api.complaints as Complaint[])
+    : [];
+
+  const emptyComplaint: Complaint = {
+    complaintType: '',
+    location: '',
+    sensation: '',
+    modality: '',
+    concomitant: '',
+  };
+
+  // ✅ IMPORTANT: backend valid values
+  const chief: Complaint =
+    complaints.find((c) => (c?.complaintType || '').toString() === 'Chief') || emptyComplaint;
+
+  const associated: Complaint =
+    complaints.find((c) => (c?.complaintType || '').toString() === 'Associated') || emptyComplaint;
+
+  const pastHistory: Complaint =
+    complaints.find((c) => (c?.complaintType || '').toString() === 'PastHistory') || emptyComplaint;
+
+  const pe: any = api?.physicalExamination || {};
+  const ms: any = api?.mentalState || {};
+
+  this.medicalForm.patchValue(
+    {
+      complaints: {
+        chief: {
+          location: chief.location || '',
+          sensation: chief.sensation || '',
+          modality: chief.modality || '',
+          concomitant: chief.concomitant || '',
+        },
+        associated: {
+          location: associated.location || '',
+          sensation: associated.sensation || '',
+          modality: associated.modality || '',
+          concomitant: associated.concomitant || '',
+        },
+        past: {
+          location: pastHistory.location || '',
+          sensation: pastHistory.sensation || '',
+          modality: pastHistory.modality || '',
+          concomitant: pastHistory.concomitant || '',
+        },
+      },
+
+      familyHistory: api?.familyHistory || {},
+      personalStatus: api?.personalStatus || {},
+      menstrualHistory: api?.menstrualHistory || {},
+      maleSexualFunction: api?.maleSexualFunction || {},
+      physicalReaction: api?.physicalReaction || {},
+
+      physicalExamination: {
+        heightMeters: pe.height || '',
+        weightKg: pe.weight || '',
+        bmi: pe.bmi || '',
+        bmiCategory: pe.weightCategory || '',
+
+        physicalAppearance: pe.physicalAppearance || '',
+        dejection: pe.digestion || '',
+        temperature: pe.temperature || '',
+        pulse: pe.pulse || '',
+        bp: pe.bp || '',
+        tongue: pe.tongue || '',
+        lips: pe.lips || '',
+        teeth: pe.teeth || '',
+        gums: pe.gums || '',
+        nails: pe.nails || '',
+        skin: pe.skin || '',
+        glands: pe.glands || '',
+        nose: pe.nose || '',
+        throat: pe.throat || '',
+        trachea: pe.trachea || '',
+
+        chestExpansion: pe.chestExpansion || '',
+        spo2: pe.spO2 || '',
+        rsPercussion: pe.percussion_RS || '',
+        rr: pe.rr || '',
+        airEntry: pe.airEntry || '',
+        breathSounds: pe.breathSounds || '',
+
+        paSizeShapeSkin: pe.pA_SizeShapeSkin || '',
+        paMovement: pe.pA_Movement || '',
+        paPercussion: pe.pA_Percussion || '',
+        hst: pe.hgt || '',
+        paSoftTenderRigidGuard: pe.soft_Tenderness_Rigidity_Guarding || '',
+
+        bowelSound: pe.bowelSound || '',
+        lump: pe.lump || '',
+
+        apexImpulse: pe.apexImpulse || '',
+        jvp: pe.jvp || '',
+        thrill: pe.thrill || '',
+        cvsPercussion: pe.percussion_CVS || '',
+        heartSounds: pe.heartSounds || '',
+        murmur: pe.murmur || '',
+        rub: pe.rub || '',
+
+        higherFunction: pe.higherFunction || '',
+        motorFunction: pe.motorFunction || '',
+        sensoryFunction: pe.sensoryFunction || '',
+        cranialNerves: pe.cranialNerves || '',
+        reflexes: pe.reflexes || '',
+        coordination: pe.coordination || '',
+
+        mskInspection: pe.inspection || '',
+        rom: pe.rom || '',
+        swelling: pe.swelling || '',
+        warmth: pe.warmth || '',
+        redness: pe.redness || '',
+        deformities: pe.deformities || '',
+        crepitation: pe.crepitations || '',
+        muscleStrength: pe.muscleStrength || '',
+
+        investigations: pe.investigations || '',
+      },
+
+      mentalState: {
+        ...ms,
+        // ✅ UI remarks fields
+        remarkLoveHate: ms?.spectrum_LaveHate_Remark || '',
+        remarkAngerSadness: ms?.angerSadnessTriangles_Remark || '',
+        remarkFearAnxiety: ms?.fearAnxietyTriangles_Remark || '',
+      },
+
+      behavioralEvaluation: api?.behavioralEvaluation || {},
+    },
+    { emitEvent: false }
+  );
+}
 }

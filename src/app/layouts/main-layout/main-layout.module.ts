@@ -58,13 +58,13 @@ const routes: Routes = [
       // src/app/app-routing.module.ts (snippet)
 
 
-      {
-        path: 'patients/medical-examination',
-        loadChildren: () =>
-          import('../../pages/patients/medical-examination/medical-examination.module').then(
-            (m) => m.MedicalExaminationPageModule
-          ),
-      },
+      // {
+      //   path: 'patients/medical-examination',
+      //   loadChildren: () =>
+      //     import('../../pages/patients/medical-examination/medical-examination.module').then(
+      //       (m) => m.MedicalExaminationPageModule
+      //     ),
+      // },
 
        {
         path: 'patients/follow-up',
