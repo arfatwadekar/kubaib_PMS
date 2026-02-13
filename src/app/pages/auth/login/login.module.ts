@@ -1,6 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms'; // ✅ import this
 import { IonicModule } from '@ionic/angular';
 import { RouterModule, Routes } from '@angular/router';
 
@@ -12,7 +12,8 @@ const routes: Routes = [{ path: '', component: LoginPage }];
   declarations: [LoginPage],
   imports: [
     CommonModule,
-    FormsModule,       // ✅ ngModel fix
+    FormsModule,          // optional (only if ngModel used somewhere)
+    ReactiveFormsModule,  // ✅ REQUIRED for formGroup
     IonicModule,
     RouterModule.forChild(routes),
   ],

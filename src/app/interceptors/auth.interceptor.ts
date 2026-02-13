@@ -1,4 +1,4 @@
-import { Injectable, Injector } from '@angular/core';
+import { Injectable } from '@angular/core';
 import {
   HttpEvent,
   HttpHandler,
@@ -14,58 +14,68 @@ import { AuthService } from '../services/auth.service';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
-  private toastShown = false;
 
-  constructor(private injector: Injector) {}
+  private isHandling401 = false;
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const auth = this.injector.get(AuthService);
-    const token = auth.getToken();
+  constructor(
+    private auth: AuthService,
+    private router: Router,
+    private toastCtrl: ToastController
+  ) {}
 
-    // ✅ login request me token mat bhejo
-    const isLoginCall = req.url.includes('/api/Auth/login');
+  intercept(
+    req: HttpRequest<any>,
+    next: HttpHandler
+  ): Observable<HttpEvent<any>> {
 
-    let requestToSend = req;
+    const token = this.auth.getToken();
+
+    const isLoginCall = req.url.toLowerCase().includes('/auth/login');
+
+    let authReq = req;
+
     if (token && !isLoginCall) {
-      requestToSend = req.clone({
-        setHeaders: { Authorization: `Bearer ${token}` },
+      authReq = req.clone({
+        setHeaders: {
+          Authorization: `Bearer ${token}`,
+        },
       });
     }
 
-    return next.handle(requestToSend).pipe(
-      catchError((err: HttpErrorResponse) => {
-        // ✅ If unauthorized → logout + toast + redirect
-        if (err.status === 401) {
-          this.handle401();
+    return next.handle(authReq).pipe(
+      catchError((error: HttpErrorResponse) => {
+        if (error.status === 401) {
+          this.handleUnauthorized();
         }
-        return throwError(() => err);
+        return throwError(() => error);
       })
     );
   }
 
-  private async handle401() {
-    if (this.toastShown) return; // prevent spam
-    this.toastShown = true;
+  private async handleUnauthorized(): Promise<void> {
+    if (this.isHandling401) return;
 
-    const auth = this.injector.get(AuthService);
-    const router = this.injector.get(Router);
-    const toastCtrl = this.injector.get(ToastController);
+    this.isHandling401 = true;
 
-    // clear session
-    auth.logout();
+    try {
+      this.auth.logout();
 
-    // show toast
-    const toast = await toastCtrl.create({
-      message: 'Session expired. Please login again.',
-      duration: 2000,
-      position: 'top',
-    });
-    await toast.present();
+      const toast = await this.toastCtrl.create({
+        message: 'Session expired. Please login again.',
+        duration: 2000,
+        position: 'top',
+      });
 
-    // redirect
-    router.navigateByUrl('/auth/login');
+      await toast.present();
 
-    // allow future toasts after a short time
-    setTimeout(() => (this.toastShown = false), 2500);
+      await this.router.navigateByUrl('/auth/login', {
+        replaceUrl: true,
+      });
+
+    } finally {
+      setTimeout(() => {
+        this.isHandling401 = false;
+      }, 2000);
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { MenuController } from '@ionic/angular';
 
 @Component({
@@ -6,20 +6,24 @@ import { MenuController } from '@ionic/angular';
   templateUrl: './main-layout.component.html',
   standalone: false,
 })
-export class MainLayoutComponent {
-  isMenuOpen = true;
+export class MainLayoutComponent implements OnInit {
+
+  private readonly MENU_ID = 'mainMenu';
 
   constructor(private menuCtrl: MenuController) {}
 
-  async toggleMenu() {
-    this.isMenuOpen = !this.isMenuOpen;
+  async ngOnInit(): Promise<void> {
+    // Enable once on init
+    await this.menuCtrl.enable(true, this.MENU_ID);
+  }
 
-    if (this.isMenuOpen) {
-      await this.menuCtrl.enable(true, 'mainMenu');
-      await this.menuCtrl.open('mainMenu');
+  async toggleMenu(): Promise<void> {
+    const isOpen = await this.menuCtrl.isOpen(this.MENU_ID);
+
+    if (isOpen) {
+      await this.menuCtrl.close(this.MENU_ID);
     } else {
-      await this.menuCtrl.close('mainMenu');
-      await this.menuCtrl.enable(false, 'mainMenu');
+      await this.menuCtrl.open(this.MENU_ID);
     }
   }
 }

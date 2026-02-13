@@ -4,48 +4,81 @@
       <div class="brand-icon">
         <ion-icon name="medkit-outline"></ion-icon>
       </div>
-
       <div class="brand-title">Mariam Health Care</div>
       <div class="brand-sub">Patient Management System</div>
     </div>
 
     <div class="login-card">
-      <!-- Role tabs -->
+
+      <!-- Role Switch -->
       <div class="role-tabs">
-        <button type="button" class="role-btn" [class.active]="role==='Doctor'" (click)="setRole('Doctor')">
+        <button
+          type="button"
+          class="role-btn"
+          [class.active]="role === 'Doctor'"
+          (click)="setRole('Doctor')"
+        >
           Doctor
         </button>
-        <button type="button" class="role-btn" [class.active]="role==='Receptionist'" (click)="setRole('Receptionist')">
+
+        <button
+          type="button"
+          class="role-btn"
+          [class.active]="role === 'Receptionist'"
+          (click)="setRole('Receptionist')"
+        >
           Receptionist
         </button>
       </div>
 
-      <div class="form">
+      <!-- Form -->
+      <form [formGroup]="form" (ngSubmit)="login()" class="form">
+
         <label class="lbl">Username</label>
         <input
           class="inp"
-          [(ngModel)]="username"
+          formControlName="username"
           [placeholder]="role === 'Doctor' ? 'Enter Doctor ID' : 'Enter Receptionist ID'"
+          autocomplete="username"
         />
 
         <label class="lbl">Password</label>
-        <input class="inp" type="password" [(ngModel)]="password" placeholder="Enter password" />
+        <input
+          class="inp"
+          type="password"
+          formControlName="password"
+          placeholder="Enter password"
+          autocomplete="current-password"
+        />
 
         <div class="meta-row">
           <label class="remember">
-            <input class="chk" type="checkbox" [(ngModel)]="remember" />
+            <input type="checkbox" formControlName="remember" />
             <span>Remember me</span>
           </label>
 
-          <button type="button" class="forgot" (click)="forgotPassword()">Forgot password?</button>
+          <button
+            type="button"
+            class="forgot"
+            (click)="forgotPassword()"
+          >
+            Forgot password?
+          </button>
         </div>
 
-        <div class="err" *ngIf="errorMessage">{{ errorMessage }}</div>
+        <div class="err" *ngIf="errorMessage">
+          {{ errorMessage }}
+        </div>
 
-        <button class="sign-btn" type="button" (click)="login()" [disabled]="loading">
+        <button
+          class="sign-btn"
+          type="submit"
+          [disabled]="loading || form.invalid"
+        >
           {{ loading ? 'Signing In...' : 'Sign In' }}
         </button>
-      </div>
+
+      </form>
     </div>
   </div>
 </ion-content>

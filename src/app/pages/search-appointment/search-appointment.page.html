@@ -1,69 +1,188 @@
+<!-- HEADER -->
 <ion-header>
   <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+
     <ion-title>Search Appointments</ion-title>
+  </ion-toolbar>
 
-   <ion-segment
-  slot="end"
-  [value]="viewMode"
-  (ionChange)="onSegmentChange($event)"
->
-  <ion-segment-button value="queue">
-    <ion-label>Queue</ion-label>
-  </ion-segment-button>
-  <ion-segment-button value="today">
-    <ion-label>Today</ion-label>
-  </ion-segment-button>
-</ion-segment>
+  <!-- SEGMENT BELOW HEADER -->
+  <ion-toolbar class="segment-bar">
+    <ion-segment
+      [value]="viewMode"
+      (ionChange)="onSegmentChange($event)"
+    >
+      <ion-segment-button value="queue">
+        <ion-label>Queue</ion-label>
+      </ion-segment-button>
 
+      <ion-segment-button value="today">
+        <ion-label>Today</ion-label>
+      </ion-segment-button>
+    </ion-segment>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="page">
+<ion-content class="page" style="    --padding-bottom: 11rem !important;">
+
+  <!-- REFRESH -->
   <ion-refresher slot="fixed" (ionRefresh)="load($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
+  <!-- FILTERS -->
   <div class="card filters">
-    <ion-input
-      placeholder="Search patient / PID / phone"
-      [(ngModel)]="searchText"
-      (ionInput)="applyFilter()"
-    ></ion-input>
+    <div class="grid">
 
-    <ion-select [(ngModel)]="statusFilter" (ionChange)="applyFilter()">
-      <ion-select-option *ngFor="let s of statusOptions" [value]="s.value">
-        {{ s.label }}
-      </ion-select-option>
-    </ion-select>
-  </div>
+      <div class="field">
+        <div class="label">Search</div>
+        <ion-input
+          placeholder="Patient / PID / Phone"
+          [(ngModel)]="searchText"
+          (ionInput)="applyFilter()"
+        ></ion-input>
+      </div>
 
-  <div *ngIf="loading" class="card">Loading…</div>
+      <div class="field">
+        <div class="label">Status</div>
+        <ion-select
+          [(ngModel)]="statusFilter"
+          (ionChange)="applyFilter()"
+        >
+          <ion-select-option
+            *ngFor="let s of statusOptions"
+            [value]="s.value"
+          >
+            {{ s.label }}
+          </ion-select-option>
+        </ion-select>
+      </div>
 
-  <div class="card list" *ngFor="let r of filtered; trackBy: trackById">
-    <b>{{ r.patient.fullName }}</b>
-    <div>{{ r.appointmentTimeFormatted }} | {{ r.statusText }}</div>
-
-    <ion-button size="small" (click)="r._editing = !r._editing">Edit</ion-button>
-
-    <ion-select
-      placeholder="Change Status"
-      (ionChange)="confirmStatus(r, $event.detail.value)"
-    >
-      <ion-select-option *ngFor="let s of statusOptions" [value]="s.value" [disabled]="s.value === 0">
-        {{ s.label }}
-      </ion-select-option>
-    </ion-select>
-
-    <div *ngIf="r._editing">
-      <ion-input type="date" [(ngModel)]="r._dateDraft"></ion-input>
-      <ion-input type="time" [(ngModel)]="r._timeDraft"></ion-input>
-    <ion-textarea
-  autoGrow="true"
-  [(ngModel)]="r._remarkDraft"
-  placeholder="Optional remark"
-></ion-textarea>
-
-      <ion-button (click)="saveEdit(r)">Save</ion-button>
     </div>
   </div>
+
+  <!-- LOADING -->
+  <div *ngIf="loading" class="card empty">
+    Loading appointments...
+  </div>
+
+  <!-- EMPTY -->
+  <div *ngIf="!loading && filtered.length === 0" class="card empty">
+    No appointments found
+  </div>
+
+  <!-- LIST -->
+  <div
+    class="card list"
+    *ngFor="let r of filtered; trackBy: trackById"
+  >
+
+    <!-- TOP -->
+    <div class="row-top">
+      <div class="who">
+        <div class="name">
+          {{ r.patient?.fullName || 'Unknown' }}
+        </div>
+        <div class="sub">
+          {{ r.patient?.patientIdFormatted }} •
+          {{ r.patient?.phoneNumber }}
+        </div>
+      </div>
+
+      <ion-chip
+        class="status-chip"
+        [color]="statusColor(r.status)"
+      >
+        {{ r.statusText }}
+      </ion-chip>
+    </div>
+
+    <!-- META -->
+    <div class="meta">
+      <div class="m">
+        <div class="k">Date</div>
+        <div class="v">{{ r.appointmentDate | date:'mediumDate' }}</div>
+      </div>
+
+      <div class="m">
+        <div class="k">Time</div>
+        <div class="v">{{ r.appointmentTimeFormatted }}</div>
+      </div>
+
+      <div class="m">
+        <div class="k">Remark</div>
+        <div class="v">
+          {{ r.remark || '—' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="actions">
+
+      <ion-button
+        size="small"
+        fill="outline"
+        (click)="r._editing ? closeEdit(r) : openEdit(r)"
+        [disabled]="r._saving"
+      >
+        {{ r._editing ? 'Cancel' : 'Edit' }}
+      </ion-button>
+
+      <ion-select
+        class="status-dd"
+        placeholder="Change Status"
+        (ionChange)="confirmStatus(r, $event.detail.value)"
+        [disabled]="r._saving"
+      >
+        <ion-select-option
+          *ngFor="let s of statusOptions"
+          [value]="s.value"
+          [disabled]="s.value === 0 || s.value === r.status"
+        >
+          {{ s.label }}
+        </ion-select-option>
+      </ion-select>
+
+    </div>
+
+    <!-- EDIT PANEL -->
+    <div *ngIf="r._editing" class="edit">
+
+      <div class="edit-grid">
+
+        <ion-input
+          type="date"
+          [(ngModel)]="r._dateDraft"
+        ></ion-input>
+
+        <ion-input
+          type="time"
+          [(ngModel)]="r._timeDraft"
+        ></ion-input>
+
+        <ion-textarea
+          class="full"
+          autoGrow="true"
+          [(ngModel)]="r._remarkDraft"
+          placeholder="Optional remark"
+        ></ion-textarea>
+
+      </div>
+
+      <div class="edit-actions">
+        <ion-button
+          (click)="saveEdit(r)"
+          [disabled]="r._saving"
+        >
+          {{ r._saving ? 'Saving...' : 'Save Changes' }}
+        </ion-button>
+      </div>
+
+    </div>
+
+  </div>
+
 </ion-content>

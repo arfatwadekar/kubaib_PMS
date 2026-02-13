@@ -1,166 +1,64 @@
-<!-- <ion-menu menuId="mainMenu" contentId="main-content" type="overlay" side="start">
-  <ion-header>
-    <ion-toolbar>
-      <ion-title>{{ clinicName }}</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-menu menuId="mainMenu" contentId="main-content" side="start" class="glass-menu">
 
-  <ion-content>
-    <ng-container *ngFor="let section of visibleSections">
-      <div class="sec-title">{{ section.title }}</div>
+  <ion-content class="menu-content">
 
-      <ion-list lines="full">
-        <ion-item
-          button
-          *ngFor="let item of section.items"
-          (click)="navigate(item.url)"
-        >
-          <ion-icon
-            slot="start"
-            [name]="item.icon || 'chevron-forward-outline'"
-          ></ion-icon>
+    <!-- Brand -->
+    <div class="menu-brand">
+      <div class="brand-icon">
+        <ion-icon name="medkit-outline"></ion-icon>
+      </div>
+      <div class="brand-text">MHC</div>
+    </div>
 
-          <ion-label>{{ item.title }}</ion-label>
+    <!-- Dashboard -->
+    <div class="menu-item" (click)="go('/dashboard')">
+      <ion-icon name="grid-outline"></ion-icon>
+      <span>Patient Dashboard</span>
+    </div>
 
-          <span *ngIf="item.showDot" class="dot"></span>
-        </ion-item>
-      </ion-list>
-    </ng-container>
+    <!-- Patient Section -->
+    <div class="menu-section-title">PATIENT</div>
 
-    <div class="divider"></div>
+    <div class="menu-item" (click)="go('/patients/list')">
+      <ion-icon name="people-outline"></ion-icon>
+      <span>Patient List</span>
+      <ion-icon class="chev" name="chevron-forward-outline"></ion-icon>
+    </div>
 
-    <ion-list lines="none">
-      <ion-item button (click)="logout()">
-        <ion-icon slot="start" name="log-out-outline"></ion-icon>
-        <ion-label>Logout</ion-label>
-      </ion-item>
-    </ion-list>
-  </ion-content>
-</ion-menu> -->
+    <div class="menu-item" (click)="go('/SearchAppointments')">
+      <ion-icon name="calendar-outline"></ion-icon>
+      <span>Search Appointments</span>
+    </div>
 
+    <div class="menu-item" (click)="go('/patients')">
+      <ion-icon name="add-circle-outline"></ion-icon>
+      <span>Create Patient ID</span>
+    </div>
 
-<ion-menu menuId="mainMenu" contentId="main-content" type="overlay" side="start">
-  <ion-header>
-    <ion-toolbar>
-      <ion-title>{{ clinicName }}</ion-title>
-    </ion-toolbar>
-  </ion-header>
+    <!-- Medicine -->
+    <div class="menu-section-title">MEDICINE INVENTORY</div>
 
-  <ion-content>
+    <div class="menu-item" (click)="go('/medicines')">
+      <ion-icon name="medkit-outline"></ion-icon>
+      <span>Medicine Dashboard</span>
+    </div>
 
-    <!-- PATIENT -->
-    <div class="sec-title">PATIENT</div>
-    <ion-list lines="full">
-      <ion-item button (click)="go('/dashboard')">
-        <ion-icon slot="start" name="grid-outline"></ion-icon>
-        <ion-label>Patient Dashboard</ion-label>
-      </ion-item>
+    <div class="menu-item" (click)="go('/medicines/create')">
+      <ion-icon name="add-circle-outline"></ion-icon>
+      <span>Create Medicine</span>
+    </div>
 
-      <ion-item button (click)="go('/patients/list')">
-        <ion-icon slot="start" name="people-outline"></ion-icon>
-        <ion-label>Patients List</ion-label>
-      </ion-item>
+    <!-- Reports -->
+    <div class="menu-item" (click)="go('/reports')">
+      <ion-icon name="document-text-outline"></ion-icon>
+      <span>Reports</span>
+    </div>
 
-      <ion-item
-        button
-        *ngIf="role === 'Doctor' || role === 'Receptionist'"
-        (click)="go('/patients')"
-      >
-        <ion-icon slot="start" name="person-add-outline"></ion-icon>
-        <ion-label>Create Patient ID</ion-label>
-      </ion-item>
-
-            <ion-item
-        button
-        *ngIf="role === 'Doctor' || role === 'Receptionist'"
-        (click)="go('/report')"
-      >
-        <ion-icon slot="start" name="person-add-outline"></ion-icon>
-        <ion-label>Reports</ion-label>
-      </ion-item>
-
-         <ion-item
-        button
-        *ngIf="role === 'Doctor' || role === 'Receptionist'"
-        (click)="go('/SearchAppointments')"
-      >
-        <ion-icon slot="start" name="person-add-outline"></ion-icon>
-        <ion-label>Search Appointment</ion-label>
-      </ion-item>
-
-       <ion-item
-        button
-        *ngIf="role === 'Doctor'"
-        (click)="go('/patients/follow-up')"
-      >
-        <ion-icon slot="start" name="person-add-outline"></ion-icon>
-        <ion-label>Follow Up</ion-label>
-      </ion-item>
-
-
-
-       <ion-item
-        button
-        *ngIf="role === 'Doctor'"
-        (click)="go('/patients/medical-examination')"
-      >
-        <ion-icon slot="start" name="person-add-outline"></ion-icon>
-        <ion-label>Medical Examination</ion-label>
-      </ion-item>
-    </ion-list>
-
-    <!-- MEDICINE (Doctor only) -->
-    <div class="sec-title" *ngIf="role === 'Doctor'">MEDICINE INVENTORY</div>
-    <ion-list lines="full" *ngIf="role === 'Doctor'">
-      <ion-item button (click)="go('/medicines')">
-        <ion-icon slot="start" name="medkit-outline"></ion-icon>
-        <ion-label>Medicine Dashboard</ion-label>
-      </ion-item>
-
-      <ion-item button (click)="go('/medicines/create')">
-        <ion-icon slot="start" name="add-circle-outline"></ion-icon>
-        <ion-label>Create Medicine</ion-label>
-      </ion-item>
-    </ion-list>
-
-    <!-- COMMUNICATION (Doctor only) -->
-    <div class="sec-title" *ngIf="role === 'Doctor'">COMMUNICATION</div>
-    <ion-list lines="full" *ngIf="role === 'Doctor'">
-      <ion-item button (click)="go('/notifications')">
-        <ion-icon slot="start" name="notifications-outline"></ion-icon>
-        <ion-label>Notifications</ion-label>
-        <span class="dot"></span>
-      </ion-item>
-
-      <ion-item button (click)="go('/announcements')">
-        <ion-icon slot="start" name="megaphone-outline"></ion-icon>
-        <ion-label>Announcements</ion-label>
-      </ion-item>
-
-      <ion-item button (click)="go('/reviews')">
-        <ion-icon slot="start" name="star-outline"></ion-icon>
-        <ion-label>Add Reviews</ion-label>
-      </ion-item>
-    </ion-list>
-
-    <!-- REPORTS -->
-    <div class="sec-title">REPORTS</div>
-    <ion-list lines="full">
-      <ion-item button (click)="go('/reports')">
-        <ion-icon slot="start" name="bar-chart-outline"></ion-icon>
-        <ion-label>Reports</ion-label>
-      </ion-item>
-    </ion-list>
-
-    <div class="divider"></div>
-
-    <!-- LOGOUT -->
-    <ion-list lines="none">
-      <ion-item button (click)="logout()">
-        <ion-icon slot="start" name="log-out-outline"></ion-icon>
-        <ion-label>Logout</ion-label>
-      </ion-item>
-    </ion-list>
+    <!-- Logout -->
+    <div class="menu-item logout" (click)="logout()">
+      <ion-icon name="log-out-outline"></ion-icon>
+      <span>Logout</span>
+    </div>
 
   </ion-content>
 </ion-menu>

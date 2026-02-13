@@ -1,84 +1,129 @@
 <ion-content class="cap-content">
+
   <div class="cap-modal">
 
-    <!-- header -->
+    <!-- HEADER -->
     <div class="cap-top">
       <div class="cap-title">
         {{ mode === 'edit' ? 'Appointment Detail' : 'Create Appointment' }}
       </div>
 
-      <button type="button" class="cap-close" (click)="close()">
+      <button type="button"
+              class="cap-close"
+              (click)="close()"
+              [disabled]="creating">
         <ion-icon name="close-outline"></ion-icon>
       </button>
     </div>
 
-    <!-- 🔽 SCROLL AREA START -->
+    <!-- BODY -->
     <div class="cap-body">
 
-      <!-- patient -->
-      <div class="cap-patient">
-        <div class="cap-patient__name">
-          Patient: <b>{{ patient.name }}</b>
-        </div>
-        <div class="cap-patient__sub">
-          {{ patient.pid }} • {{ patient.phone }}
-        </div>
+      <!-- Loading -->
+      <div class="cap-loading" *ngIf="loadingDetail">
+        <ion-spinner name="crescent"></ion-spinner>
       </div>
 
-      <!-- status -->
-      <div class="cap-info" *ngIf="mode === 'edit'">
-        <div class="cap-badge">
-          <span>Status:</span>
-          <b>{{ statusText }}</b>
+      <ng-container *ngIf="!loadingDetail">
+
+        <!-- Patient Info -->
+        <div class="cap-patient">
+          <div class="cap-patient__name">
+            Patient: <b>{{ patient?.name }}</b>
+          </div>
+          <div class="cap-patient__sub">
+            {{ patient?.pid }} • {{ patient?.phone }}
+          </div>
         </div>
 
-        <div class="cap-field">
-          <label class="cap-label">Update Status</label>
-          <select
-            class="cap-inp"
-            [ngModel]="selectedStatus"
-            (ngModelChange)="onStatusChange($event)"
-          >
-            <option [ngValue]="1">Pending</option>
-            <option [ngValue]="2">InPatient</option>
-            <option [ngValue]="3">AwaitingPayment</option>
-            <option [ngValue]="4">OutPatient</option>
-            <option [ngValue]="5">Cancelled</option>
-          </select>
-        </div>
-      </div>
+        <!-- Status Section -->
+        <div *ngIf="mode === 'edit'" class="cap-info">
 
-      <!-- FORM -->
-      <form [formGroup]="form" class="cap-form">
+          <div class="cap-status-row">
+            <span class="cap-status-label">Current Status</span>
+            <span class="cap-status-badge">
+              {{ statusText }}
+            </span>
+          </div>
 
-        <div class="cap-field">
-          <label class="cap-label">Appointment Date *</label>
-          <input type="date" class="cap-inp" formControlName="appointmentDate" />
-        </div>
+          <div class="cap-field">
+            <label class="cap-label">Update Status</label>
+            <select class="cap-inp"
+                    [ngModel]="selectedStatus"
+                    (ngModelChange)="onStatusChange($event)">
+              <option *ngFor="let s of statusOptions"
+                      [ngValue]="s.value">
+                {{ s.label }}
+              </option>
+            </select>
+          </div>
 
-        <div class="cap-field">
-          <label class="cap-label">Appointment Time *</label>
-          <input type="time" class="cap-inp" formControlName="appointmentTime" />
         </div>
 
-        <div class="cap-field">
-          <label class="cap-label">Remark</label>
-          <input type="text" class="cap-inp" formControlName="remark" />
-        </div>
+        <!-- FORM -->
+        <form [formGroup]="form" class="cap-form">
 
-      </form>
+          <div class="cap-field">
+            <label class="cap-label">Appointment Date *</label>
+            <input
+              type="date"
+              class="cap-inp"
+              formControlName="appointmentDate"
+              [min]="minDate"
+              [max]="maxDate"
+            />
+          </div>
+
+          <div class="cap-field">
+            <label class="cap-label">Appointment Time *</label>
+            <input
+              type="time"
+              class="cap-inp"
+              formControlName="appointmentTime"
+            />
+          </div>
+
+          <div class="cap-field">
+            <label class="cap-label">Remark</label>
+            <input
+              type="text"
+              class="cap-inp"
+              formControlName="remark"
+              maxlength="250"
+            />
+          </div>
+
+        </form>
+
+      </ng-container>
 
     </div>
-    <!-- 🔼 SCROLL AREA END -->
 
-    <!-- footer -->
+    <!-- FOOTER -->
     <div class="cap-actions">
-      <button class="cap-btn cap-btn--primary" (click)="submit()" [disabled]="creating">
+
+      <button
+        class="cap-btn cap-btn--primary"
+        (click)="submit()"
+        [disabled]="creating || loadingDetail">
+
+        <ion-spinner *ngIf="creating"
+                     name="crescent"
+                     class="btn-spinner">
+        </ion-spinner>
+
         {{ mode === 'edit' ? 'Update Appointment' : 'Create Appointment' }}
       </button>
 
-      <button class="cap-btn cap-btn--ghost" (click)="close()">Cancel</button>
+      <button
+        class="cap-btn cap-btn--ghost"
+        (click)="close()"
+        [disabled]="creating">
+        Cancel
+      </button>
+
     </div>
 
   </div>
+
 </ion-content>

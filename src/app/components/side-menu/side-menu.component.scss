@@ -1,24 +1,237 @@
-.sec-title {
-  padding: 14px 16px 8px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.8px;
-  color: #94a3b8;
+/* =========================================
+   GLASS SIDEBAR CONTAINER
+========================================= */
+
+ion-menu {
+  --width: 270px;
 }
+
+ion-menu::part(backdrop) {
+  background: rgba(15, 23, 42, 0.2);
+}
+
+ion-content {
+  --background: transparent;
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.75),
+    rgba(255, 255, 255, 0.55)
+  );
+
+  border-right: 1px solid rgba(255, 255, 255, 0.4);
+
+  box-shadow:
+    0 8px 32px rgba(15, 23, 42, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  padding: 22px 16px;
+}
+
+/* =========================================
+   BRAND SECTION
+========================================= */
+
+.menu-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  margin-bottom: 24px;
+
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.brand-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+
+  display: grid;
+  place-items: center;
+
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  color: #fff;
+  font-size: 20px;
+
+  box-shadow:
+    0 8px 20px rgba(37, 99, 235, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.brand-text {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  color: #1e293b;
+}
+
+/* =========================================
+   SECTION TITLES
+========================================= */
+
+.sec-title {
+  position: relative;
+  margin: 22px 8px 12px;
+  padding-left: 16px;
+
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+
+  color: rgba(30, 41, 59, 0.65);
+}
+
+.sec-title::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+
+  width: 4px;
+  height: 16px;
+  border-radius: 4px;
+
+  background: linear-gradient(180deg, #2563eb, #60a5fa);
+
+  box-shadow: 0 0 10px rgba(37, 99, 235, 0.6);
+}
+
+/* =========================================
+   MENU ITEMS
+========================================= */
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  padding: 12px 14px;
+  margin-bottom: 8px;
+
+  border-radius: 14px;
+
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(10px);
+
+  font-size: 14px;
+  font-weight: 500;
+  color: #334155;
+
+  cursor: pointer;
+
+  transition: all 0.25s ease;
+}
+
+/* Icon */
+.menu-item ion-icon {
+  font-size: 18px;
+  color: #475569;
+  transition: color 0.25s ease;
+}
+
+/* Hover Effect */
+.menu-item:hover {
+  transform: translateX(5px);
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+}
+
+/* Active Item */
+.menu-item.active {
+  background: linear-gradient(
+    135deg,
+    rgba(37, 99, 235, 0.25),
+    rgba(37, 99, 235, 0.15)
+  );
+  color: #1e40af;
+  font-weight: 600;
+
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.25);
+}
+
+.menu-item.active ion-icon {
+  color: #1e40af;
+}
+
+/* Chevron */
+.chev {
+  margin-left: auto;
+  font-size: 16px;
+  color: rgba(30, 41, 59, 0.5);
+}
+
+/* =========================================
+   DIVIDER
+========================================= */
 
 .divider {
   height: 1px;
-  background: rgba(148, 163, 184, 0.25);
-  margin: 10px 0;
+  margin: 22px 0;
+
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(148, 163, 184, 0.35),
+    transparent
+  );
 }
+
+/* =========================================
+   NOTIFICATION DOT
+========================================= */
 
 .dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
-  background: #2563eb;
-  display: inline-block;
+
   margin-left: auto;
+
+  background: #2563eb;
+
+  box-shadow:
+    0 0 8px rgba(37, 99, 235, 0.7),
+    0 0 16px rgba(37, 99, 235, 0.4);
 }
 
+/* =========================================
+   LOGOUT
+========================================= */
 
+.logout {
+  margin-top: 24px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+.logout:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* =========================================
+   ENTRY ANIMATION
+========================================= */
+
+.menu-item {
+  animation: fadeIn 0.35s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.menu-section-title {
+  padding: 14px;
+  font-weight: bold;
+}

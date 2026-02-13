@@ -1,27 +1,52 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, Router, UrlTree } from '@angular/router';
+import {
+  CanActivate,
+  ActivatedRouteSnapshot,
+  Router,
+  UrlTree,
+  RouterStateSnapshot,
+} from '@angular/router';
 import { AuthService, UserRole } from '../services/auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class RoleGuard implements CanActivate {
-  constructor(private auth: AuthService, private router: Router) {}
 
-  canActivate(route: ActivatedRouteSnapshot): boolean | UrlTree {
-    const allowedRoles = (route.data?.['roles'] as UserRole[]) || [];
-    const role = this.auth.getRole();
+  constructor(
+    private auth: AuthService,
+    private router: Router
+  ) {}
 
-    // not logged in → login
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot
+  ): boolean | UrlTree {
+
+    // 1️⃣ Check authentication first
     if (!this.auth.isLoggedIn()) {
-      return this.router.parseUrl('/auth/login');
+      return this.router.createUrlTree(['/auth/login'], {
+        queryParams: { returnUrl: state.url },
+      });
     }
 
-    // if route doesn't specify roles, allow
-    if (!allowedRoles.length) return true;
+    const allowedRoles = this.extractRoles(route);
+    const userRole = this.auth.getRole();
 
-    // allowed?
-    if (role && allowedRoles.includes(role)) return true;
+    // 2️⃣ If no roles defined → allow
+    if (!allowedRoles.length) {
+      return true;
+    }
 
-    // not allowed → back to dashboard
-    return this.router.parseUrl('/dashboard');
+    // 3️⃣ Check role access
+    if (userRole && allowedRoles.includes(userRole)) {
+      return true;
+    }
+
+    // 4️⃣ Unauthorized role → redirect to dashboard
+    return this.router.createUrlTree(['/dashboard']);
+  }
+
+  private extractRoles(route: ActivatedRouteSnapshot): UserRole[] {
+    const roles = route.data?.['roles'];
+    return Array.isArray(roles) ? roles : [];
   }
 }

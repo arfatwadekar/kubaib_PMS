@@ -12,157 +12,127 @@ const routes: Routes = [
     path: '',
     component: MainLayoutComponent,
     children: [
+
+      // ======================
+      // Default Redirect
+      // ======================
+      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+
+      // ======================
+      // Dashboard
+      // ======================
       {
         path: 'dashboard',
         loadChildren: () =>
-          import('../../pages/dashboard/dashboard.module').then(
-            (m) => m.DashboardPageModule,
-          ),
+          import('../../pages/dashboard/dashboard.module')
+            .then(m => m.DashboardPageModule),
+      },
+
+      // ======================
+      // Patients
+      // ======================
+      {
+        path: 'patients',
+        loadChildren: () =>
+          import('../../pages/patients/patient.module')
+            .then(m => m.PatientPageModule),
       },
 
       {
         path: 'patients/list',
         loadChildren: () =>
-          import('../../pages/patient-list/patient-list.module').then(
-            (m) => m.PatientListPageModule,
-          ),
+          import('../../pages/patient-list/patient-list.module')
+            .then(m => m.PatientListPageModule),
       },
 
-      // ✅ Everyone (Doctor + Receptionist)
       {
         path: 'patients/create',
         loadChildren: () =>
-          import('../../pages/patients/create-patient/create-patient.module').then(
-            (m) => m.CreatePatientPageModule,
-          ),
+          import('../../pages/patients/create-patient/create-patient.module')
+            .then(m => m.CreatePatientPageModule),
       },
-      // src/app/app-routing.module.ts (snippet)
 
-          // ✅ Everyone (Doctor + Receptionist)
       {
-        path: 'patients/create',
-        loadChildren: () =>
-          import('../../pages/patients/create-patient/create-patient.module').then(
-            (m) => m.CreatePatientPageModule,
-          ),
-      },
-      // src/app/app-routing.module.ts (snippet)
-
-         {
-        path: 'report',
-        loadChildren: () =>
-          import('../../pages/report/report.module').then(
-            (m) => m.ReportPageModule,
-          ),
-      },
-      // src/app/app-routing.module.ts (snippet)
-
-
-      // {
-      //   path: 'patients/medical-examination',
-      //   loadChildren: () =>
-      //     import('../../pages/patients/medical-examination/medical-examination.module').then(
-      //       (m) => m.MedicalExaminationPageModule
-      //     ),
-      // },
-
-       {
         path: 'patients/follow-up',
         loadChildren: () =>
-          import('../../pages/patients/followUp/follow-up.module').then(
-            (m) => m.FollowUpPageModule
-          ),
+          import('../../pages/patients/followUp/follow-up.module')
+            .then(m => m.FollowUpPageModule),
       },
 
-       // ✅ Everyone (Doctor + Receptionist)
+      // ======================
+      // Reports
+      // ======================
       {
-        path: 'patients',
+        path: 'report',
         loadChildren: () =>
-          import('../../pages/patients/patient.module').then(
-            (m) => m.PatientPageModule,
-          ),
+          import('../../pages/report/report.module')
+            .then(m => m.ReportPageModule),
       },
-      // src/app/app-routing.module.ts (snippet)
-
-      // {
-      //   path: 'appointments/create',
-      //   loadChildren: () =>
-      //     import('../../pages/appointments/create-appointment/create-appointment.module').then(
-      //       (m) => m.CreateAppointmentPageModule,
-      //     ),
-      //   canActivate: [RoleGuard],
-      //   data: { roles: ['Doctor', 'Receptionist'] },
-      // },
 
       {
         path: 'reports',
         loadChildren: () =>
-          import('../../pages/coming-soon/coming-soon.module').then(
-            (m) => m.ComingSoonModule,
-          ),
+          import('../../pages/coming-soon/coming-soon.module')
+            .then(m => m.ComingSoonModule),
         canActivate: [RoleGuard],
         data: { roles: ['Doctor', 'Receptionist'] },
       },
 
-      
+      // ======================
+      // Appointments
+      // ======================
       {
         path: 'SearchAppointments',
         loadChildren: () =>
-          import('../../pages/search-appointment/search-appointment.module').then(
-            (m) => m.SearchAppointmentPageModule,
-          ),
+          import('../../pages/search-appointment/search-appointment.module')
+            .then(m => m.SearchAppointmentPageModule),
         canActivate: [RoleGuard],
         data: { roles: ['Doctor', 'Receptionist'] },
       },
 
-      // ✅ Doctor only
+      // ======================
+      // Doctor Only
+      // ======================
       {
         path: 'medicines',
         loadChildren: () =>
-          import('../../pages/coming-soon/coming-soon.module').then(
-            (m) => m.ComingSoonModule,
-          ),
+          import('../../pages/coming-soon/coming-soon.module')
+            .then(m => m.ComingSoonModule),
         canActivate: [RoleGuard],
         data: { roles: ['Doctor'] },
       },
       {
         path: 'medicines/create',
         loadChildren: () =>
-          import('../../pages/coming-soon/coming-soon.module').then(
-            (m) => m.ComingSoonModule,
-          ),
+          import('../../pages/coming-soon/coming-soon.module')
+            .then(m => m.ComingSoonModule),
         canActivate: [RoleGuard],
         data: { roles: ['Doctor'] },
       },
       {
         path: 'notifications',
         loadChildren: () =>
-          import('../../pages/coming-soon/coming-soon.module').then(
-            (m) => m.ComingSoonModule,
-          ),
+          import('../../pages/coming-soon/coming-soon.module')
+            .then(m => m.ComingSoonModule),
         canActivate: [RoleGuard],
         data: { roles: ['Doctor'] },
       },
       {
         path: 'announcements',
         loadChildren: () =>
-          import('../../pages/coming-soon/coming-soon.module').then(
-            (m) => m.ComingSoonModule,
-          ),
+          import('../../pages/coming-soon/coming-soon.module')
+            .then(m => m.ComingSoonModule),
         canActivate: [RoleGuard],
         data: { roles: ['Doctor'] },
       },
       {
         path: 'reviews',
         loadChildren: () =>
-          import('../../pages/coming-soon/coming-soon.module').then(
-            (m) => m.ComingSoonModule,
-          ),
+          import('../../pages/coming-soon/coming-soon.module')
+            .then(m => m.ComingSoonModule),
         canActivate: [RoleGuard],
         data: { roles: ['Doctor'] },
       },
-
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },
 ];
