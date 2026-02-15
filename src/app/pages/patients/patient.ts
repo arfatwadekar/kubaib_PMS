@@ -1,16 +1,26 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormArray, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
 import { Subject, Subscription, takeUntil, firstValueFrom } from 'rxjs';
 
 import { PatientService } from 'src/app/services/patient.service';
-import { PatientReportPayload, PatientReportService } from 'src/app/services/patient-report.service';
-import { FollowUpService, FollowUpCriteriaDto, AppointmentStatus } from 'src/app/services/follow-up.service';
+import {
+  PatientReportPayload,
+  PatientReportService,
+} from 'src/app/services/patient-report.service';
+import {
+  FollowUpService,
+  FollowUpCriteriaDto,
+  AppointmentStatus,
+} from 'src/app/services/follow-up.service';
 
 // ✅ NEW: Clinical Case
 // import { ClinicalCaseService, ClinicalCasePayload } from 'src/app/services/clinical-case.service';
-import { MedicalExaminationService, ClinicalCasePayload } from 'src/app/services/medical-examination.service';
+import {
+  MedicalExaminationService,
+  ClinicalCasePayload,
+} from 'src/app/services/medical-examination.service';
 
 type TabKey = 'prelim' | 'medical' | 'followup' | 'payment' | 'reports';
 type UserRole = 'Doctor' | 'Receptionist';
@@ -116,6 +126,11 @@ type ReportDetail = PatientReportPayload & {
   standalone: false,
 })
 export class PatientPage implements OnInit, OnDestroy {
+  showSuccessModal = false;
+  successMode: 'create' | 'update' = 'create';
+  successPatient: any = null;
+  today = new Date().toLocaleDateString('en-GB');
+
   // =====================
   // ROLE + TABS
   // =====================
@@ -123,8 +138,8 @@ export class PatientPage implements OnInit, OnDestroy {
   activeTab: TabKey = 'prelim';
 
   // ✅ Medical record state
-medicalExists = false;      // DB me record hai?
-medicalSaving = false;      // saving indicator alag rakho (optional)
+  medicalExists = false; // DB me record hai?
+  medicalSaving = false; // saving indicator alag rakho (optional)
 
   // =====================
   // PATIENT PAGE STATE
@@ -142,11 +157,14 @@ medicalSaving = false;      // saving indicator alag rakho (optional)
   // PRELIM FORM
   // =====================
   form = this.fb.group({
-    fullName: ['', [Validators.required, Validators.minLength(2)]],
-    gender: ['Male', [Validators.required]],
-    dateOfBirth: ['', [Validators.required]],
-    phoneNumber: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
+     firstName: ['', [Validators.required, Validators.minLength(2)]],
+  lastName: ['', [Validators.required, Validators.minLength(2)]],
 
+  gender: ['Male', [Validators.required]],
+  dateOfBirth: ['', [Validators.required]],
+  age: [{ value: '', disabled: true }],   // ✅ Auto calculated
+
+  phoneNumber: ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
     alternateNumber: [''],
     email: [''],
     address: [''],
@@ -427,7 +445,8 @@ medicalSaving = false;      // saving indicator alag rakho (optional)
   private readonly FU_ADD_STEP = 2;
   private readonly FU_MAX_ROWS = 30;
 
-  private readonly APPT_STATUS_AWAIT_PAYMENT = AppointmentStatus.AwaitingPayment;
+  private readonly APPT_STATUS_AWAIT_PAYMENT =
+    AppointmentStatus.AwaitingPayment;
 
   // ===== Waive-Off UI state =====
   waiveOffVerified = false;
@@ -469,10 +488,14 @@ medicalSaving = false;      // saving indicator alag rakho (optional)
     if (!this.patientId) return false;
     if (!this.fuCriteriaSaved) return false;
 
-    const charges = safeNum(this.fuPaymentForm.controls.consultationCharges.value ?? 0);
+    const charges = safeNum(
+      this.fuPaymentForm.controls.consultationCharges.value ?? 0,
+    );
     const paid = safeNum(this.fuPaymentForm.controls.amountPaid.value ?? 0);
     const wave = safeNum(this.fuPaymentForm.controls.waveOffAmount.value ?? 0);
-    const mode = (this.fuPaymentForm.controls.paymentMode.value ?? '').toString().trim();
+    const mode = (this.fuPaymentForm.controls.paymentMode.value ?? '')
+      .toString()
+      .trim();
 
     if (charges <= 0) return false;
     if (!mode) return false;
@@ -542,17 +565,30 @@ medicalSaving = false;      // saving indicator alag rakho (optional)
   repMode: 'entry' | 'compare' = 'entry';
   repReportDate: string = todayYmd();
   repSelectedPrevReportId: number | null = null;
-  repRows: Array<{ label: string; apiKey: keyof PatientReportPayload; value: string }> = [];
+  repRows: Array<{
+    label: string;
+    apiKey: keyof PatientReportPayload;
+    value: string;
+  }> = [];
 
   // summary lists
-  repSummaryList: Array<{ patientReportId: number; reportName: string; reportDateYmd: string; uiDate: string }> = [];
+  repSummaryList: Array<{
+    patientReportId: number;
+    reportName: string;
+    reportDateYmd: string;
+    uiDate: string;
+  }> = [];
   repAllUiDates: string[] = [];
   repSelectedUiDates: string[] = [];
   repDisplayUiDates: string[] = [];
   repSelectedHeaderDate: string = '';
 
   // matrix
-  repMatrix: Array<{ label: string; apiKey: keyof PatientReportPayload; values: Record<string, string> }> = [];
+  repMatrix: Array<{
+    label: string;
+    apiKey: keyof PatientReportPayload;
+    values: Record<string, string>;
+  }> = [];
 
   reportLoading = false;
 
@@ -572,70 +608,87 @@ medicalSaving = false;      // saving indicator alag rakho (optional)
     private patient: PatientService,
     private reportApi: PatientReportService,
     private fuApi: FollowUpService,
-private medicalExamApi: MedicalExaminationService, // ✅ only this
+    private medicalExamApi: MedicalExaminationService, // ✅ only this
     private alertCtrl: AlertController,
     private route: ActivatedRoute,
-      private toastCtrl: ToastController,   // ✅ MUST be here with same name
+    private toastCtrl: ToastController, // ✅ MUST be here with same name
+    private router: Router,
   ) {}
 
-  // =====================
-  // INIT / DESTROY
-  // =====================
-  ngOnInit(): void {
-    this.loadRoleFromStorage();
-    this.ensureAllowedTab();
+ // =====================
+// INIT / DESTROY
+// =====================
+ngOnInit(): void {
+  // 🔹 Load role + permissions
+  this.loadRoleFromStorage();
+  this.ensureAllowedTab();
 
-    // init UI
-    this.initReportEntryRows();
-    this.initFollowUpEmpty();
-    this.initMedicalBmiAutoCalc(); // ✅ BMI auto-calc
+  // 🔹 Initialize UI logic
+  this.initReportEntryRows();
+  this.initFollowUpEmpty();
+  this.initMedicalBmiAutoCalc();
 
-    this.sub.add(
-      this.route.queryParams.subscribe((qp) => {
-        this.loadRoleFromStorage();
+  // 🔹 Auto-calculate Age when DOB changes
+  this.initAgeAutoCalculation();
 
-        const id = safeNum(qp?.['patientId']);
-        const requestedTab = safeStr(qp?.['tab']) as TabKey;
+  // 🔹 Listen to route params
+  this.sub.add(
+    this.route.queryParams.subscribe((qp) => {
+      this.loadRoleFromStorage();
 
-        const apptId = safeNum(qp?.['appointmentId']);
-        this.currentAppointmentId = apptId > 0 ? apptId : null;
+      const id = safeNum(qp?.['patientId']);
+      const requestedTab = safeStr(qp?.['tab']) as TabKey;
+      const apptId = safeNum(qp?.['appointmentId']);
 
-        this.activeTab = requestedTab && this.isTabAllowed(requestedTab) ? requestedTab : 'prelim';
+      this.currentAppointmentId = apptId > 0 ? apptId : null;
 
-        if (id > 0) {
-          this.isEditMode = true;
-          this.patientId = id;
+      // Set active tab
+      this.activeTab =
+        requestedTab && this.isTabAllowed(requestedTab)
+          ? requestedTab
+          : 'prelim';
 
-          this.loadPatient(id);
+      // =========================
+      // EDIT MODE
+      // =========================
+      if (id > 0) {
+        this.isEditMode = true;
+        this.patientId = id;
 
-          if (this.activeTab === 'reports') {
-            this.startNewReport();
-            void this.loadReportsForPatient(false);
-          }
+        this.loadPatient(id);
 
-          if (this.activeTab === 'followup') {
-            void this.loadFollowUpCriteria(false);
-          }
+        if (this.activeTab === 'reports') {
+          this.startNewReport();
+          void this.loadReportsForPatient(false);
+        }
 
-          if (this.activeTab === 'medical') {
-  void this.loadClinicalCaseIfExists();
+        if (this.activeTab === 'followup') {
+          void this.loadFollowUpCriteria(false);
+        }
+
+        if (this.activeTab === 'medical') {
+          void this.loadClinicalCaseIfExists();
+        }
+
+        return;
+      }
+
+      // =========================
+      // CREATE MODE
+      // =========================
+      this.isEditMode = false;
+      this.patientId = null;
+      this.currentAppointmentId = null;
+      this.currentPatient = null;
+
+      this.resetPatientForm();
+      this.resetReportsAll();
+      this.resetFollowUpView();
+      this.resetMedicalForm();
+    })
+  );
 }
 
-          // if (this.activeTab === 'medical') { ... optional load clinical case ... }
-        } else {
-          this.isEditMode = false;
-          this.patientId = null;
-          this.currentAppointmentId = null;
-          this.currentPatient = null;
-
-          this.resetPatientForm();
-          this.resetReportsAll();
-          this.resetFollowUpView();
-          this.resetMedicalForm();
-        }
-      })
-    );
-  }
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
@@ -653,7 +706,13 @@ private medicalExamApi: MedicalExaminationService, // ✅ only this
 
   isTabAllowed(tab: TabKey): boolean {
     if (this.role === 'Doctor') return true;
-    return tab === 'prelim' || tab === 'payment' || tab === 'reports' || tab === 'followup' || tab === 'medical';
+    return (
+      tab === 'prelim' ||
+      tab === 'payment' ||
+      tab === 'reports' ||
+      tab === 'followup' ||
+      tab === 'medical'
+    );
   }
 
   isTabDisabled(tab: TabKey): boolean {
@@ -687,9 +746,8 @@ private medicalExamApi: MedicalExaminationService, // ✅ only this
     }
 
     if (this.activeTab === 'medical') {
-  void this.loadClinicalCaseIfExists();
-}
-
+      void this.loadClinicalCaseIfExists();
+    }
 
     // medical: nothing mandatory on switch
   }
@@ -703,7 +761,10 @@ private medicalExamApi: MedicalExaminationService, // ✅ only this
   }
 
   onAltPhoneInput() {
-    const cleaned = onlyDigits(this.form.value.alternateNumber || '').slice(0, 10);
+    const cleaned = onlyDigits(this.form.value.alternateNumber || '').slice(
+      0,
+      10,
+    );
     this.form.patchValue({ alternateNumber: cleaned }, { emitEvent: false });
   }
 
@@ -725,10 +786,13 @@ private medicalExamApi: MedicalExaminationService, // ✅ only this
 
         this.resetPatientForm();
 
-        const fullName = `${safeStr(p?.firstName)} ${safeStr(p?.lastName)}`.trim() || safeStr(p?.fullName);
+        const fullName =
+          `${safeStr(p?.firstName)} ${safeStr(p?.lastName)}`.trim() ||
+          safeStr(p?.fullName);
 
         this.form.patchValue({
-          fullName: fullName || '',
+            firstName: safeStr(p?.firstName),
+  lastName: safeStr(p?.lastName),
           gender: safeStr(p?.gender) || 'Male',
           dateOfBirth: toDateInput(p?.dateOfBirth),
           phoneNumber: safeStr(p?.phoneNumber),
@@ -753,10 +817,15 @@ private medicalExamApi: MedicalExaminationService, // ✅ only this
         });
 
         // default referredBy to reports form too
-        this.reportForm.patchValue({ referredBy: safeStr(p?.referredBy) }, { emitEvent: false });
+        this.reportForm.patchValue(
+          { referredBy: safeStr(p?.referredBy) },
+          { emitEvent: false },
+        );
       },
       error: (err) => {
-        void this.toast(err?.error?.message || err?.message || 'Failed to load patient');
+        void this.toast(
+          err?.error?.message || err?.message || 'Failed to load patient',
+        );
       },
       complete: () => (this.loading = false),
     });
@@ -766,52 +835,97 @@ private medicalExamApi: MedicalExaminationService, // ✅ only this
   // SUBMIT PATIENT
   // =====================
   submit() {
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      void this.toast('Full Name, DOB and Phone Number (10 digits) are required.');
-      return;
-    }
+  if (this.form.invalid) {
+    this.form.markAllAsTouched();
+    void this.toast(
+      'Full Name, DOB and Phone Number (10 digits) are required.'
+    );
+    return;
+  }
 
-    const phone = onlyDigits(this.form.value.phoneNumber || '').slice(0, 10);
-    if (phone.length !== 10) {
-      void this.toast('Phone Number must be exactly 10 digits.');
-      return;
-    }
+  const phone = onlyDigits(this.form.value.phoneNumber || '').slice(0, 10);
+  if (phone.length !== 10) {
+    void this.toast('Phone Number must be exactly 10 digits.');
+    return;
+  }
 
-    this.loading = true;
+  this.loading = true;
 
-    if (this.isEditMode && this.patientId) {
-      const payload = this.buildUpdatePayload();
-      this.patient.updatePatient(this.patientId, payload).subscribe({
-        next: async () => {
-          this.loading = false;
-          await this.openSuccessModalAndReload();
-        },
-        error: (err) => {
-          this.loading = false;
-          void this.toast(err?.error?.message || err?.message || 'Update Patient failed');
-        },
-      });
-      return;
-    }
+  // =========================
+  // ✅ UPDATE PATIENT
+  // =========================
+  if (this.isEditMode && this.patientId) {
+    const payload = this.buildUpdatePayload();
 
-    const payload = this.buildCreatePayload();
-    this.patient.createPatient(payload).subscribe({
+    this.patient.updatePatient(this.patientId, payload).subscribe({
       next: async () => {
         this.loading = false;
-        await this.toast('Patient created successfully.');
-        this.resetPatientForm();
+
+        // 🔹 show update modal
+        this.successMode = 'update';
+        this.successPatient = this.currentPatient;
+        this.showSuccessModal = true;
+
+        // 🔹 reload latest data
+        if (this.patientId) {
+          this.loadPatient(this.patientId);
+        }
       },
       error: (err) => {
         this.loading = false;
-        void this.toast(err?.error?.message || err?.message || 'Create Patient failed');
+        void this.toast(
+          err?.error?.message || err?.message || 'Update Patient failed'
+        );
       },
     });
+
+    return;
   }
+
+  // =========================
+  // ✅ CREATE PATIENT
+  // =========================
+  const payload = this.buildCreatePayload();
+
+  this.patient.createPatient(payload).subscribe({
+    next: async (res: any) => {
+      this.loading = false;
+
+      const created = res?.data ?? res;
+
+      // 🔹 set success modal
+      this.successMode = 'create';
+      this.successPatient = created;
+      this.showSuccessModal = true;
+
+      // 🔹 set new patient state
+      this.patientId = created?.patientsId || created?.patientId;
+      this.isEditMode = true;
+    },
+    error: (err) => {
+      this.loading = false;
+      void this.toast(
+        err?.error?.message || err?.message || 'Create Patient failed'
+      );
+    },
+  });
+}
+
+closeSuccessModal() {
+  this.showSuccessModal = false;
+
+  // ✅ Redirect only if it was CREATE
+  if (this.successMode === 'create') {
+    this.router.navigate(['/dashboard']);
+  }
+}
+
 
   private buildCreatePayload() {
     const v = this.form.value;
-    const { firstName, lastName } = splitFullName(v.fullName || '');
+    const firstName = safeStr(v.firstName);
+const lastName = safeStr(v.lastName);
+
 
     const phone = onlyDigits(v.phoneNumber || '').slice(0, 10);
     const alt = onlyDigits(v.alternateNumber || '').slice(0, 10);
@@ -849,7 +963,9 @@ private medicalExamApi: MedicalExaminationService, // ✅ only this
     const base = this.currentPatient || {};
     const v = this.form.value;
 
-    const { firstName, lastName } = splitFullName(v.fullName || '');
+    const firstName = safeStr(v.firstName);
+const lastName = safeStr(v.lastName);
+
     const phone = onlyDigits(v.phoneNumber || '').slice(0, 10);
     const alt = onlyDigits(v.alternateNumber || '').slice(0, 10);
 
@@ -871,7 +987,8 @@ private medicalExamApi: MedicalExaminationService, // ✅ only this
       state: nullIfBlank(v.state),
       pinCode: nullIfBlank(v.pinCode),
 
-      maritalStatus: nullIfBlank(v.maritalStatus) ?? base?.maritalStatus ?? 'Single',
+      maritalStatus:
+        nullIfBlank(v.maritalStatus) ?? base?.maritalStatus ?? 'Single',
       maritalStatusSince: normalizeMaritalSince(v.maritalStatusSince),
 
       religion: nullIfBlank(v.religion),
@@ -902,9 +1019,36 @@ private medicalExamApi: MedicalExaminationService, // ✅ only this
     await alert.present();
   }
 
+  private initAgeAutoCalculation() {
+  this.form.get('dateOfBirth')?.valueChanges.subscribe((dob) => {
+    if (!dob) {
+      this.form.patchValue({ age: '' }, { emitEvent: false });
+      return;
+    }
+
+    const birthDate = new Date(dob);
+    const today = new Date();
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
+      age--;
+    }
+
+    this.form.patchValue({ age: age.toString() }, { emitEvent: false });
+
+  });
+}
+
+
   private resetPatientForm() {
     this.form.reset({
-      fullName: '',
+   firstName: '',
+lastName: '',
       gender: 'Male',
       dateOfBirth: '',
       phoneNumber: '',
@@ -953,8 +1097,12 @@ private medicalExamApi: MedicalExaminationService, // ✅ only this
       pe.patchValue({ bmi: bmiStr, bmiCategory: cat }, { emitEvent: false });
     };
 
-    pe.controls['heightMeters'].valueChanges.pipe(takeUntil(this.destroy$)).subscribe(recalc);
-    pe.controls['weightKg'].valueChanges.pipe(takeUntil(this.destroy$)).subscribe(recalc);
+    pe.controls['heightMeters'].valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(recalc);
+    pe.controls['weightKg'].valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(recalc);
   }
 
   private resetMedicalForm() {
@@ -991,8 +1139,18 @@ private medicalExamApi: MedicalExaminationService, // ✅ only this
 
     this.medicalForm.patchValue({
       complaints: {
-        chief: { location: 'Head', sensation: 'Pain', modality: 'Worse at night', concomitant: 'Nausea' },
-        associated: { location: 'Stomach', sensation: 'Burning', modality: 'After spicy', concomitant: '' },
+        chief: {
+          location: 'Head',
+          sensation: 'Pain',
+          modality: 'Worse at night',
+          concomitant: 'Nausea',
+        },
+        associated: {
+          location: 'Stomach',
+          sensation: 'Burning',
+          modality: 'After spicy',
+          concomitant: '',
+        },
         past: { location: '', sensation: '', modality: '', concomitant: '' },
       },
       physicalExamination: {
@@ -1027,153 +1185,162 @@ private medicalExamApi: MedicalExaminationService, // ✅ only this
   }
 
   private buildClinicalCasePayload(): ClinicalCasePayload {
-  const v = this.medicalForm.getRawValue();
+    const v = this.medicalForm.getRawValue();
 
-  // ✅ Backend valid ComplaintType values (case-sensitive)
-  const chief = this.complaintFrom(v?.complaints?.chief, 'Chief');
-  const associated = this.complaintFrom(v?.complaints?.associated, 'Associated');
-  const pastHistory = this.complaintFrom(v?.complaints?.past, 'PastHistory');
+    // ✅ Backend valid ComplaintType values (case-sensitive)
+    const chief = this.complaintFrom(v?.complaints?.chief, 'Chief');
+    const associated = this.complaintFrom(
+      v?.complaints?.associated,
+      'Associated',
+    );
+    const pastHistory = this.complaintFrom(v?.complaints?.past, 'PastHistory');
 
-  const pe: any = v?.physicalExamination || {};
-  const ms: any = v?.mentalState || {};
-  const intel: any = v?.intellectualState || {};
+    const pe: any = v?.physicalExamination || {};
+    const ms: any = v?.mentalState || {};
+    const intel: any = v?.intellectualState || {};
 
-  const payload: ClinicalCasePayload = {
-    patientId: this.patientId || 0,
+    const payload: ClinicalCasePayload = {
+      patientId: this.patientId || 0,
 
-    complaints: [chief, associated, pastHistory],
+      complaints: [chief, associated, pastHistory],
 
-    familyHistory: { ...(v?.familyHistory || {}) },
-    personalStatus: { ...(v?.personalStatus || {}) },
-    menstrualHistory: { ...(v?.menstrualHistory || {}) },
-    maleSexualFunction: { ...(v?.maleSexualFunction || {}) },
-    physicalReaction: { ...(v?.physicalReaction || {}) },
+      familyHistory: { ...(v?.familyHistory || {}) },
+      personalStatus: { ...(v?.personalStatus || {}) },
+      menstrualHistory: { ...(v?.menstrualHistory || {}) },
+      maleSexualFunction: { ...(v?.maleSexualFunction || {}) },
+      physicalReaction: { ...(v?.physicalReaction || {}) },
 
-    // ✅ UI -> API keys mapping (swagger)
-    physicalExamination: {
-      height: this.s(pe?.heightMeters),
-      weight: this.s(pe?.weightKg),
-      bmi: this.s(pe?.bmi),
-      weightCategory: this.s(pe?.bmiCategory),
+      // ✅ UI -> API keys mapping (swagger)
+      physicalExamination: {
+        height: this.s(pe?.heightMeters),
+        weight: this.s(pe?.weightKg),
+        bmi: this.s(pe?.bmi),
+        weightCategory: this.s(pe?.bmiCategory),
 
-      physicalAppearance: this.s(pe?.physicalAppearance),
-      digestion: this.s(pe?.dejection), // UI "dejection" => API "digestion"
-      temperature: this.s(pe?.temperature),
-      pulse: this.s(pe?.pulse),
-      bp: this.s(pe?.bp),
-      tongue: this.s(pe?.tongue),
-      lips: this.s(pe?.lips),
-      teeth: this.s(pe?.teeth),
-      gums: this.s(pe?.gums),
-      nails: this.s(pe?.nails),
-      skin: this.s(pe?.skin),
-      glands: this.s(pe?.glands),
-      nose: this.s(pe?.nose),
-      throat: this.s(pe?.throat),
-      trachea: this.s(pe?.trachea),
+        physicalAppearance: this.s(pe?.physicalAppearance),
+        digestion: this.s(pe?.dejection), // UI "dejection" => API "digestion"
+        temperature: this.s(pe?.temperature),
+        pulse: this.s(pe?.pulse),
+        bp: this.s(pe?.bp),
+        tongue: this.s(pe?.tongue),
+        lips: this.s(pe?.lips),
+        teeth: this.s(pe?.teeth),
+        gums: this.s(pe?.gums),
+        nails: this.s(pe?.nails),
+        skin: this.s(pe?.skin),
+        glands: this.s(pe?.glands),
+        nose: this.s(pe?.nose),
+        throat: this.s(pe?.throat),
+        trachea: this.s(pe?.trachea),
 
-      chestExpansion: this.s(pe?.chestExpansion),
-      spO2: this.s(pe?.spo2),                 // UI spo2 => API spO2
-      percussion_RS: this.s(pe?.rsPercussion), // UI rsPercussion => API percussion_RS
-      rr: this.s(pe?.rr),
-      airEntry: this.s(pe?.airEntry),
-      breathSounds: this.s(pe?.breathSounds),
+        chestExpansion: this.s(pe?.chestExpansion),
+        spO2: this.s(pe?.spo2), // UI spo2 => API spO2
+        percussion_RS: this.s(pe?.rsPercussion), // UI rsPercussion => API percussion_RS
+        rr: this.s(pe?.rr),
+        airEntry: this.s(pe?.airEntry),
+        breathSounds: this.s(pe?.breathSounds),
 
-      pA_SizeShapeSkin: this.s(pe?.paSizeShapeSkin),
-      pA_Movement: this.s(pe?.paMovement),
-      pA_Percussion: this.s(pe?.paPercussion),
-      hgt: this.s(pe?.hst), // UI hst => API hgt
-      soft_Tenderness_Rigidity_Guarding: this.s(pe?.paSoftTenderRigidGuard),
+        pA_SizeShapeSkin: this.s(pe?.paSizeShapeSkin),
+        pA_Movement: this.s(pe?.paMovement),
+        pA_Percussion: this.s(pe?.paPercussion),
+        hgt: this.s(pe?.hst), // UI hst => API hgt
+        soft_Tenderness_Rigidity_Guarding: this.s(pe?.paSoftTenderRigidGuard),
 
-      bowelSound: this.s(pe?.bowelSound),
-      lump: this.s(pe?.lump),
+        bowelSound: this.s(pe?.bowelSound),
+        lump: this.s(pe?.lump),
 
-      apexImpulse: this.s(pe?.apexImpulse),
-      jvp: this.s(pe?.jvp),
-      thrill: this.s(pe?.thrill),
-      percussion_CVS: this.s(pe?.cvsPercussion),
-      heartSounds: this.s(pe?.heartSounds),
-      murmur: this.s(pe?.murmur),
-      rub: this.s(pe?.rub),
+        apexImpulse: this.s(pe?.apexImpulse),
+        jvp: this.s(pe?.jvp),
+        thrill: this.s(pe?.thrill),
+        percussion_CVS: this.s(pe?.cvsPercussion),
+        heartSounds: this.s(pe?.heartSounds),
+        murmur: this.s(pe?.murmur),
+        rub: this.s(pe?.rub),
 
-      higherFunction: this.s(pe?.higherFunction),
-      motorFunction: this.s(pe?.motorFunction),
-      sensoryFunction: this.s(pe?.sensoryFunction),
-      cranialNerves: this.s(pe?.cranialNerves),
-      reflexes: this.s(pe?.reflexes),
-      coordination: this.s(pe?.coordination),
+        higherFunction: this.s(pe?.higherFunction),
+        motorFunction: this.s(pe?.motorFunction),
+        sensoryFunction: this.s(pe?.sensoryFunction),
+        cranialNerves: this.s(pe?.cranialNerves),
+        reflexes: this.s(pe?.reflexes),
+        coordination: this.s(pe?.coordination),
 
-      inspection: this.s(pe?.mskInspection),
-      rom: this.s(pe?.rom),
-      swelling: this.s(pe?.swelling),
-      warmth: this.s(pe?.warmth),
-      redness: this.s(pe?.redness),
-      deformities: this.s(pe?.deformities),
-      crepitations: this.s(pe?.crepitation),
-      muscleStrength: this.s(pe?.muscleStrength),
+        inspection: this.s(pe?.mskInspection),
+        rom: this.s(pe?.rom),
+        swelling: this.s(pe?.swelling),
+        warmth: this.s(pe?.warmth),
+        redness: this.s(pe?.redness),
+        deformities: this.s(pe?.deformities),
+        crepitations: this.s(pe?.crepitation),
+        muscleStrength: this.s(pe?.muscleStrength),
 
-      investigations: this.s(pe?.investigations),
-    },
+        investigations: this.s(pe?.investigations),
+      },
 
-    mentalState: {
-      // keep API fields if already present
-      ...(ms || {}),
+      mentalState: {
+        // keep API fields if already present
+        ...(ms || {}),
 
-      // ✅ ensure remarks go to swagger keys
-      angerSadnessTriangles_Remark: this.s(ms?.remarkAngerSadness || ms?.angerSadnessTriangles_Remark),
-      fearAnxietyTriangles_Remark: this.s(ms?.remarkFearAnxiety || ms?.fearAnxietyTriangles_Remark),
+        // ✅ ensure remarks go to swagger keys
+        angerSadnessTriangles_Remark: this.s(
+          ms?.remarkAngerSadness || ms?.angerSadnessTriangles_Remark,
+        ),
+        fearAnxietyTriangles_Remark: this.s(
+          ms?.remarkFearAnxiety || ms?.fearAnxietyTriangles_Remark,
+        ),
 
-      // swagger required-ish fields
-      spectrum_LoveHate: safeNum(ms?.spectrum_LoveHate ?? 0),
-      spectrum_LaveHate_Remark: this.s(ms?.remarkLoveHate || ms?.spectrum_LaveHate_Remark),
+        // swagger required-ish fields
+        spectrum_LoveHate: safeNum(ms?.spectrum_LoveHate ?? 0),
+        spectrum_LaveHate_Remark: this.s(
+          ms?.remarkLoveHate || ms?.spectrum_LaveHate_Remark,
+        ),
 
-      // intellect values come from intellectualState group
-      intellect_Value: safeNum(intel?.capacityPerformanceRatio),
-      intellect_Perception: this.s(intel?.perception),
-      intellect_Memory: this.s(intel?.memory),
-      intellect_Thinking: this.s(intel?.thinking),
-      intellect_Decision: this.s(intel?.decision),
-      intellect_Confidence: this.s(intel?.confidence),
-    },
+        // intellect values come from intellectualState group
+        intellect_Value: safeNum(intel?.capacityPerformanceRatio),
+        intellect_Perception: this.s(intel?.perception),
+        intellect_Memory: this.s(intel?.memory),
+        intellect_Thinking: this.s(intel?.thinking),
+        intellect_Decision: this.s(intel?.decision),
+        intellect_Confidence: this.s(intel?.confidence),
+      },
 
-    behavioralEvaluation: { ...(v?.behavioralEvaluation || {}) },
-  };
+      behavioralEvaluation: { ...(v?.behavioralEvaluation || {}) },
+    };
 
-  return payload;
-}
-
-
-async saveRecord() {
-  if (!this.patientId) {
-    await this.toast('PatientId missing. Open patient in edit mode.');
-    return;
+    return payload;
   }
-  if (this.loading) return;
 
-  const payload = this.buildClinicalCasePayload();
-  this.loading = true;
-
-  try {
-    if (this.medicalExists) {
-      // ✅ UPDATE (PUT)
-      await firstValueFrom(this.medicalExamApi.update(payload));
-      this.medicalForm.markAsPristine();
-      await this.toast('Clinical case updated');
-    } else {
-      // ✅ CREATE (POST)
-      await firstValueFrom(this.medicalExamApi.create(payload));
-      this.medicalForm.markAsPristine();
-      this.medicalExists = true; // ✅ now it exists
-      await this.toast('Clinical case saved');
+  async saveRecord() {
+    if (!this.patientId) {
+      await this.toast('PatientId missing. Open patient in edit mode.');
+      return;
     }
-  } catch (e: any) {
-    await this.presentSimpleAlert('Save Failed', e?.error?.message || e?.message || 'Failed to save clinical case');
-  } finally {
-    this.loading = false;
+    if (this.loading) return;
+
+    const payload = this.buildClinicalCasePayload();
+    this.loading = true;
+
+    try {
+      if (this.medicalExists) {
+        // ✅ UPDATE (PUT)
+        await firstValueFrom(this.medicalExamApi.update(payload));
+        this.medicalForm.markAsPristine();
+        await this.toast('Clinical case updated');
+      } else {
+        // ✅ CREATE (POST)
+        await firstValueFrom(this.medicalExamApi.create(payload));
+        this.medicalForm.markAsPristine();
+        this.medicalExists = true; // ✅ now it exists
+        await this.toast('Clinical case saved');
+      }
+    } catch (e: any) {
+      await this.presentSimpleAlert(
+        'Save Failed',
+        e?.error?.message || e?.message || 'Failed to save clinical case',
+      );
+    } finally {
+      this.loading = false;
+    }
   }
-}
-
-
 
   // ============================================================
   // ✅ FOLLOWUP (unchanged logic)
@@ -1182,10 +1349,12 @@ async saveRecord() {
     if (this.fuSymptomsArr.length === 0) this.addFuRows(this.FU_INIT_ROWS);
 
     this.sub.add(
-      this.fuSymptomsArr.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
-        if (this.fuCriteriaSaved) return;
-        this.autoGrowFuCriteriaRows();
-      })
+      this.fuSymptomsArr.valueChanges
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(() => {
+          if (this.fuCriteriaSaved) return;
+          this.autoGrowFuCriteriaRows();
+        }),
     );
   }
 
@@ -1197,7 +1366,10 @@ async saveRecord() {
     this.fuCriteriaForm.reset();
     (this.fuCriteriaForm.get('symptoms') as FormArray).clear();
 
-    this.fuNextApptForm.reset({ followUpDate: todayYmd(), followUpTime: '14:30:00' });
+    this.fuNextApptForm.reset({
+      followUpDate: todayYmd(),
+      followUpTime: '14:30:00',
+    });
     this.fuPaymentForm.reset({
       consultationCharges: 0,
       waveOffAmount: 0,
@@ -1239,7 +1411,9 @@ async saveRecord() {
   private async loadFollowUpCriteria(debug = false) {
     if (!this.patientId) return;
 
-    const res: any = await firstValueFrom(this.fuApi.getCriteriaByPatient(this.patientId));
+    const res: any = await firstValueFrom(
+      this.fuApi.getCriteriaByPatient(this.patientId),
+    );
     const list = this.extractArray(res);
 
     this.fuCriteriaFromDb = (Array.isArray(list) ? list : []) as any[];
@@ -1250,7 +1424,8 @@ async saveRecord() {
         .map((x: any) => (x?.criteriaName ?? '').toString().trim())
         .filter(Boolean);
 
-      while (this.fuSymptomsArr.length < names.length) this.addFuRows(this.FU_ADD_STEP);
+      while (this.fuSymptomsArr.length < names.length)
+        this.addFuRows(this.FU_ADD_STEP);
 
       for (let i = 0; i < this.fuSymptomsArr.length; i++) {
         this.fuSymptomsArr.at(i).setValue(names[i] || '', { emitEvent: false });
@@ -1288,13 +1463,16 @@ async saveRecord() {
         this.fuApi.createCriteria({
           patientId: this.patientId,
           criteriaNames: names,
-        })
+        }),
       );
 
       await this.loadFollowUpCriteria(false);
       await this.toast('Criteria saved');
     } catch (e: any) {
-      await this.presentSimpleAlert('Save Failed', e?.error?.message || e?.message || 'Failed to save criteria');
+      await this.presentSimpleAlert(
+        'Save Failed',
+        e?.error?.message || e?.message || 'Failed to save criteria',
+      );
     } finally {
       this.fuLoading = false;
     }
@@ -1360,7 +1538,7 @@ async saveRecord() {
         referredBy: safeStr(this.form.value.referredBy),
         summary: '',
       },
-      { emitEvent: false }
+      { emitEvent: false },
     );
 
     this.initReportEntryRows();
@@ -1392,7 +1570,9 @@ async saveRecord() {
 
     this.reportLoading = true;
     try {
-      const res: any = await firstValueFrom(this.reportApi.getByPatient(this.patientId));
+      const res: any = await firstValueFrom(
+        this.reportApi.getByPatient(this.patientId),
+      );
       const list = this.extractArray(res);
 
       const summaries = (Array.isArray(list) ? list : []).map((x: any) => {
@@ -1408,7 +1588,9 @@ async saveRecord() {
         };
       });
 
-      this.repSummaryList = summaries.sort((a, b) => b.patientReportId - a.patientReportId);
+      this.repSummaryList = summaries.sort(
+        (a, b) => b.patientReportId - a.patientReportId,
+      );
 
       // ui date -> reportId
       this.repUiDateToReportId = {};
@@ -1416,10 +1598,14 @@ async saveRecord() {
         if (s.uiDate) this.repUiDateToReportId[s.uiDate] = s.patientReportId;
       }
 
-      this.repAllUiDates = Array.from(new Set(summaries.map((s) => s.uiDate).filter(Boolean)));
+      this.repAllUiDates = Array.from(
+        new Set(summaries.map((s) => s.uiDate).filter(Boolean)),
+      );
 
       // keep compare selection valid
-      this.repSelectedUiDates = (this.repSelectedUiDates || []).filter((d) => this.repAllUiDates.includes(d));
+      this.repSelectedUiDates = (this.repSelectedUiDates || []).filter((d) =>
+        this.repAllUiDates.includes(d),
+      );
       this.repDisplayUiDates = this.repSelectedUiDates.slice(0, 5);
 
       // prefetch details for displayed
@@ -1431,9 +1617,15 @@ async saveRecord() {
       this.buildMatrixFromCache();
       this.refreshMatrixCssCols();
 
-      if (debug) console.log('[REPORTS]', { summaries: this.repSummaryList, dates: this.repAllUiDates });
+      if (debug)
+        console.log('[REPORTS]', {
+          summaries: this.repSummaryList,
+          dates: this.repAllUiDates,
+        });
     } catch (e: any) {
-      await this.toast(e?.error?.message || e?.message || 'Failed to load reports');
+      await this.toast(
+        e?.error?.message || e?.message || 'Failed to load reports',
+      );
     } finally {
       this.reportLoading = false;
     }
@@ -1468,7 +1660,10 @@ async saveRecord() {
     if (this.repDisplayUiDates.length === 1) {
       await this.onDateHeaderClick(this.repDisplayUiDates[0]);
     } else {
-      if (this.repSelectedHeaderDate && !this.repDisplayUiDates.includes(this.repSelectedHeaderDate)) {
+      if (
+        this.repSelectedHeaderDate &&
+        !this.repDisplayUiDates.includes(this.repSelectedHeaderDate)
+      ) {
         this.repSelectedHeaderDate = '';
       }
     }
@@ -1528,23 +1723,29 @@ async saveRecord() {
       },
       error: async (err) => {
         this.reportLoading = false;
-        await this.presentSimpleAlert('Save Failed', err?.error?.message || err?.message || 'Failed to save report');
+        await this.presentSimpleAlert(
+          'Save Failed',
+          err?.error?.message || err?.message || 'Failed to save report',
+        );
       },
     });
   }
 
   private applyDetailToEntry(detail: ReportDetail, uiDate: string) {
-    this.repReportDate = toKeyYmd(safeStr((detail as any).reportDate)) || todayYmd();
+    this.repReportDate =
+      toKeyYmd(safeStr((detail as any).reportDate)) || todayYmd();
 
     this.reportForm.patchValue(
       {
         reportName: safeStr((detail as any).reportName),
         reportDate: this.repReportDate,
         labName: safeStr((detail as any).labName),
-        referredBy: safeStr((detail as any).referredBy) || safeStr(this.form.value.referredBy),
+        referredBy:
+          safeStr((detail as any).referredBy) ||
+          safeStr(this.form.value.referredBy),
         summary: safeStr((detail as any).summary),
       },
-      { emitEvent: false }
+      { emitEvent: false },
     );
 
     for (const r of this.repRows) {
@@ -1578,7 +1779,9 @@ async saveRecord() {
     return s?.uiDate || '';
   }
 
-  private async ensureReportDetail(reportId: number): Promise<ReportDetail | null> {
+  private async ensureReportDetail(
+    reportId: number,
+  ): Promise<ReportDetail | null> {
     if (!reportId || reportId <= 0) return null;
     if (this.repDetailsMap[reportId]) return this.repDetailsMap[reportId];
 
@@ -1589,7 +1792,9 @@ async saveRecord() {
 
       const detail: ReportDetail = {
         ...(data as any),
-        patientReportId: safeNum(data?.patientReportId ?? data?.reportId ?? data?.id ?? reportId),
+        patientReportId: safeNum(
+          data?.patientReportId ?? data?.reportId ?? data?.id ?? reportId,
+        ),
       };
 
       this.repDetailsMap[reportId] = detail;
@@ -1672,7 +1877,8 @@ async saveRecord() {
   autoFill() {
     // prelim autofill
     this.form.patchValue({
-      fullName: 'Test Patient',
+      firstName
+      : 'Test Patient',
       gender: 'Male',
       dateOfBirth: '1995-01-01',
       phoneNumber: '9999999999',
@@ -1720,7 +1926,8 @@ async saveRecord() {
   // UTIL
   // =====================
   private extractArray(res: any): any[] {
-    const list = res?.data ?? res?.list ?? res?.result ?? res?.items ?? res ?? [];
+    const list =
+      res?.data ?? res?.list ?? res?.result ?? res?.items ?? res ?? [];
     return Array.isArray(list) ? list : [];
   }
 
@@ -1777,7 +1984,9 @@ async saveRecord() {
             }
 
             try {
-              const res: any = await firstValueFrom(this.fuApi.verifyWaveOffPassword({ password }));
+              const res: any = await firstValueFrom(
+                this.fuApi.verifyWaveOffPassword({ password }),
+              );
 
               const ok =
                 res?.ok === true ||
@@ -1798,7 +2007,8 @@ async saveRecord() {
               this.waiveOffVerifyErr = '';
               return true;
             } catch (e: any) {
-              this.waiveOffVerifyErr = e?.error?.message || e?.message || 'Verify failed';
+              this.waiveOffVerifyErr =
+                e?.error?.message || e?.message || 'Verify failed';
               setTimeout(() => this.openWaiveOffModal(), 0);
               return false;
             }
@@ -1831,11 +2041,15 @@ async saveRecord() {
 
     try {
       // 1) find current appointment
-      const apptRes: any = await firstValueFrom(this.fuApi.getCurrentAppointments(this.patientId));
+      const apptRes: any = await firstValueFrom(
+        this.fuApi.getCurrentAppointments(this.patientId),
+      );
       const apptList = this.extractArray(apptRes);
 
       const current = apptList?.[0];
-      const apptId = safeNum(current?.appointmentId ?? current?.id ?? current?.appointmentsId);
+      const apptId = safeNum(
+        current?.appointmentId ?? current?.id ?? current?.appointmentsId,
+      );
 
       if (!apptId || apptId <= 0) {
         this.fuNextPaymentError = 'Current appointment not found';
@@ -1849,13 +2063,17 @@ async saveRecord() {
       await firstValueFrom(
         this.fuApi.updateAppointmentStatus(apptId, {
           status: this.APPT_STATUS_AWAIT_PAYMENT,
-        })
+        }),
       );
 
       // 3) optional: create next appointment
-      const nextDate = (this.fuNextApptForm.controls.followUpDate.value ?? '').toString().trim();
+      const nextDate = (this.fuNextApptForm.controls.followUpDate.value ?? '')
+        .toString()
+        .trim();
       const nextTime =
-        (this.fuNextApptForm.controls.followUpTime.value ?? '14:30:00').toString().trim() || '14:30:00';
+        (this.fuNextApptForm.controls.followUpTime.value ?? '14:30:00')
+          .toString()
+          .trim() || '14:30:00';
 
       if (nextDate) {
         await firstValueFrom(
@@ -1864,17 +2082,29 @@ async saveRecord() {
             appointmentDate: nextDate,
             appointmentTime: nextTime,
             remark: 'Next follow-up booked from Follow Up',
-          })
+          }),
         );
       }
 
       // 4) payment
-      const consultationCharges = safeNum(this.fuPaymentForm.controls.consultationCharges.value ?? 0);
-      const waveOffAmount = safeNum(this.fuPaymentForm.controls.waveOffAmount.value ?? 0);
-      const amountPaid = safeNum(this.fuPaymentForm.controls.amountPaid.value ?? 0);
-      const paymentMode = (this.fuPaymentForm.controls.paymentMode.value ?? '').toString().trim();
+      const consultationCharges = safeNum(
+        this.fuPaymentForm.controls.consultationCharges.value ?? 0,
+      );
+      const waveOffAmount = safeNum(
+        this.fuPaymentForm.controls.waveOffAmount.value ?? 0,
+      );
+      const amountPaid = safeNum(
+        this.fuPaymentForm.controls.amountPaid.value ?? 0,
+      );
+      const paymentMode = (this.fuPaymentForm.controls.paymentMode.value ?? '')
+        .toString()
+        .trim();
 
-      const waveOffPasswordRaw = (this.fuPaymentForm.controls.waveOffPassword.value ?? '').toString().trim();
+      const waveOffPasswordRaw = (
+        this.fuPaymentForm.controls.waveOffPassword.value ?? ''
+      )
+        .toString()
+        .trim();
       const waveOffPassword = this.waiveOffVerified
         ? waveOffPasswordRaw || this.waiveOffPasswordCache || undefined
         : undefined;
@@ -1889,7 +2119,7 @@ async saveRecord() {
           paymentMode,
           paymentDate: new Date().toISOString(),
           waveOffPassword,
-        })
+        }),
       );
 
       await this.toast('Payment saved');
@@ -1903,184 +2133,191 @@ async saveRecord() {
   }
 
   goPrevIdentity() {
-  const prev: TabKey = 'prelim'; // Identity tab tumhare flow me prelim hai
-  if (!this.isTabAllowed(prev)) {
-    void this.toast('Access denied');
-    return;
-  }
-  this.activeTab = prev;
-}
-
-goNextFollowUp() {
-  const next: TabKey = 'followup';
-  if (!this.isTabAllowed(next)) {
-    void this.toast('Access denied');
-    return;
-  }
-  this.activeTab = next;
-
-  // optional: load criteria when entering
-  if (this.patientId) void this.loadFollowUpCriteria(false);
-}
-
-
-async loadClinicalCaseIfExists() {
-  if (!this.patientId) return;
-
-  try {
-    const res: any = await firstValueFrom(this.medicalExamApi.getByPatientId(this.patientId));
-    const data = res?.data ?? res;  // ✅ agar backend wrap kare
-
-    if (!data) {
-      this.medicalExists = false;
+    const prev: TabKey = 'prelim'; // Identity tab tumhare flow me prelim hai
+    if (!this.isTabAllowed(prev)) {
+      void this.toast('Access denied');
       return;
     }
+    this.activeTab = prev;
+  }
 
-    this.patchMedicalFormFromApi(data);
-    this.medicalForm.markAsPristine();
-    this.medicalExists = true;   // ✅ record exists
-  } catch (e: any) {
-    if (e?.status === 404) {
-      this.medicalExists = false; // ✅ not found => create mode
+  goNextFollowUp() {
+    const next: TabKey = 'followup';
+    if (!this.isTabAllowed(next)) {
+      void this.toast('Access denied');
       return;
     }
-    console.error(e);
-    await this.toast(e?.error?.message || e?.message || 'Failed to load clinical case');
+    this.activeTab = next;
+
+    // optional: load criteria when entering
+    if (this.patientId) void this.loadFollowUpCriteria(false);
   }
-}
 
+  async loadClinicalCaseIfExists() {
+    if (!this.patientId) return;
 
-private patchMedicalFormFromApi(api: ClinicalCasePayload) {
-  const complaints: Complaint[] = Array.isArray(api?.complaints)
-    ? (api.complaints as Complaint[])
-    : [];
+    try {
+      const res: any = await firstValueFrom(
+        this.medicalExamApi.getByPatientId(this.patientId),
+      );
+      const data = res?.data ?? res; // ✅ agar backend wrap kare
 
-  const emptyComplaint: Complaint = {
-    complaintType: '',
-    location: '',
-    sensation: '',
-    modality: '',
-    concomitant: '',
-  };
+      if (!data) {
+        this.medicalExists = false;
+        return;
+      }
 
-  // ✅ IMPORTANT: backend valid values
-  const chief: Complaint =
-    complaints.find((c) => (c?.complaintType || '').toString() === 'Chief') || emptyComplaint;
+      this.patchMedicalFormFromApi(data);
+      this.medicalForm.markAsPristine();
+      this.medicalExists = true; // ✅ record exists
+    } catch (e: any) {
+      if (e?.status === 404) {
+        this.medicalExists = false; // ✅ not found => create mode
+        return;
+      }
+      console.error(e);
+      await this.toast(
+        e?.error?.message || e?.message || 'Failed to load clinical case',
+      );
+    }
+  }
 
-  const associated: Complaint =
-    complaints.find((c) => (c?.complaintType || '').toString() === 'Associated') || emptyComplaint;
+  private patchMedicalFormFromApi(api: ClinicalCasePayload) {
+    const complaints: Complaint[] = Array.isArray(api?.complaints)
+      ? (api.complaints as Complaint[])
+      : [];
 
-  const pastHistory: Complaint =
-    complaints.find((c) => (c?.complaintType || '').toString() === 'PastHistory') || emptyComplaint;
+    const emptyComplaint: Complaint = {
+      complaintType: '',
+      location: '',
+      sensation: '',
+      modality: '',
+      concomitant: '',
+    };
 
-  const pe: any = api?.physicalExamination || {};
-  const ms: any = api?.mentalState || {};
+    // ✅ IMPORTANT: backend valid values
+    const chief: Complaint =
+      complaints.find((c) => (c?.complaintType || '').toString() === 'Chief') ||
+      emptyComplaint;
 
-  this.medicalForm.patchValue(
-    {
-      complaints: {
-        chief: {
-          location: chief.location || '',
-          sensation: chief.sensation || '',
-          modality: chief.modality || '',
-          concomitant: chief.concomitant || '',
+    const associated: Complaint =
+      complaints.find(
+        (c) => (c?.complaintType || '').toString() === 'Associated',
+      ) || emptyComplaint;
+
+    const pastHistory: Complaint =
+      complaints.find(
+        (c) => (c?.complaintType || '').toString() === 'PastHistory',
+      ) || emptyComplaint;
+
+    const pe: any = api?.physicalExamination || {};
+    const ms: any = api?.mentalState || {};
+
+    this.medicalForm.patchValue(
+      {
+        complaints: {
+          chief: {
+            location: chief.location || '',
+            sensation: chief.sensation || '',
+            modality: chief.modality || '',
+            concomitant: chief.concomitant || '',
+          },
+          associated: {
+            location: associated.location || '',
+            sensation: associated.sensation || '',
+            modality: associated.modality || '',
+            concomitant: associated.concomitant || '',
+          },
+          past: {
+            location: pastHistory.location || '',
+            sensation: pastHistory.sensation || '',
+            modality: pastHistory.modality || '',
+            concomitant: pastHistory.concomitant || '',
+          },
         },
-        associated: {
-          location: associated.location || '',
-          sensation: associated.sensation || '',
-          modality: associated.modality || '',
-          concomitant: associated.concomitant || '',
+
+        familyHistory: api?.familyHistory || {},
+        personalStatus: api?.personalStatus || {},
+        menstrualHistory: api?.menstrualHistory || {},
+        maleSexualFunction: api?.maleSexualFunction || {},
+        physicalReaction: api?.physicalReaction || {},
+
+        physicalExamination: {
+          heightMeters: pe.height || '',
+          weightKg: pe.weight || '',
+          bmi: pe.bmi || '',
+          bmiCategory: pe.weightCategory || '',
+
+          physicalAppearance: pe.physicalAppearance || '',
+          dejection: pe.digestion || '',
+          temperature: pe.temperature || '',
+          pulse: pe.pulse || '',
+          bp: pe.bp || '',
+          tongue: pe.tongue || '',
+          lips: pe.lips || '',
+          teeth: pe.teeth || '',
+          gums: pe.gums || '',
+          nails: pe.nails || '',
+          skin: pe.skin || '',
+          glands: pe.glands || '',
+          nose: pe.nose || '',
+          throat: pe.throat || '',
+          trachea: pe.trachea || '',
+
+          chestExpansion: pe.chestExpansion || '',
+          spo2: pe.spO2 || '',
+          rsPercussion: pe.percussion_RS || '',
+          rr: pe.rr || '',
+          airEntry: pe.airEntry || '',
+          breathSounds: pe.breathSounds || '',
+
+          paSizeShapeSkin: pe.pA_SizeShapeSkin || '',
+          paMovement: pe.pA_Movement || '',
+          paPercussion: pe.pA_Percussion || '',
+          hst: pe.hgt || '',
+          paSoftTenderRigidGuard: pe.soft_Tenderness_Rigidity_Guarding || '',
+
+          bowelSound: pe.bowelSound || '',
+          lump: pe.lump || '',
+
+          apexImpulse: pe.apexImpulse || '',
+          jvp: pe.jvp || '',
+          thrill: pe.thrill || '',
+          cvsPercussion: pe.percussion_CVS || '',
+          heartSounds: pe.heartSounds || '',
+          murmur: pe.murmur || '',
+          rub: pe.rub || '',
+
+          higherFunction: pe.higherFunction || '',
+          motorFunction: pe.motorFunction || '',
+          sensoryFunction: pe.sensoryFunction || '',
+          cranialNerves: pe.cranialNerves || '',
+          reflexes: pe.reflexes || '',
+          coordination: pe.coordination || '',
+
+          mskInspection: pe.inspection || '',
+          rom: pe.rom || '',
+          swelling: pe.swelling || '',
+          warmth: pe.warmth || '',
+          redness: pe.redness || '',
+          deformities: pe.deformities || '',
+          crepitation: pe.crepitations || '',
+          muscleStrength: pe.muscleStrength || '',
+
+          investigations: pe.investigations || '',
         },
-        past: {
-          location: pastHistory.location || '',
-          sensation: pastHistory.sensation || '',
-          modality: pastHistory.modality || '',
-          concomitant: pastHistory.concomitant || '',
+
+        mentalState: {
+          ...ms,
+          // ✅ UI remarks fields
+          remarkLoveHate: ms?.spectrum_LaveHate_Remark || '',
+          remarkAngerSadness: ms?.angerSadnessTriangles_Remark || '',
+          remarkFearAnxiety: ms?.fearAnxietyTriangles_Remark || '',
         },
+
+        behavioralEvaluation: api?.behavioralEvaluation || {},
       },
-
-      familyHistory: api?.familyHistory || {},
-      personalStatus: api?.personalStatus || {},
-      menstrualHistory: api?.menstrualHistory || {},
-      maleSexualFunction: api?.maleSexualFunction || {},
-      physicalReaction: api?.physicalReaction || {},
-
-      physicalExamination: {
-        heightMeters: pe.height || '',
-        weightKg: pe.weight || '',
-        bmi: pe.bmi || '',
-        bmiCategory: pe.weightCategory || '',
-
-        physicalAppearance: pe.physicalAppearance || '',
-        dejection: pe.digestion || '',
-        temperature: pe.temperature || '',
-        pulse: pe.pulse || '',
-        bp: pe.bp || '',
-        tongue: pe.tongue || '',
-        lips: pe.lips || '',
-        teeth: pe.teeth || '',
-        gums: pe.gums || '',
-        nails: pe.nails || '',
-        skin: pe.skin || '',
-        glands: pe.glands || '',
-        nose: pe.nose || '',
-        throat: pe.throat || '',
-        trachea: pe.trachea || '',
-
-        chestExpansion: pe.chestExpansion || '',
-        spo2: pe.spO2 || '',
-        rsPercussion: pe.percussion_RS || '',
-        rr: pe.rr || '',
-        airEntry: pe.airEntry || '',
-        breathSounds: pe.breathSounds || '',
-
-        paSizeShapeSkin: pe.pA_SizeShapeSkin || '',
-        paMovement: pe.pA_Movement || '',
-        paPercussion: pe.pA_Percussion || '',
-        hst: pe.hgt || '',
-        paSoftTenderRigidGuard: pe.soft_Tenderness_Rigidity_Guarding || '',
-
-        bowelSound: pe.bowelSound || '',
-        lump: pe.lump || '',
-
-        apexImpulse: pe.apexImpulse || '',
-        jvp: pe.jvp || '',
-        thrill: pe.thrill || '',
-        cvsPercussion: pe.percussion_CVS || '',
-        heartSounds: pe.heartSounds || '',
-        murmur: pe.murmur || '',
-        rub: pe.rub || '',
-
-        higherFunction: pe.higherFunction || '',
-        motorFunction: pe.motorFunction || '',
-        sensoryFunction: pe.sensoryFunction || '',
-        cranialNerves: pe.cranialNerves || '',
-        reflexes: pe.reflexes || '',
-        coordination: pe.coordination || '',
-
-        mskInspection: pe.inspection || '',
-        rom: pe.rom || '',
-        swelling: pe.swelling || '',
-        warmth: pe.warmth || '',
-        redness: pe.redness || '',
-        deformities: pe.deformities || '',
-        crepitation: pe.crepitations || '',
-        muscleStrength: pe.muscleStrength || '',
-
-        investigations: pe.investigations || '',
-      },
-
-      mentalState: {
-        ...ms,
-        // ✅ UI remarks fields
-        remarkLoveHate: ms?.spectrum_LaveHate_Remark || '',
-        remarkAngerSadness: ms?.angerSadnessTriangles_Remark || '',
-        remarkFearAnxiety: ms?.fearAnxietyTriangles_Remark || '',
-      },
-
-      behavioralEvaluation: api?.behavioralEvaluation || {},
-    },
-    { emitEvent: false }
-  );
-}
+      { emitEvent: false },
+    );
+  }
 }

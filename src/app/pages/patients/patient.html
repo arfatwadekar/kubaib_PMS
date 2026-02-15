@@ -20,7 +20,10 @@
         <ion-label>MEDICAL</ion-label>
       </ion-segment-button>
 
-      <ion-segment-button value="followup" [disabled]="isTabDisabled('followup')">
+      <ion-segment-button
+        value="followup"
+        [disabled]="isTabDisabled('followup')"
+      >
         <ion-label>FOLLOW UP</ion-label>
       </ion-segment-button>
 
@@ -37,12 +40,10 @@
 
 <!-- ✅ Only ONE ion-content for whole page -->
 <ion-content class="ion-padding">
-
   <!-- ==========================
        ✅ PRELIM TAB
   =========================== -->
   <div *ngIf="activeTab === 'prelim'">
-
     <div class="page-title">
       <div class="h1">Preliminary Information</div>
 
@@ -58,15 +59,21 @@
     </div>
 
     <form class="card" [formGroup]="form" (ngSubmit)="submit()">
-
       <ion-grid>
-        <!-- FULL NAME + GENDER -->
+        <!-- FIRST NAME + LAST NAME -->
         <ion-row>
           <ion-col size="12" sizeMd="6">
             <div class="f">
-              <label>FULL NAME <span class="req">*</span></label>
-              <input class="inp" formControlName="fullName" placeholder="Full Name" />
-              <div class="err" *ngIf="form.controls.fullName.touched && form.controls.fullName.invalid">
+              <label>FIRST NAME <span class="req">*</span></label>
+              <input
+                class="inp"
+                formControlName="firstName"
+                placeholder="First Name"
+              />
+              <div
+                class="err"
+                *ngIf="form.controls.firstName.touched && form.controls.firstName.invalid"
+              >
                 Required
               </div>
             </div>
@@ -74,11 +81,18 @@
 
           <ion-col size="12" sizeMd="6">
             <div class="f">
-              <label>GENDER <span class="req">*</span></label>
-              <select class="inp" formControlName="gender">
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-              </select>
+              <label>LAST NAME <span class="req">*</span></label>
+              <input
+                class="inp"
+                formControlName="lastName"
+                placeholder="Last Name"
+              />
+              <div
+                class="err"
+                *ngIf="form.controls.lastName.touched && form.controls.lastName.invalid"
+              >
+                Required
+              </div>
             </div>
           </ion-col>
         </ion-row>
@@ -89,9 +103,13 @@
             <div class="f">
               <label>DOB <span class="req">*</span></label>
               <input class="inp" type="date" formControlName="dateOfBirth" />
-              <div class="err" *ngIf="form.controls.dateOfBirth.touched && form.controls.dateOfBirth.invalid">
-                Required
-              </div>
+            </div>
+          </ion-col>
+
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>AGE</label>
+              <input class="inp" formControlName="age" readonly />
             </div>
           </ion-col>
 
@@ -104,7 +122,10 @@
                 placeholder="10 digits"
                 (input)="onPhoneInput()"
               />
-              <div class="err" *ngIf="form.controls.phoneNumber.touched && form.controls.phoneNumber.invalid">
+              <div
+                class="err"
+                *ngIf="form.controls.phoneNumber.touched && form.controls.phoneNumber.invalid"
+              >
                 Enter 10 digits
               </div>
             </div>
@@ -128,7 +149,11 @@
           <ion-col size="12" sizeMd="6">
             <div class="f">
               <label>EMAIL</label>
-              <input class="inp" formControlName="email" placeholder="Optional" />
+              <input
+                class="inp"
+                formControlName="email"
+                placeholder="Optional"
+              />
             </div>
           </ion-col>
         </ion-row>
@@ -150,7 +175,11 @@
           <ion-col size="12" sizeMd="6">
             <div class="f">
               <label>MARITAL STATUS SINCE</label>
-              <input class="inp" type="date" formControlName="maritalStatusSince" />
+              <input
+                class="inp"
+                type="date"
+                formControlName="maritalStatusSince"
+              />
             </div>
           </ion-col>
         </ion-row>
@@ -160,14 +189,22 @@
           <ion-col size="12" sizeMd="6">
             <div class="f">
               <label>RELIGION</label>
-              <input class="inp" formControlName="religion" placeholder="Optional" />
+              <input
+                class="inp"
+                formControlName="religion"
+                placeholder="Optional"
+              />
             </div>
           </ion-col>
 
           <ion-col size="12" sizeMd="6">
             <div class="f">
               <label>DIET</label>
-              <input class="inp" formControlName="diet" placeholder="Optional" />
+              <input
+                class="inp"
+                formControlName="diet"
+                placeholder="Optional"
+              />
             </div>
           </ion-col>
         </ion-row>
@@ -177,14 +214,22 @@
           <ion-col size="12" sizeMd="6">
             <div class="f">
               <label>EDUCATION</label>
-              <input class="inp" formControlName="education" placeholder="Optional" />
+              <input
+                class="inp"
+                formControlName="education"
+                placeholder="Optional"
+              />
             </div>
           </ion-col>
 
           <ion-col size="12" sizeMd="6">
             <div class="f">
               <label>OCCUPATION</label>
-              <input class="inp" formControlName="occupation" placeholder="Optional" />
+              <input
+                class="inp"
+                formControlName="occupation"
+                placeholder="Optional"
+              />
             </div>
           </ion-col>
         </ion-row>
@@ -194,14 +239,23 @@
           <ion-col size="12" sizeMd="6">
             <div class="f">
               <label>AADHAR NUMBER</label>
-              <input class="inp" formControlName="aadharNumber" placeholder="12 digits" (input)="onAadharInput()" />
+              <input
+                class="inp"
+                formControlName="aadharNumber"
+                placeholder="12 digits"
+                (input)="onAadharInput()"
+              />
             </div>
           </ion-col>
 
           <ion-col size="12" sizeMd="6">
             <div class="f">
               <label>PAN NUMBER</label>
-              <input class="inp" formControlName="panNumber" placeholder="Optional" />
+              <input
+                class="inp"
+                formControlName="panNumber"
+                placeholder="Optional"
+              />
             </div>
           </ion-col>
         </ion-row>
@@ -210,8 +264,12 @@
         <ion-row>
           <ion-col size="12">
             <div class="f">
-              <label>ADDRESS</label>
-              <input class="inp" formControlName="address" placeholder="Optional" />
+              <label>ADDRESS *</label>
+              <input
+                class="inp"
+                formControlName="address"
+                placeholder="Optional"
+              />
             </div>
           </ion-col>
         </ion-row>
@@ -221,14 +279,22 @@
           <ion-col size="12" sizeMd="6">
             <div class="f">
               <label>CITY</label>
-              <input class="inp" formControlName="city" placeholder="Optional" />
+              <input
+                class="inp"
+                formControlName="city"
+                placeholder="Optional"
+              />
             </div>
           </ion-col>
 
           <ion-col size="12" sizeMd="6">
             <div class="f">
               <label>STATE</label>
-              <input class="inp" formControlName="state" placeholder="Optional" />
+              <input
+                class="inp"
+                formControlName="state"
+                placeholder="Optional"
+              />
             </div>
           </ion-col>
         </ion-row>
@@ -236,1222 +302,1910 @@
 
       <div class="actions">
         <button class="btn primary" type="submit" [disabled]="loading">
-          {{
-            loading
-              ? (isEditMode ? 'Updating...' : 'Creating...')
-              : (isEditMode ? 'Update Patient' : 'Create Patient')
-          }}
+          {{ loading ? (isEditMode ? 'Updating...' : 'Creating...') :
+          (isEditMode ? 'Update Patient' : 'Create Patient') }}
         </button>
+      </div>
+    </form>
+    <!-- ==========================
+     SUCCESS MODAL
+=========================== -->
+    <div class="success-backdrop" *ngIf="showSuccessModal">
+      <div class="success-modal">
+        <div class="success-icon">✔</div>
+
+        <h2 class="success-title">
+          PID Successfully {{ successMode === 'create' ? 'Created' : 'Updated'
+          }}!
+        </h2>
+
+        <p class="success-sub">
+          Patient profile has been {{ successMode === 'create' ? 'registered' :
+          'updated' }} in the system.
+        </p>
+
+        <div class="success-details" *ngIf="successPatient">
+          <div class="row">
+            <span>PATIENT ID</span>
+            <strong
+              >{{ successPatient?.pid || successPatient?.patientsId }}</strong
+            >
+          </div>
+
+          <div class="row">
+            <span>DATE</span>
+            <strong>{{ today }}</strong>
+          </div>
+
+          <div class="row">
+            <span>REGISTERED BY</span>
+            <strong>{{ role }}</strong>
+          </div>
+        </div>
+
+        <button class="btn primary" (click)="closeSuccessModal()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================
+     MEDICAL TAB
+=========================== -->
+
+  <div *ngIf="activeTab === 'medical'" class="me-tab">
+    <!-- =========================
+       TOP BAR
+  ========================= -->
+    <div class="me-top">
+      <div class="me-top-left">
+        <div class="h1">Medical Examination</div>
+        <div class="sub">
+          Document comprehensive medical history and clinical findings.
+        </div>
+      </div>
+
+      <div class="me-top-right">
+        <ion-button
+          size="small"
+          fill="clear"
+          type="button"
+          (click)="autofill()"
+          [disabled]="!patientId"
+        >
+          AutoFill
+        </ion-button>
+
+        <div class="saving-pill" *ngIf="loading">Saving…</div>
+        <div class="saved-pill" *ngIf="!loading && !medicalForm?.dirty">
+          Saved
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================
+       FORM
+  ========================= -->
+    <form class="me-card" [formGroup]="medicalForm" [class.loading]="loading">
+      <!-- =========================
+         ACCORDION GROUP
+    ========================= -->
+      <ion-accordion-group
+        [value]="openSection"
+        (ionChange)="openSection = $event.detail.value"
+        class="me-acc"
+      >
+        <!-- =========================================================
+           SECTION 1: COMPLAINTS AND HISTORY
+      ========================================================== -->
+        <ion-accordion value="s1">
+          <ion-item slot="header" lines="none" class="sec-header">
+            <ion-label>SECTION 1: COMPLAINTS AND HISTORY</ion-label>
+            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+          </ion-item>
+
+          <div slot="content" class="sec-body">
+            <div formGroupName="complaints">
+              <!-- CHIEF -->
+              <div class="block">
+                <div class="block-top">
+                  <div class="block-title">CHIEF COMPLAINTS</div>
+                </div>
+
+                <div class="grid-head grid-4">
+                  <div class="col">L</div>
+                  <div class="col">S</div>
+                  <div class="col">M</div>
+                  <div class="col">C</div>
+                </div>
+
+                <div class="grid-row grid-4" formGroupName="chief">
+                  <textarea
+                    class="cell ta"
+                    placeholder="Location..."
+                    formControlName="location"
+                  ></textarea>
+                  <textarea
+                    class="cell ta"
+                    placeholder="Sensation/Severity..."
+                    formControlName="sensation"
+                  ></textarea>
+                  <textarea
+                    class="cell ta"
+                    placeholder="Modality..."
+                    formControlName="modality"
+                  ></textarea>
+                  <textarea
+                    class="cell ta"
+                    placeholder="Concomitant..."
+                    formControlName="concomitant"
+                  ></textarea>
+                </div>
+              </div>
+
+              <!-- ASSOCIATED -->
+              <div class="block">
+                <div class="block-top">
+                  <div class="block-title">ASSOCIATED COMPLAINTS</div>
+                </div>
+
+                <div class="grid-head grid-4">
+                  <div class="col">L</div>
+                  <div class="col">S</div>
+                  <div class="col">M</div>
+                  <div class="col">C</div>
+                </div>
+
+                <div class="grid-row grid-4" formGroupName="associated">
+                  <textarea
+                    class="cell ta"
+                    placeholder="Location..."
+                    formControlName="location"
+                  ></textarea>
+                  <textarea
+                    class="cell ta"
+                    placeholder="Sensation/Severity..."
+                    formControlName="sensation"
+                  ></textarea>
+                  <textarea
+                    class="cell ta"
+                    placeholder="Modality..."
+                    formControlName="modality"
+                  ></textarea>
+                  <textarea
+                    class="cell ta"
+                    placeholder="Concomitant..."
+                    formControlName="concomitant"
+                  ></textarea>
+                </div>
+              </div>
+
+              <!-- PAST -->
+              <div class="block">
+                <div class="block-top">
+                  <div class="block-title">PAST HISTORY</div>
+                </div>
+
+                <div class="grid-head grid-4">
+                  <div class="col">L</div>
+                  <div class="col">S</div>
+                  <div class="col">M</div>
+                  <div class="col">C</div>
+                </div>
+
+                <div class="grid-row grid-4" formGroupName="past">
+                  <textarea
+                    class="cell ta"
+                    placeholder="Location..."
+                    formControlName="location"
+                  ></textarea>
+                  <textarea
+                    class="cell ta"
+                    placeholder="Sensation/Severity..."
+                    formControlName="sensation"
+                  ></textarea>
+                  <textarea
+                    class="cell ta"
+                    placeholder="Modality..."
+                    formControlName="modality"
+                  ></textarea>
+                  <textarea
+                    class="cell ta"
+                    placeholder="Concomitant..."
+                    formControlName="concomitant"
+                  ></textarea>
+                </div>
+
+                <div class="hint">
+                  L: Location, S: Sensation, M: Modality, C: Concomitant
+                </div>
+              </div>
+            </div>
+          </div>
+        </ion-accordion>
+
+        <!-- =========================================================
+           SECTION 2: FAMILY HISTORY
+      ========================================================== -->
+        <ion-accordion value="s2">
+          <ion-item slot="header" lines="none" class="sec-header">
+            <ion-label>SECTION 2: FAMILY HISTORY</ion-label>
+            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+          </ion-item>
+
+          <div slot="content" class="sec-body" formGroupName="familyHistory">
+            <div class="grid grid-4">
+              <div class="field">
+                <div class="lbl">Father</div>
+                <input class="inp" formControlName="father" />
+              </div>
+              <div class="field">
+                <div class="lbl">Mother</div>
+                <input class="inp" formControlName="mother" />
+              </div>
+              <div class="field">
+                <div class="lbl">Brothers</div>
+                <input class="inp" formControlName="brothers" />
+              </div>
+              <div class="field">
+                <div class="lbl">Sisters</div>
+                <input class="inp" formControlName="sisters" />
+              </div>
+
+              <div class="field">
+                <div class="lbl">Paternal Uncle</div>
+                <input class="inp" formControlName="paternalUncle" />
+              </div>
+              <div class="field">
+                <div class="lbl">Maternal Uncle</div>
+                <input class="inp" formControlName="maternalUncle" />
+              </div>
+              <div class="field">
+                <div class="lbl">Paternal GP</div>
+                <input class="inp" formControlName="paternalGrandParents" />
+              </div>
+              <div class="field">
+                <div class="lbl">Maternal GP</div>
+                <input class="inp" formControlName="maternalGrandParents" />
+              </div>
+            </div>
+
+            <div class="field full mt12">
+              <div class="lbl">Remarks</div>
+              <input class="inp" formControlName="remarks" />
+            </div>
+          </div>
+        </ion-accordion>
+
+        <!-- =========================================================
+           SECTION 3: PERSONAL STATUS
+      ========================================================== -->
+        <ion-accordion value="s3">
+          <ion-item slot="header" lines="none" class="sec-header">
+            <ion-label>SECTION 3: PERSONAL STATUS</ion-label>
+            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+          </ion-item>
+
+          <div slot="content" class="sec-body" formGroupName="personalStatus">
+            <div class="grid grid-5">
+              <div class="field">
+                <div class="lbl">Skin</div>
+                <input class="inp" formControlName="skin" />
+              </div>
+              <div class="field">
+                <div class="lbl">Wound Healing</div>
+                <input class="inp" formControlName="woundHealing" />
+              </div>
+              <div class="field">
+                <div class="lbl">Hairs</div>
+                <input class="inp" formControlName="hairs" />
+              </div>
+              <div class="field">
+                <div class="lbl">Nails</div>
+                <input class="inp" formControlName="nails" />
+              </div>
+              <div class="field">
+                <div class="lbl">Perspiration</div>
+                <input class="inp" formControlName="perspiration" />
+              </div>
+
+              <div class="field">
+                <div class="lbl">Thirst</div>
+                <input class="inp" formControlName="thirst" />
+              </div>
+              <div class="field">
+                <div class="lbl">Appetite</div>
+                <input class="inp" formControlName="appetite" />
+              </div>
+              <div class="field">
+                <div class="lbl">Cravings</div>
+                <input class="inp" formControlName="cravings" />
+              </div>
+              <div class="field">
+                <div class="lbl">Aversions</div>
+                <input class="inp" formControlName="aversions" />
+              </div>
+              <div class="field">
+                <div class="lbl">Addictions</div>
+                <input class="inp" formControlName="addictions" />
+              </div>
+
+              <div class="field">
+                <div class="lbl">Food</div>
+                <input class="inp" formControlName="food" />
+              </div>
+              <div class="field">
+                <div class="lbl">Fasting</div>
+                <input class="inp" formControlName="fasting" />
+              </div>
+              <div class="field">
+                <div class="lbl">Stool</div>
+                <input class="inp" formControlName="stool" />
+              </div>
+              <div class="field">
+                <div class="lbl">Urine</div>
+                <input class="inp" formControlName="urine" />
+              </div>
+              <div class="field">
+                <div class="lbl">Sleep</div>
+                <input class="inp" formControlName="sleep" />
+              </div>
+
+              <div class="field">
+                <div class="lbl">Dreams</div>
+                <input class="inp" formControlName="dreams" />
+              </div>
+            </div>
+          </div>
+        </ion-accordion>
+
+        <!-- =========================================================
+           SECTION 4: MENSTRUAL HISTORY
+      ========================================================== -->
+        <ion-accordion value="s4">
+          <ion-item slot="header" lines="none" class="sec-header">
+            <ion-label>SECTION 4: MENSTRUAL HISTORY</ion-label>
+            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+          </ion-item>
+
+          <div slot="content" class="sec-body" formGroupName="menstrualHistory">
+            <div class="grid grid-3">
+              <div class="field">
+                <div class="lbl">Menses</div>
+                <input class="inp" formControlName="menses" />
+              </div>
+              <div class="field">
+                <div class="lbl">Before Menses</div>
+                <input class="inp" formControlName="beforeMenses" />
+              </div>
+              <div class="field">
+                <div class="lbl">Between Menses</div>
+                <input class="inp" formControlName="betweenMenses" />
+              </div>
+
+              <div class="field">
+                <div class="lbl">After Menses</div>
+                <input class="inp" formControlName="afterMenses" />
+              </div>
+              <div class="field">
+                <div class="lbl">Staining</div>
+                <input class="inp" formControlName="staining" />
+              </div>
+              <div class="field">
+                <div class="lbl">Clots</div>
+                <input class="inp" formControlName="clots" />
+              </div>
+
+              <div class="field">
+                <div class="lbl">Pads</div>
+                <input class="inp" formControlName="pads" />
+              </div>
+              <div class="field">
+                <div class="lbl">Leucorrhoea</div>
+                <input class="inp" formControlName="leucorrhoea" />
+              </div>
+              <div class="field">
+                <div class="lbl">Pregnancy</div>
+                <input class="inp" formControlName="pregnancy" />
+              </div>
+            </div>
+          </div>
+        </ion-accordion>
+
+        <!-- =========================================================
+           SECTION 5: MALE SEXUAL FUNCTION
+      ========================================================== -->
+        <ion-accordion value="s5">
+          <ion-item slot="header" lines="none" class="sec-header">
+            <ion-label>SECTION 5: MALE SEXUAL FUNCTION</ion-label>
+            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+          </ion-item>
+
+          <div
+            slot="content"
+            class="sec-body"
+            formGroupName="maleSexualFunction"
+          >
+            <div class="grid grid-3">
+              <div class="field">
+                <div class="lbl">Masturbation</div>
+                <input class="inp" formControlName="masturbation" />
+              </div>
+              <div class="field">
+                <div class="lbl">Erection</div>
+                <input class="inp" formControlName="erection" />
+              </div>
+              <div class="field">
+                <div class="lbl">Nocturnal Emission</div>
+                <input class="inp" formControlName="nocturnalEmission" />
+              </div>
+            </div>
+          </div>
+        </ion-accordion>
+
+        <!-- =========================================================
+           SECTION 6: PHYSICAL REACTION
+      ========================================================== -->
+        <ion-accordion value="s6">
+          <ion-item slot="header" lines="none" class="sec-header">
+            <ion-label>SECTION 6: PHYSICAL REACTION</ion-label>
+            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+          </ion-item>
+
+          <div slot="content" class="sec-body" formGroupName="physicalReaction">
+            <div class="rf-table">
+              <div class="rf-row rf-head">
+                <div class="rf-cell rf-left"></div>
+                <div class="rf-cell">FAN</div>
+                <div class="rf-cell">AC</div>
+                <div class="rf-cell">COVERINGS</div>
+                <div class="rf-cell">WOOLENS</div>
+                <div class="rf-cell">BATH</div>
+              </div>
+
+              <div class="rf-row">
+                <div class="rf-cell rf-left">Summer</div>
+                <div class="rf-cell">
+                  <input class="rf-inp" formControlName="summer_Fan" />
+                </div>
+                <div class="rf-cell">
+                  <input class="rf-inp" formControlName="summer_AC" />
+                </div>
+                <div class="rf-cell">
+                  <input class="rf-inp" formControlName="summer_Coverings" />
+                </div>
+                <div class="rf-cell">
+                  <input class="rf-inp" formControlName="summer_Woolens" />
+                </div>
+                <div class="rf-cell">
+                  <input class="rf-inp" formControlName="summer_Bath" />
+                </div>
+              </div>
+
+              <div class="rf-row">
+                <div class="rf-cell rf-left">Monsoon</div>
+                <div class="rf-cell">
+                  <input class="rf-inp" formControlName="monsoon_Fan" />
+                </div>
+                <div class="rf-cell">
+                  <input class="rf-inp" formControlName="monsoon_AC" />
+                </div>
+                <div class="rf-cell">
+                  <input class="rf-inp" formControlName="monsoon_Coverings" />
+                </div>
+                <div class="rf-cell">
+                  <input class="rf-inp" formControlName="monsoon_Woolens" />
+                </div>
+                <div class="rf-cell">
+                  <input class="rf-inp" formControlName="monsoon_Bath" />
+                </div>
+              </div>
+
+              <div class="rf-row">
+                <div class="rf-cell rf-left">Winter</div>
+                <div class="rf-cell">
+                  <input class="rf-inp" formControlName="winter_Fan" />
+                </div>
+                <div class="rf-cell">
+                  <input class="rf-inp" formControlName="winter_AC" />
+                </div>
+                <div class="rf-cell">
+                  <input class="rf-inp" formControlName="winter_Coverings" />
+                </div>
+                <div class="rf-cell">
+                  <input class="rf-inp" formControlName="winter_Woolens" />
+                </div>
+                <div class="rf-cell">
+                  <input class="rf-inp" formControlName="winter_Bath" />
+                </div>
+              </div>
+            </div>
+
+            <div class="grid grid-6 mt12">
+              <div class="field">
+                <div class="lbl">Bus</div>
+                <input class="inp" formControlName="bus" />
+              </div>
+              <div class="field">
+                <div class="lbl">Sun</div>
+                <input class="inp" formControlName="sun" />
+              </div>
+              <div class="field">
+                <div class="lbl">Cold Air</div>
+                <input class="inp" formControlName="coldAir" />
+              </div>
+              <div class="field">
+                <div class="lbl">Draft</div>
+                <input class="inp" formControlName="draft" />
+              </div>
+              <div class="field">
+                <div class="lbl">Wet Getting</div>
+                <input class="inp" formControlName="wetGetting" />
+              </div>
+              <div class="field">
+                <div class="lbl">Thermal State</div>
+                <input class="inp" formControlName="thermalState" />
+              </div>
+            </div>
+          </div>
+        </ion-accordion>
+
+        <!-- =========================================================
+           SECTION 7: PHYSICAL EXAMINATION
+      ========================================================== -->
+        <ion-accordion value="s7">
+          <ion-item slot="header" lines="none" class="sec-header">
+            <ion-label>SECTION 7: PHYSICAL EXAMINATION</ion-label>
+            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+          </ion-item>
+
+          <div
+            slot="content"
+            class="sec-body"
+            formGroupName="physicalExamination"
+          >
+            <!-- VITALS & BMI -->
+            <div class="sec-subtitle">VITALS &amp; BMI</div>
+            <ion-grid class="sec-grid">
+              <ion-row>
+                <ion-col size="12" sizeMd="3">
+                  <div class="field-label">HEIGHT (METERS)</div>
+                  <ion-input
+                    type="number"
+                    inputmode="decimal"
+                    formControlName="heightMeters"
+                  ></ion-input>
+                </ion-col>
+
+                <ion-col size="12" sizeMd="3">
+                  <div class="field-label">WEIGHT (KG)</div>
+                  <ion-input
+                    type="number"
+                    inputmode="decimal"
+                    formControlName="weightKg"
+                  ></ion-input>
+                </ion-col>
+
+                <ion-col size="12" sizeMd="3">
+                  <div class="field-label">BMI</div>
+                  <ion-input
+                    readonly="true"
+                    formControlName="bmi"
+                    placeholder="Auto calculated"
+                  ></ion-input>
+                </ion-col>
+
+                <ion-col size="12" sizeMd="3">
+                  <div class="field-label">BMI CATEGORY</div>
+                  <ion-input
+                    readonly="true"
+                    formControlName="bmiCategory"
+                    placeholder="Auto classified"
+                  ></ion-input>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+
+            <!-- GENERAL EXAMINATION -->
+            <div class="sec-subtitle">GENERAL EXAMINATION</div>
+            <ion-grid class="sec-grid">
+              <ion-row>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">PHYSICAL APPEARANCE</div>
+                  <ion-input formControlName="physicalAppearance"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">DEJECTION</div>
+                  <ion-input formControlName="dejection"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">TEMPERATURE</div>
+                  <ion-input formControlName="temperature"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">PULSE</div>
+                  <ion-input formControlName="pulse"></ion-input
+                ></ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">B.P.</div>
+                  <ion-input formControlName="bp"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">TONGUE</div>
+                  <ion-input formControlName="tongue"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">LIPS</div>
+                  <ion-input formControlName="lips"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">TEETH</div>
+                  <ion-input formControlName="teeth"></ion-input
+                ></ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">GUMS</div>
+                  <ion-input formControlName="gums"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">NAILS</div>
+                  <ion-input formControlName="nails"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">SKIN</div>
+                  <ion-input formControlName="skin"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">GLANDS</div>
+                  <ion-input formControlName="glands"></ion-input
+                ></ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">NOSE</div>
+                  <ion-input formControlName="nose"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">THROAT</div>
+                  <ion-input formControlName="throat"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">TRACHEA</div>
+                  <ion-input formControlName="trachea"></ion-input
+                ></ion-col>
+              </ion-row>
+            </ion-grid>
+
+            <!-- RESPIRATORY SYSTEM (RS) -->
+            <div class="sec-subtitle">RESPIRATORY SYSTEM (RS)</div>
+            <ion-grid class="sec-grid">
+              <ion-row>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">PERCUSSION</div>
+                  <ion-input formControlName="rsPercussion"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">R.R.</div>
+                  <ion-input formControlName="rr"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">AIR ENTRY</div>
+                  <ion-input formControlName="airEntry"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">CHEST EXPANSION</div>
+                  <ion-input formControlName="chestExpansion"></ion-input
+                ></ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">BREATH SOUNDS</div>
+                  <ion-input formControlName="breathSounds"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">SpO₂</div>
+                  <ion-input formControlName="spo2"></ion-input
+                ></ion-col>
+              </ion-row>
+            </ion-grid>
+
+            <!-- PER ABDOMEN (PA) -->
+            <div class="sec-subtitle">PER ABDOMEN (PA)</div>
+            <ion-grid class="sec-grid">
+              <ion-row>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">SIZE / SHAPE / SKIN</div>
+                  <ion-input formControlName="paSizeShapeSkin"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">MOVEMENT</div>
+                  <ion-input formControlName="paMovement"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">PERCUSSION</div>
+                  <ion-input formControlName="paPercussion"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">SOFT/TENDER/RIGID/GUARD</div>
+                  <ion-input
+                    formControlName="paSoftTenderRigidGuard"
+                  ></ion-input
+                ></ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">BOWEL SOUND</div>
+                  <ion-input formControlName="bowelSound"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">LUMP</div>
+                  <ion-input formControlName="lump"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">HST</div>
+                  <ion-input formControlName="hst"></ion-input
+                ></ion-col>
+              </ion-row>
+            </ion-grid>
+
+            <!-- CARDIOVASCULAR SYSTEM (CVS) -->
+            <div class="sec-subtitle">CARDIOVASCULAR SYSTEM (CVS)</div>
+            <ion-grid class="sec-grid">
+              <ion-row>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">APEX IMPULSE</div>
+                  <ion-input formControlName="apexImpulse"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">JVP</div>
+                  <ion-input formControlName="jvp"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">THRILL</div>
+                  <ion-input formControlName="thrill"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">PERCUSSION</div>
+                  <ion-input formControlName="cvsPercussion"></ion-input
+                ></ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col size="12" sizeMd="4"
+                  ><div class="field-label">HEART SOUNDS</div>
+                  <ion-input formControlName="heartSounds"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="4"
+                  ><div class="field-label">MURMUR</div>
+                  <ion-input formControlName="murmur"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="4"
+                  ><div class="field-label">RUB</div>
+                  <ion-input formControlName="rub"></ion-input
+                ></ion-col>
+              </ion-row>
+            </ion-grid>
+
+            <!-- CNS -->
+            <div class="sec-subtitle">CENTRAL NERVOUS SYSTEM (CNS)</div>
+            <ion-grid class="sec-grid">
+              <ion-row>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">HIGHER FUNCTION</div>
+                  <ion-input formControlName="higherFunction"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">MOTOR FUNCTION</div>
+                  <ion-input formControlName="motorFunction"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">SENSORY FUNCTION</div>
+                  <ion-input formControlName="sensoryFunction"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">CRANIAL NERVES</div>
+                  <ion-input formControlName="cranialNerves"></ion-input
+                ></ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">REFLEXES</div>
+                  <ion-input formControlName="reflexes"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">COORDINATION</div>
+                  <ion-input formControlName="coordination"></ion-input
+                ></ion-col>
+              </ion-row>
+            </ion-grid>
+
+            <!-- MSK -->
+            <div class="sec-subtitle">MUSCULOSKELETAL SYSTEM (MSK)</div>
+            <ion-grid class="sec-grid">
+              <ion-row>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">INSPECTION</div>
+                  <ion-input formControlName="mskInspection"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">ROM</div>
+                  <ion-input formControlName="rom"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">SWELLING</div>
+                  <ion-input formControlName="swelling"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">WARMTH</div>
+                  <ion-input formControlName="warmth"></ion-input
+                ></ion-col>
+              </ion-row>
+
+              <ion-row>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">REDNESS</div>
+                  <ion-input formControlName="redness"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">DEFORMITIES</div>
+                  <ion-input formControlName="deformities"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">CREPITATION</div>
+                  <ion-input formControlName="crepitation"></ion-input
+                ></ion-col>
+                <ion-col size="12" sizeMd="3"
+                  ><div class="field-label">MUSCLE STRENGTH</div>
+                  <ion-input formControlName="muscleStrength"></ion-input
+                ></ion-col>
+              </ion-row>
+            </ion-grid>
+          </div>
+        </ion-accordion>
+
+        <!-- =========================================================
+           SECTION 8: MENTAL STATE EVALUATION (CROSS + REMARKS)
+      ========================================================== -->
+        <ion-accordion value="s8">
+          <ion-item slot="header" lines="none" class="sec-header">
+            <ion-label>SECTION 8: MENTAL STATE EVALUATION</ion-label>
+            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+          </ion-item>
+
+          <div slot="content" class="sec-body" formGroupName="mentalState">
+            <div class="evaluation-container">
+              <div class="cross-group">
+                <div class="pt-label">Pt</div>
+                <ion-button
+                  type="button"
+                  class="btn-top"
+                  (click)="toggleStatus('rel_Sister_Status')"
+                  [class]="getBtnClass('rel_Sister_Status')"
+                  >S</ion-button
+                >
+                <ion-button
+                  type="button"
+                  class="btn-left"
+                  (click)="toggleStatus('rel_Father_Status')"
+                  [class]="getBtnClass('rel_Father_Status')"
+                  >F</ion-button
+                >
+                <ion-button
+                  type="button"
+                  class="btn-right"
+                  (click)="toggleStatus('rel_Mother_Status')"
+                  [class]="getBtnClass('rel_Mother_Status')"
+                  >M</ion-button
+                >
+                <ion-button
+                  type="button"
+                  class="btn-bottom"
+                  (click)="toggleStatus('rel_Brother_Status')"
+                  [class]="getBtnClass('rel_Brother_Status')"
+                  >B</ion-button
+                >
+              </div>
+
+              <div class="cross-group">
+                <div class="pt-label">Pt</div>
+                <ion-button
+                  type="button"
+                  class="btn-top"
+                  (click)="toggleStatus('rel_Son_Status')"
+                  [class]="getBtnClass('rel_Son_Status')"
+                  >Son</ion-button
+                >
+                <ion-button
+                  type="button"
+                  class="btn-left"
+                  (click)="toggleStatus('rel_Husband_Status')"
+                  [class]="getBtnClass('rel_Husband_Status')"
+                  >Husband</ion-button
+                >
+                <ion-button
+                  type="button"
+                  class="btn-right"
+                  (click)="toggleStatus('rel_Wife_Status')"
+                  [class]="getBtnClass('rel_Wife_Status')"
+                  >Wife</ion-button
+                >
+                <ion-button
+                  type="button"
+                  class="btn-bottom"
+                  (click)="toggleStatus('rel_Daughter_Status')"
+                  [class]="getBtnClass('rel_Daughter_Status')"
+                  >Daughter</ion-button
+                >
+              </div>
+
+              <div class="cross-group">
+                <div class="pt-label">Pt</div>
+                <ion-button
+                  type="button"
+                  class="btn-top"
+                  (click)="toggleStatus('rel_PaternalGrandmother_Status')"
+                  [class]="getBtnClass('rel_PaternalGrandmother_Status')"
+                  >PGM</ion-button
+                >
+                <ion-button
+                  type="button"
+                  class="btn-left"
+                  (click)="toggleStatus('rel_MaternalGrandfather_Status')"
+                  [class]="getBtnClass('rel_MaternalGrandfather_Status')"
+                  >MGF</ion-button
+                >
+                <ion-button
+                  type="button"
+                  class="btn-right"
+                  (click)="toggleStatus('rel_MaternalGrandmother_Status')"
+                  [class]="getBtnClass('rel_MaternalGrandmother_Status')"
+                  >MGM</ion-button
+                >
+                <ion-button
+                  type="button"
+                  class="btn-bottom"
+                  (click)="toggleStatus('rel_PaternalGrandfather_Status')"
+                  [class]="getBtnClass('rel_PaternalGrandfather_Status')"
+                  >PGF</ion-button
+                >
+              </div>
+
+              <div class="cross-group">
+                <div class="pt-label">Pt</div>
+                <ion-button
+                  type="button"
+                  class="btn-top"
+                  (click)="toggleStatus('rel_SisterInLaw_Status')"
+                  [class]="getBtnClass('rel_SisterInLaw_Status')"
+                  >SIL</ion-button
+                >
+                <ion-button
+                  type="button"
+                  class="btn-left"
+                  (click)="toggleStatus('rel_FatherInLaw_Status')"
+                  [class]="getBtnClass('rel_FatherInLaw_Status')"
+                  >FIL</ion-button
+                >
+                <ion-button
+                  type="button"
+                  class="btn-right"
+                  (click)="toggleStatus('rel_MotherInLaw_Status')"
+                  [class]="getBtnClass('rel_MotherInLaw_Status')"
+                  >MIL</ion-button
+                >
+                <ion-button
+                  type="button"
+                  class="btn-bottom"
+                  (click)="toggleStatus('rel_BrotherInLaw_Status')"
+                  [class]="getBtnClass('rel_BrotherInLaw_Status')"
+                  >BIL</ion-button
+                >
+              </div>
+            </div>
+
+            <hr class="divider" />
+
+            <div class="grid grid-2">
+              <div class="field full">
+                <div class="lbl">Anger / Sadness / Somatization Remark</div>
+                <ion-textarea
+                  class="inp"
+                  rows="2"
+                  autoGrow="true"
+                  formControlName="angerSadnessTriangles_Remark"
+                  placeholder="Enter notes about the triangle state..."
+                ></ion-textarea>
+              </div>
+
+              <div class="field full">
+                <div class="lbl">General Mental State Evaluation</div>
+                <ion-textarea
+                  class="inp"
+                  rows="2"
+                  autoGrow="true"
+                  formControlName="mentalStateEvaluation"
+                  placeholder="Write evaluation..."
+                ></ion-textarea>
+              </div>
+            </div>
+          </div>
+        </ion-accordion>
+
+        <!-- =========================================================
+           SECTION 8B: EMOTIONAL STATE (IMAGE CARDS)
+      ========================================================== -->
+        <ion-accordion value="s8_emotional_grid">
+          <ion-item slot="header" lines="none" class="sec-header">
+            <ion-label>SECTION 8: EMOTIONAL STATE EVALUATION</ion-label>
+            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+          </ion-item>
+
+          <div slot="content" class="sec-body" formGroupName="mentalState">
+            <ion-grid class="emo-grid">
+              <ion-row>
+                <ion-col size="12" sizeMd="6">
+                  <div class="emo-card">
+                    <div class="emo-title">Anger / Sadness Causes</div>
+                    <div class="emo-img-wrap">
+                      <img
+                        src="../../../../assets/1.png"
+                        alt="Anger Sadness Diagram"
+                        class="emo-img"
+                      />
+                    </div>
+                    <div class="mt10">
+                      <div class="lbl">Remark</div>
+                      <ion-textarea
+                        class="inp"
+                        rows="2"
+                        autoGrow="true"
+                        placeholder="Write remark..."
+                        formControlName="remarkAngerSadness"
+                      ></ion-textarea>
+                    </div>
+                  </div>
+                </ion-col>
+
+                <ion-col size="12" sizeMd="6">
+                  <div class="emo-card">
+                    <div class="emo-title">Pt → Attachments</div>
+                    <div class="emo-img-wrap">
+                      <img
+                        src="../../../../assets/2.png"
+                        alt="Attachments Diagram"
+                        class="emo-img"
+                      />
+                    </div>
+                    <div class="mt10">
+                      <div class="lbl">Remark</div>
+                      <ion-textarea
+                        class="inp"
+                        rows="2"
+                        autoGrow="true"
+                        placeholder="Write remark..."
+                        formControlName="remarkAttachments"
+                      ></ion-textarea>
+                    </div>
+                  </div>
+                </ion-col>
+
+                <ion-col size="12" sizeMd="6">
+                  <div class="emo-card">
+                    <div class="emo-title">Love ↔ Hate</div>
+                    <div class="emo-img-wrap">
+                      <img
+                        src="../../../../assets/3.png"
+                        alt="Love Hate Diagram"
+                        class="emo-img"
+                      />
+                    </div>
+                    <div class="mt10">
+                      <div class="lbl">Remark</div>
+                      <ion-textarea
+                        class="inp"
+                        rows="2"
+                        autoGrow="true"
+                        placeholder="Write remark..."
+                        formControlName="remarkLoveHate"
+                      ></ion-textarea>
+                    </div>
+                  </div>
+                </ion-col>
+
+                <ion-col size="12" sizeMd="6">
+                  <div class="emo-card">
+                    <div class="emo-title">Fear / Fright / Anxiety</div>
+                    <div class="emo-img-wrap">
+                      <img
+                        src="../../../../assets/4.png"
+                        alt="Fear Anxiety Diagram"
+                        class="emo-img"
+                      />
+                    </div>
+                    <div class="mt10">
+                      <div class="lbl">Remark</div>
+                      <ion-textarea
+                        class="inp"
+                        rows="2"
+                        autoGrow="true"
+                        placeholder="Write remark..."
+                        formControlName="remarkFearAnxiety"
+                      ></ion-textarea>
+                    </div>
+                  </div>
+                </ion-col>
+              </ion-row>
+            </ion-grid>
+          </div>
+        </ion-accordion>
+
+        <!-- =========================================================
+           SECTION 9: BEHAVIORAL EVALUATION
+      ========================================================== -->
+        <ion-accordion value="s9">
+          <ion-item slot="header" lines="none" class="sec-header">
+            <ion-label>SECTION 9: BEHAVIORAL EVALUATION</ion-label>
+            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+          </ion-item>
+
+          <div
+            slot="content"
+            class="sec-body"
+            formGroupName="behavioralEvaluation"
+          >
+            <div class="grid grid-4">
+              <div class="field">
+                <div class="lbl">Childhood Scholastic</div>
+                <input class="inp" formControlName="childhood_Scholastic" />
+              </div>
+              <div class="field">
+                <div class="lbl">Home Environment</div>
+                <input
+                  class="inp"
+                  formControlName="childhood_HomeEnvironment"
+                />
+              </div>
+              <div class="field">
+                <div class="lbl">Finance</div>
+                <input class="inp" formControlName="childhood_Finance" />
+              </div>
+              <div class="field">
+                <div class="lbl">Difficulties</div>
+                <input class="inp" formControlName="childhood_Difficulties" />
+              </div>
+
+              <div class="field">
+                <div class="lbl">Speech</div>
+                <input class="inp" formControlName="action_Speech" />
+              </div>
+              <div class="field">
+                <div class="lbl">Behaviour</div>
+                <input class="inp" formControlName="action_Behaviour" />
+              </div>
+              <div class="field full">
+                <div class="lbl">Action Description</div>
+                <input class="inp" formControlName="action_Description" />
+              </div>
+
+              <div class="field">
+                <div class="lbl">Block Emotional</div>
+                <ion-toggle formControlName="block_Emotional"></ion-toggle>
+              </div>
+              <div class="field">
+                <div class="lbl">Block Motivational</div>
+                <ion-toggle formControlName="block_Motivational"></ion-toggle>
+              </div>
+              <div class="field">
+                <div class="lbl">Block Intellectual</div>
+                <ion-toggle formControlName="block_Intellectual"></ion-toggle>
+              </div>
+              <div class="field">
+                <div class="lbl">Block IPR</div>
+                <ion-toggle formControlName="block_IPR"></ion-toggle>
+              </div>
+
+              <div class="field">
+                <div class="lbl">Block Social</div>
+                <ion-toggle formControlName="block_Social"></ion-toggle>
+              </div>
+              <div class="field">
+                <div class="lbl">Block Domestic</div>
+                <ion-toggle formControlName="block_Domestic"></ion-toggle>
+              </div>
+              <div class="field">
+                <div class="lbl">Block Work</div>
+                <ion-toggle formControlName="block_Work"></ion-toggle>
+              </div>
+
+              <div class="field full">
+                <div class="lbl">Block Notes</div>
+                <input class="inp" formControlName="block_Notes" />
+              </div>
+
+              <div class="field">
+                <div class="lbl">Sensory Noise</div>
+                <input class="inp" formControlName="sensory_Noise" />
+              </div>
+              <div class="field">
+                <div class="lbl">Sensory Odour</div>
+                <input class="inp" formControlName="sensory_Odour" />
+              </div>
+              <div class="field">
+                <div class="lbl">Sensory Colour</div>
+                <input class="inp" formControlName="sensory_Colour" />
+              </div>
+              <div class="field">
+                <div class="lbl">Sensory Light</div>
+                <input class="inp" formControlName="sensory_Light" />
+              </div>
+
+              <div class="field">
+                <div class="lbl">Miasmatic Fundamental</div>
+                <input class="inp" formControlName="miasmatic_Fundamental" />
+              </div>
+              <div class="field">
+                <div class="lbl">Miasmatic Dominant</div>
+                <input class="inp" formControlName="miasmatic_Dominant" />
+              </div>
+
+              <div class="field full">
+                <div class="lbl">Rubrics</div>
+                <input class="inp" formControlName="rubrics" />
+              </div>
+
+              <div class="field">
+                <div class="lbl">Provisional Diagnosis</div>
+                <input class="inp" formControlName="provisionalDiagnosis" />
+              </div>
+              <div class="field">
+                <div class="lbl">Final Diagnosis</div>
+                <input class="inp" formControlName="finalDiagnosis" />
+              </div>
+              <div class="field">
+                <div class="lbl">First Prescription</div>
+                <input class="inp" formControlName="firstPrescription" />
+              </div>
+              <div class="field">
+                <div class="lbl">General Instructions</div>
+                <input class="inp" formControlName="generalInstructions" />
+              </div>
+            </div>
+          </div>
+        </ion-accordion>
+
+        <!-- =========================================================
+           SECTION 10: INTELLECTUAL STATE
+      ========================================================== -->
+        <ion-accordion value="s10">
+          <ion-item slot="header" lines="none" class="sec-header">
+            <ion-label>SECTION 10: INTELLECTUAL STATE</ion-label>
+            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+          </ion-item>
+
+          <div
+            slot="content"
+            class="sec-body"
+            formGroupName="intellectualState"
+          >
+            <div class="intellectual-container">
+              <div class="intellectual-title">INTELLECTUAL STATE</div>
+
+              <div class="intellectual-range-box">
+                <div class="range-labels">
+                  <span class="left">Capacity</span>
+                  <span class="right">Performance</span>
+                </div>
+
+                <ion-range
+                  min="0"
+                  max="100"
+                  step="1"
+                  snaps="true"
+                  ticks="true"
+                  formControlName="capacityPerformanceRatio"
+                  class="intellectual-range"
+                ></ion-range>
+
+                <div class="range-scale">
+                  <span>0</span><span>25</span><span>50</span><span>75</span
+                  ><span>100</span>
+                </div>
+              </div>
+
+              <div class="intellectual-attributes-grid">
+                <div class="attr-field">
+                  <span class="attr-label">Perception</span>
+                  <input
+                    type="text"
+                    class="attr-input"
+                    formControlName="perception"
+                    placeholder="remark"
+                  />
+                </div>
+
+                <div class="attr-field">
+                  <span class="attr-label">Memory</span>
+                  <input
+                    type="text"
+                    class="attr-input"
+                    formControlName="memory"
+                    placeholder="remark"
+                  />
+                </div>
+
+                <div class="attr-field">
+                  <span class="attr-label">Thinking</span>
+                  <input
+                    type="text"
+                    class="attr-input"
+                    formControlName="thinking"
+                    placeholder="remark"
+                  />
+                </div>
+
+                <div class="attr-field">
+                  <span class="attr-label">Decision</span>
+                  <input
+                    type="text"
+                    class="attr-input"
+                    formControlName="decision"
+                    placeholder="remark"
+                  />
+                </div>
+
+                <div class="attr-field">
+                  <span class="attr-label">Confidence</span>
+                  <input
+                    type="text"
+                    class="attr-input"
+                    formControlName="confidence"
+                    placeholder="remark"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </ion-accordion>
+      </ion-accordion-group>
+
+      <!-- =========================
+         BOTTOM ACTIONS
+    ========================= -->
+      <div class="bottom-actions">
+        <ion-button
+          fill="outline"
+          size="small"
+          type="button"
+          (click)="goPrevIdentity()"
+        >
+          Previous: Identity
+        </ion-button>
+
+        <div class="right-actions">
+          <ion-button size="small" type="button" (click)="goNextFollowUp()">
+            Next: Follow Up
+          </ion-button>
+
+          <!-- ✅ SAVE / UPDATE (DB mode) -->
+          <ion-button
+            size="small"
+            color="success"
+            type="button"
+            (click)="saveRecord()"
+            [disabled]="loading"
+          >
+            {{ loading ? 'Saving...' : (medicalExists ? 'Update Record' : 'Save
+            Record') }}
+          </ion-button>
+        </div>
       </div>
     </form>
   </div>
 
- 
-<!-- ==========================
-     MEDICAL TAB
-=========================== -->
-
-<div *ngIf="activeTab === 'medical'" class="me-tab">
-
-  <!-- =========================
-       TOP BAR
-  ========================= -->
-  <div class="me-top">
-    <div class="me-top-left">
-      <div class="h1">Medical Examination</div>
-      <div class="sub">Document comprehensive medical history and clinical findings.</div>
-    </div>
-
-    <div class="me-top-right">
-      <ion-button
-        size="small"
-        fill="clear"
-        type="button"
-        (click)="autofill()"
-        [disabled]="!patientId"
-      >
-        AutoFill
-      </ion-button>
-
-      <div class="saving-pill" *ngIf="loading">Saving…</div>
-      <div class="saved-pill" *ngIf="!loading && !medicalForm?.dirty">Saved</div>
-    </div>
-  </div>
-
-  <!-- =========================
-       FORM
-  ========================= -->
-  <form class="me-card" [formGroup]="medicalForm" [class.loading]="loading">
-
-    <!-- =========================
-         ACCORDION GROUP
-    ========================= -->
-    <ion-accordion-group
-      [value]="openSection"
-      (ionChange)="openSection = $event.detail.value"
-      class="me-acc"
-    >
-
-      <!-- =========================================================
-           SECTION 1: COMPLAINTS AND HISTORY
-      ========================================================== -->
-      <ion-accordion value="s1">
-        <ion-item slot="header" lines="none" class="sec-header">
-          <ion-label>SECTION 1: COMPLAINTS AND HISTORY</ion-label>
-          <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
-        </ion-item>
-
-        <div slot="content" class="sec-body">
-          <div formGroupName="complaints">
-
-            <!-- CHIEF -->
-            <div class="block">
-              <div class="block-top">
-                <div class="block-title">CHIEF COMPLAINTS</div>
-              </div>
-
-              <div class="grid-head grid-4">
-                <div class="col">L</div>
-                <div class="col">S</div>
-                <div class="col">M</div>
-                <div class="col">C</div>
-              </div>
-
-              <div class="grid-row grid-4" formGroupName="chief">
-                <textarea class="cell ta" placeholder="Location..." formControlName="location"></textarea>
-                <textarea class="cell ta" placeholder="Sensation/Severity..." formControlName="sensation"></textarea>
-                <textarea class="cell ta" placeholder="Modality..." formControlName="modality"></textarea>
-                <textarea class="cell ta" placeholder="Concomitant..." formControlName="concomitant"></textarea>
-              </div>
-            </div>
-
-            <!-- ASSOCIATED -->
-            <div class="block">
-              <div class="block-top">
-                <div class="block-title">ASSOCIATED COMPLAINTS</div>
-              </div>
-
-              <div class="grid-head grid-4">
-                <div class="col">L</div>
-                <div class="col">S</div>
-                <div class="col">M</div>
-                <div class="col">C</div>
-              </div>
-
-              <div class="grid-row grid-4" formGroupName="associated">
-                <textarea class="cell ta" placeholder="Location..." formControlName="location"></textarea>
-                <textarea class="cell ta" placeholder="Sensation/Severity..." formControlName="sensation"></textarea>
-                <textarea class="cell ta" placeholder="Modality..." formControlName="modality"></textarea>
-                <textarea class="cell ta" placeholder="Concomitant..." formControlName="concomitant"></textarea>
-              </div>
-            </div>
-
-            <!-- PAST -->
-            <div class="block">
-              <div class="block-top">
-                <div class="block-title">PAST HISTORY</div>
-              </div>
-
-              <div class="grid-head grid-4">
-                <div class="col">L</div>
-                <div class="col">S</div>
-                <div class="col">M</div>
-                <div class="col">C</div>
-              </div>
-
-              <div class="grid-row grid-4" formGroupName="past">
-                <textarea class="cell ta" placeholder="Location..." formControlName="location"></textarea>
-                <textarea class="cell ta" placeholder="Sensation/Severity..." formControlName="sensation"></textarea>
-                <textarea class="cell ta" placeholder="Modality..." formControlName="modality"></textarea>
-                <textarea class="cell ta" placeholder="Concomitant..." formControlName="concomitant"></textarea>
-              </div>
-
-              <div class="hint">L: Location, S: Sensation, M: Modality, C: Concomitant</div>
-            </div>
-
-          </div>
-        </div>
-      </ion-accordion>
-
-      <!-- =========================================================
-           SECTION 2: FAMILY HISTORY
-      ========================================================== -->
-      <ion-accordion value="s2">
-        <ion-item slot="header" lines="none" class="sec-header">
-          <ion-label>SECTION 2: FAMILY HISTORY</ion-label>
-          <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
-        </ion-item>
-
-        <div slot="content" class="sec-body" formGroupName="familyHistory">
-          <div class="grid grid-4">
-            <div class="field"><div class="lbl">Father</div><input class="inp" formControlName="father" /></div>
-            <div class="field"><div class="lbl">Mother</div><input class="inp" formControlName="mother" /></div>
-            <div class="field"><div class="lbl">Brothers</div><input class="inp" formControlName="brothers" /></div>
-            <div class="field"><div class="lbl">Sisters</div><input class="inp" formControlName="sisters" /></div>
-
-            <div class="field"><div class="lbl">Paternal Uncle</div><input class="inp" formControlName="paternalUncle" /></div>
-            <div class="field"><div class="lbl">Maternal Uncle</div><input class="inp" formControlName="maternalUncle" /></div>
-            <div class="field"><div class="lbl">Paternal GP</div><input class="inp" formControlName="paternalGrandParents" /></div>
-            <div class="field"><div class="lbl">Maternal GP</div><input class="inp" formControlName="maternalGrandParents" /></div>
-          </div>
-
-          <div class="field full mt12">
-            <div class="lbl">Remarks</div>
-            <input class="inp" formControlName="remarks" />
-          </div>
-        </div>
-      </ion-accordion>
-
-      <!-- =========================================================
-           SECTION 3: PERSONAL STATUS
-      ========================================================== -->
-      <ion-accordion value="s3">
-        <ion-item slot="header" lines="none" class="sec-header">
-          <ion-label>SECTION 3: PERSONAL STATUS</ion-label>
-          <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
-        </ion-item>
-
-        <div slot="content" class="sec-body" formGroupName="personalStatus">
-          <div class="grid grid-5">
-            <div class="field"><div class="lbl">Skin</div><input class="inp" formControlName="skin" /></div>
-            <div class="field"><div class="lbl">Wound Healing</div><input class="inp" formControlName="woundHealing" /></div>
-            <div class="field"><div class="lbl">Hairs</div><input class="inp" formControlName="hairs" /></div>
-            <div class="field"><div class="lbl">Nails</div><input class="inp" formControlName="nails" /></div>
-            <div class="field"><div class="lbl">Perspiration</div><input class="inp" formControlName="perspiration" /></div>
-
-            <div class="field"><div class="lbl">Thirst</div><input class="inp" formControlName="thirst" /></div>
-            <div class="field"><div class="lbl">Appetite</div><input class="inp" formControlName="appetite" /></div>
-            <div class="field"><div class="lbl">Cravings</div><input class="inp" formControlName="cravings" /></div>
-            <div class="field"><div class="lbl">Aversions</div><input class="inp" formControlName="aversions" /></div>
-            <div class="field"><div class="lbl">Addictions</div><input class="inp" formControlName="addictions" /></div>
-
-            <div class="field"><div class="lbl">Food</div><input class="inp" formControlName="food" /></div>
-            <div class="field"><div class="lbl">Fasting</div><input class="inp" formControlName="fasting" /></div>
-            <div class="field"><div class="lbl">Stool</div><input class="inp" formControlName="stool" /></div>
-            <div class="field"><div class="lbl">Urine</div><input class="inp" formControlName="urine" /></div>
-            <div class="field"><div class="lbl">Sleep</div><input class="inp" formControlName="sleep" /></div>
-
-            <div class="field"><div class="lbl">Dreams</div><input class="inp" formControlName="dreams" /></div>
-          </div>
-        </div>
-      </ion-accordion>
-
-      <!-- =========================================================
-           SECTION 4: MENSTRUAL HISTORY
-      ========================================================== -->
-      <ion-accordion value="s4">
-        <ion-item slot="header" lines="none" class="sec-header">
-          <ion-label>SECTION 4: MENSTRUAL HISTORY</ion-label>
-          <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
-        </ion-item>
-
-        <div slot="content" class="sec-body" formGroupName="menstrualHistory">
-          <div class="grid grid-3">
-            <div class="field"><div class="lbl">Menses</div><input class="inp" formControlName="menses" /></div>
-            <div class="field"><div class="lbl">Before Menses</div><input class="inp" formControlName="beforeMenses" /></div>
-            <div class="field"><div class="lbl">Between Menses</div><input class="inp" formControlName="betweenMenses" /></div>
-
-            <div class="field"><div class="lbl">After Menses</div><input class="inp" formControlName="afterMenses" /></div>
-            <div class="field"><div class="lbl">Staining</div><input class="inp" formControlName="staining" /></div>
-            <div class="field"><div class="lbl">Clots</div><input class="inp" formControlName="clots" /></div>
-
-            <div class="field"><div class="lbl">Pads</div><input class="inp" formControlName="pads" /></div>
-            <div class="field"><div class="lbl">Leucorrhoea</div><input class="inp" formControlName="leucorrhoea" /></div>
-            <div class="field"><div class="lbl">Pregnancy</div><input class="inp" formControlName="pregnancy" /></div>
-          </div>
-        </div>
-      </ion-accordion>
-
-      <!-- =========================================================
-           SECTION 5: MALE SEXUAL FUNCTION
-      ========================================================== -->
-      <ion-accordion value="s5">
-        <ion-item slot="header" lines="none" class="sec-header">
-          <ion-label>SECTION 5: MALE SEXUAL FUNCTION</ion-label>
-          <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
-        </ion-item>
-
-        <div slot="content" class="sec-body" formGroupName="maleSexualFunction">
-          <div class="grid grid-3">
-            <div class="field"><div class="lbl">Masturbation</div><input class="inp" formControlName="masturbation" /></div>
-            <div class="field"><div class="lbl">Erection</div><input class="inp" formControlName="erection" /></div>
-            <div class="field"><div class="lbl">Nocturnal Emission</div><input class="inp" formControlName="nocturnalEmission" /></div>
-          </div>
-        </div>
-      </ion-accordion>
-
-      <!-- =========================================================
-           SECTION 6: PHYSICAL REACTION
-      ========================================================== -->
-      <ion-accordion value="s6">
-        <ion-item slot="header" lines="none" class="sec-header">
-          <ion-label>SECTION 6: PHYSICAL REACTION</ion-label>
-          <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
-        </ion-item>
-
-        <div slot="content" class="sec-body" formGroupName="physicalReaction">
-
-          <div class="rf-table">
-            <div class="rf-row rf-head">
-              <div class="rf-cell rf-left"></div>
-              <div class="rf-cell">FAN</div>
-              <div class="rf-cell">AC</div>
-              <div class="rf-cell">COVERINGS</div>
-              <div class="rf-cell">WOOLENS</div>
-              <div class="rf-cell">BATH</div>
-            </div>
-
-            <div class="rf-row">
-              <div class="rf-cell rf-left">Summer</div>
-              <div class="rf-cell"><input class="rf-inp" formControlName="summer_Fan" /></div>
-              <div class="rf-cell"><input class="rf-inp" formControlName="summer_AC" /></div>
-              <div class="rf-cell"><input class="rf-inp" formControlName="summer_Coverings" /></div>
-              <div class="rf-cell"><input class="rf-inp" formControlName="summer_Woolens" /></div>
-              <div class="rf-cell"><input class="rf-inp" formControlName="summer_Bath" /></div>
-            </div>
-
-            <div class="rf-row">
-              <div class="rf-cell rf-left">Monsoon</div>
-              <div class="rf-cell"><input class="rf-inp" formControlName="monsoon_Fan" /></div>
-              <div class="rf-cell"><input class="rf-inp" formControlName="monsoon_AC" /></div>
-              <div class="rf-cell"><input class="rf-inp" formControlName="monsoon_Coverings" /></div>
-              <div class="rf-cell"><input class="rf-inp" formControlName="monsoon_Woolens" /></div>
-              <div class="rf-cell"><input class="rf-inp" formControlName="monsoon_Bath" /></div>
-            </div>
-
-            <div class="rf-row">
-              <div class="rf-cell rf-left">Winter</div>
-              <div class="rf-cell"><input class="rf-inp" formControlName="winter_Fan" /></div>
-              <div class="rf-cell"><input class="rf-inp" formControlName="winter_AC" /></div>
-              <div class="rf-cell"><input class="rf-inp" formControlName="winter_Coverings" /></div>
-              <div class="rf-cell"><input class="rf-inp" formControlName="winter_Woolens" /></div>
-              <div class="rf-cell"><input class="rf-inp" formControlName="winter_Bath" /></div>
-            </div>
-          </div>
-
-          <div class="grid grid-6 mt12">
-            <div class="field"><div class="lbl">Bus</div><input class="inp" formControlName="bus" /></div>
-            <div class="field"><div class="lbl">Sun</div><input class="inp" formControlName="sun" /></div>
-            <div class="field"><div class="lbl">Cold Air</div><input class="inp" formControlName="coldAir" /></div>
-            <div class="field"><div class="lbl">Draft</div><input class="inp" formControlName="draft" /></div>
-            <div class="field"><div class="lbl">Wet Getting</div><input class="inp" formControlName="wetGetting" /></div>
-            <div class="field"><div class="lbl">Thermal State</div><input class="inp" formControlName="thermalState" /></div>
-          </div>
-
-        </div>
-      </ion-accordion>
-
-      <!-- =========================================================
-           SECTION 7: PHYSICAL EXAMINATION
-      ========================================================== -->
-      <ion-accordion value="s7">
-        <ion-item slot="header" lines="none" class="sec-header">
-          <ion-label>SECTION 7: PHYSICAL EXAMINATION</ion-label>
-          <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
-        </ion-item>
-
-        <div slot="content" class="sec-body" formGroupName="physicalExamination">
-
-          <!-- VITALS & BMI -->
-          <div class="sec-subtitle">VITALS &amp; BMI</div>
-          <ion-grid class="sec-grid">
-            <ion-row>
-              <ion-col size="12" sizeMd="3">
-                <div class="field-label">HEIGHT (METERS)</div>
-                <ion-input type="number" inputmode="decimal" formControlName="heightMeters"></ion-input>
-              </ion-col>
-
-              <ion-col size="12" sizeMd="3">
-                <div class="field-label">WEIGHT (KG)</div>
-                <ion-input type="number" inputmode="decimal" formControlName="weightKg"></ion-input>
-              </ion-col>
-
-              <ion-col size="12" sizeMd="3">
-                <div class="field-label">BMI</div>
-                <ion-input readonly="true" formControlName="bmi" placeholder="Auto calculated"></ion-input>
-              </ion-col>
-
-              <ion-col size="12" sizeMd="3">
-                <div class="field-label">BMI CATEGORY</div>
-                <ion-input readonly="true" formControlName="bmiCategory" placeholder="Auto classified"></ion-input>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-
-          <!-- GENERAL EXAMINATION -->
-          <div class="sec-subtitle">GENERAL EXAMINATION</div>
-          <ion-grid class="sec-grid">
-            <ion-row>
-              <ion-col size="12" sizeMd="3"><div class="field-label">PHYSICAL APPEARANCE</div><ion-input formControlName="physicalAppearance"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">DEJECTION</div><ion-input formControlName="dejection"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">TEMPERATURE</div><ion-input formControlName="temperature"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">PULSE</div><ion-input formControlName="pulse"></ion-input></ion-col>
-            </ion-row>
-
-            <ion-row>
-              <ion-col size="12" sizeMd="3"><div class="field-label">B.P.</div><ion-input formControlName="bp"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">TONGUE</div><ion-input formControlName="tongue"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">LIPS</div><ion-input formControlName="lips"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">TEETH</div><ion-input formControlName="teeth"></ion-input></ion-col>
-            </ion-row>
-
-            <ion-row>
-              <ion-col size="12" sizeMd="3"><div class="field-label">GUMS</div><ion-input formControlName="gums"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">NAILS</div><ion-input formControlName="nails"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">SKIN</div><ion-input formControlName="skin"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">GLANDS</div><ion-input formControlName="glands"></ion-input></ion-col>
-            </ion-row>
-
-            <ion-row>
-              <ion-col size="12" sizeMd="3"><div class="field-label">NOSE</div><ion-input formControlName="nose"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">THROAT</div><ion-input formControlName="throat"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">TRACHEA</div><ion-input formControlName="trachea"></ion-input></ion-col>
-            </ion-row>
-          </ion-grid>
-
-          <!-- RESPIRATORY SYSTEM (RS) -->
-          <div class="sec-subtitle">RESPIRATORY SYSTEM (RS)</div>
-          <ion-grid class="sec-grid">
-            <ion-row>
-              <ion-col size="12" sizeMd="3"><div class="field-label">PERCUSSION</div><ion-input formControlName="rsPercussion"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">R.R.</div><ion-input formControlName="rr"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">AIR ENTRY</div><ion-input formControlName="airEntry"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">CHEST EXPANSION</div><ion-input formControlName="chestExpansion"></ion-input></ion-col>
-            </ion-row>
-
-            <ion-row>
-              <ion-col size="12" sizeMd="3"><div class="field-label">BREATH SOUNDS</div><ion-input formControlName="breathSounds"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">SpO₂</div><ion-input formControlName="spo2"></ion-input></ion-col>
-            </ion-row>
-          </ion-grid>
-
-          <!-- PER ABDOMEN (PA) -->
-          <div class="sec-subtitle">PER ABDOMEN (PA)</div>
-          <ion-grid class="sec-grid">
-            <ion-row>
-              <ion-col size="12" sizeMd="3"><div class="field-label">SIZE / SHAPE / SKIN</div><ion-input formControlName="paSizeShapeSkin"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">MOVEMENT</div><ion-input formControlName="paMovement"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">PERCUSSION</div><ion-input formControlName="paPercussion"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">SOFT/TENDER/RIGID/GUARD</div><ion-input formControlName="paSoftTenderRigidGuard"></ion-input></ion-col>
-            </ion-row>
-
-            <ion-row>
-              <ion-col size="12" sizeMd="3"><div class="field-label">BOWEL SOUND</div><ion-input formControlName="bowelSound"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">LUMP</div><ion-input formControlName="lump"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">HST</div><ion-input formControlName="hst"></ion-input></ion-col>
-            </ion-row>
-          </ion-grid>
-
-          <!-- CARDIOVASCULAR SYSTEM (CVS) -->
-          <div class="sec-subtitle">CARDIOVASCULAR SYSTEM (CVS)</div>
-          <ion-grid class="sec-grid">
-            <ion-row>
-              <ion-col size="12" sizeMd="3"><div class="field-label">APEX IMPULSE</div><ion-input formControlName="apexImpulse"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">JVP</div><ion-input formControlName="jvp"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">THRILL</div><ion-input formControlName="thrill"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">PERCUSSION</div><ion-input formControlName="cvsPercussion"></ion-input></ion-col>
-            </ion-row>
-
-            <ion-row>
-              <ion-col size="12" sizeMd="4"><div class="field-label">HEART SOUNDS</div><ion-input formControlName="heartSounds"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="4"><div class="field-label">MURMUR</div><ion-input formControlName="murmur"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="4"><div class="field-label">RUB</div><ion-input formControlName="rub"></ion-input></ion-col>
-            </ion-row>
-          </ion-grid>
-
-          <!-- CNS -->
-          <div class="sec-subtitle">CENTRAL NERVOUS SYSTEM (CNS)</div>
-          <ion-grid class="sec-grid">
-            <ion-row>
-              <ion-col size="12" sizeMd="3"><div class="field-label">HIGHER FUNCTION</div><ion-input formControlName="higherFunction"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">MOTOR FUNCTION</div><ion-input formControlName="motorFunction"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">SENSORY FUNCTION</div><ion-input formControlName="sensoryFunction"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">CRANIAL NERVES</div><ion-input formControlName="cranialNerves"></ion-input></ion-col>
-            </ion-row>
-
-            <ion-row>
-              <ion-col size="12" sizeMd="3"><div class="field-label">REFLEXES</div><ion-input formControlName="reflexes"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">COORDINATION</div><ion-input formControlName="coordination"></ion-input></ion-col>
-            </ion-row>
-          </ion-grid>
-
-          <!-- MSK -->
-          <div class="sec-subtitle">MUSCULOSKELETAL SYSTEM (MSK)</div>
-          <ion-grid class="sec-grid">
-            <ion-row>
-              <ion-col size="12" sizeMd="3"><div class="field-label">INSPECTION</div><ion-input formControlName="mskInspection"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">ROM</div><ion-input formControlName="rom"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">SWELLING</div><ion-input formControlName="swelling"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">WARMTH</div><ion-input formControlName="warmth"></ion-input></ion-col>
-            </ion-row>
-
-            <ion-row>
-              <ion-col size="12" sizeMd="3"><div class="field-label">REDNESS</div><ion-input formControlName="redness"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">DEFORMITIES</div><ion-input formControlName="deformities"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">CREPITATION</div><ion-input formControlName="crepitation"></ion-input></ion-col>
-              <ion-col size="12" sizeMd="3"><div class="field-label">MUSCLE STRENGTH</div><ion-input formControlName="muscleStrength"></ion-input></ion-col>
-            </ion-row>
-          </ion-grid>
-
-        </div>
-      </ion-accordion>
-
-      <!-- =========================================================
-           SECTION 8: MENTAL STATE EVALUATION (CROSS + REMARKS)
-      ========================================================== -->
-      <ion-accordion value="s8">
-        <ion-item slot="header" lines="none" class="sec-header">
-          <ion-label>SECTION 8: MENTAL STATE EVALUATION</ion-label>
-          <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
-        </ion-item>
-
-        <div slot="content" class="sec-body" formGroupName="mentalState">
-
-          <div class="evaluation-container">
-            <div class="cross-group">
-              <div class="pt-label">Pt</div>
-              <ion-button type="button" class="btn-top" (click)="toggleStatus('rel_Sister_Status')" [class]="getBtnClass('rel_Sister_Status')">S</ion-button>
-              <ion-button type="button" class="btn-left" (click)="toggleStatus('rel_Father_Status')" [class]="getBtnClass('rel_Father_Status')">F</ion-button>
-              <ion-button type="button" class="btn-right" (click)="toggleStatus('rel_Mother_Status')" [class]="getBtnClass('rel_Mother_Status')">M</ion-button>
-              <ion-button type="button" class="btn-bottom" (click)="toggleStatus('rel_Brother_Status')" [class]="getBtnClass('rel_Brother_Status')">B</ion-button>
-            </div>
-
-            <div class="cross-group">
-              <div class="pt-label">Pt</div>
-              <ion-button type="button" class="btn-top" (click)="toggleStatus('rel_Son_Status')" [class]="getBtnClass('rel_Son_Status')">Son</ion-button>
-              <ion-button type="button" class="btn-left" (click)="toggleStatus('rel_Husband_Status')" [class]="getBtnClass('rel_Husband_Status')">Husband</ion-button>
-              <ion-button type="button" class="btn-right" (click)="toggleStatus('rel_Wife_Status')" [class]="getBtnClass('rel_Wife_Status')">Wife</ion-button>
-              <ion-button type="button" class="btn-bottom" (click)="toggleStatus('rel_Daughter_Status')" [class]="getBtnClass('rel_Daughter_Status')">Daughter</ion-button>
-            </div>
-
-            <div class="cross-group">
-              <div class="pt-label">Pt</div>
-              <ion-button type="button" class="btn-top" (click)="toggleStatus('rel_PaternalGrandmother_Status')" [class]="getBtnClass('rel_PaternalGrandmother_Status')">PGM</ion-button>
-              <ion-button type="button" class="btn-left" (click)="toggleStatus('rel_MaternalGrandfather_Status')" [class]="getBtnClass('rel_MaternalGrandfather_Status')">MGF</ion-button>
-              <ion-button type="button" class="btn-right" (click)="toggleStatus('rel_MaternalGrandmother_Status')" [class]="getBtnClass('rel_MaternalGrandmother_Status')">MGM</ion-button>
-              <ion-button type="button" class="btn-bottom" (click)="toggleStatus('rel_PaternalGrandfather_Status')" [class]="getBtnClass('rel_PaternalGrandfather_Status')">PGF</ion-button>
-            </div>
-
-            <div class="cross-group">
-              <div class="pt-label">Pt</div>
-              <ion-button type="button" class="btn-top" (click)="toggleStatus('rel_SisterInLaw_Status')" [class]="getBtnClass('rel_SisterInLaw_Status')">SIL</ion-button>
-              <ion-button type="button" class="btn-left" (click)="toggleStatus('rel_FatherInLaw_Status')" [class]="getBtnClass('rel_FatherInLaw_Status')">FIL</ion-button>
-              <ion-button type="button" class="btn-right" (click)="toggleStatus('rel_MotherInLaw_Status')" [class]="getBtnClass('rel_MotherInLaw_Status')">MIL</ion-button>
-              <ion-button type="button" class="btn-bottom" (click)="toggleStatus('rel_BrotherInLaw_Status')" [class]="getBtnClass('rel_BrotherInLaw_Status')">BIL</ion-button>
-            </div>
-          </div>
-
-          <hr class="divider" />
-
-          <div class="grid grid-2">
-            <div class="field full">
-              <div class="lbl">Anger / Sadness / Somatization Remark</div>
-              <ion-textarea
-                class="inp"
-                rows="2"
-                autoGrow="true"
-                formControlName="angerSadnessTriangles_Remark"
-                placeholder="Enter notes about the triangle state..."
-              ></ion-textarea>
-            </div>
-
-            <div class="field full">
-              <div class="lbl">General Mental State Evaluation</div>
-              <ion-textarea
-                class="inp"
-                rows="2"
-                autoGrow="true"
-                formControlName="mentalStateEvaluation"
-                placeholder="Write evaluation..."
-              ></ion-textarea>
-            </div>
-          </div>
-
-        </div>
-      </ion-accordion>
-
-      <!-- =========================================================
-           SECTION 8B: EMOTIONAL STATE (IMAGE CARDS)
-      ========================================================== -->
-      <ion-accordion value="s8_emotional_grid">
-        <ion-item slot="header" lines="none" class="sec-header">
-          <ion-label>SECTION 8: EMOTIONAL STATE EVALUATION</ion-label>
-          <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
-        </ion-item>
-
-        <div slot="content" class="sec-body" formGroupName="mentalState">
-          <ion-grid class="emo-grid">
-            <ion-row>
-
-              <ion-col size="12" sizeMd="6">
-                <div class="emo-card">
-                  <div class="emo-title">Anger / Sadness Causes</div>
-                  <div class="emo-img-wrap">
-                    <img src="../../../../assets/1.png" alt="Anger Sadness Diagram" class="emo-img" />
-                  </div>
-                  <div class="mt10">
-                    <div class="lbl">Remark</div>
-                    <ion-textarea class="inp" rows="2" autoGrow="true" placeholder="Write remark..." formControlName="remarkAngerSadness"></ion-textarea>
-                  </div>
-                </div>
-              </ion-col>
-
-              <ion-col size="12" sizeMd="6">
-                <div class="emo-card">
-                  <div class="emo-title">Pt → Attachments</div>
-                  <div class="emo-img-wrap">
-                    <img src="../../../../assets/2.png" alt="Attachments Diagram" class="emo-img" />
-                  </div>
-                  <div class="mt10">
-                    <div class="lbl">Remark</div>
-                    <ion-textarea class="inp" rows="2" autoGrow="true" placeholder="Write remark..." formControlName="remarkAttachments"></ion-textarea>
-                  </div>
-                </div>
-              </ion-col>
-
-              <ion-col size="12" sizeMd="6">
-                <div class="emo-card">
-                  <div class="emo-title">Love ↔ Hate</div>
-                  <div class="emo-img-wrap">
-                    <img src="../../../../assets/3.png" alt="Love Hate Diagram" class="emo-img" />
-                  </div>
-                  <div class="mt10">
-                    <div class="lbl">Remark</div>
-                    <ion-textarea class="inp" rows="2" autoGrow="true" placeholder="Write remark..." formControlName="remarkLoveHate"></ion-textarea>
-                  </div>
-                </div>
-              </ion-col>
-
-              <ion-col size="12" sizeMd="6">
-                <div class="emo-card">
-                  <div class="emo-title">Fear / Fright / Anxiety</div>
-                  <div class="emo-img-wrap">
-                    <img src="../../../../assets/4.png" alt="Fear Anxiety Diagram" class="emo-img" />
-                  </div>
-                  <div class="mt10">
-                    <div class="lbl">Remark</div>
-                    <ion-textarea class="inp" rows="2" autoGrow="true" placeholder="Write remark..." formControlName="remarkFearAnxiety"></ion-textarea>
-                  </div>
-                </div>
-              </ion-col>
-
-            </ion-row>
-          </ion-grid>
-        </div>
-      </ion-accordion>
-
-      <!-- =========================================================
-           SECTION 9: BEHAVIORAL EVALUATION
-      ========================================================== -->
-      <ion-accordion value="s9">
-        <ion-item slot="header" lines="none" class="sec-header">
-          <ion-label>SECTION 9: BEHAVIORAL EVALUATION</ion-label>
-          <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
-        </ion-item>
-
-        <div slot="content" class="sec-body" formGroupName="behavioralEvaluation">
-          <div class="grid grid-4">
-
-            <div class="field"><div class="lbl">Childhood Scholastic</div><input class="inp" formControlName="childhood_Scholastic" /></div>
-            <div class="field"><div class="lbl">Home Environment</div><input class="inp" formControlName="childhood_HomeEnvironment" /></div>
-            <div class="field"><div class="lbl">Finance</div><input class="inp" formControlName="childhood_Finance" /></div>
-            <div class="field"><div class="lbl">Difficulties</div><input class="inp" formControlName="childhood_Difficulties" /></div>
-
-            <div class="field"><div class="lbl">Speech</div><input class="inp" formControlName="action_Speech" /></div>
-            <div class="field"><div class="lbl">Behaviour</div><input class="inp" formControlName="action_Behaviour" /></div>
-            <div class="field full"><div class="lbl">Action Description</div><input class="inp" formControlName="action_Description" /></div>
-
-            <div class="field"><div class="lbl">Block Emotional</div><ion-toggle formControlName="block_Emotional"></ion-toggle></div>
-            <div class="field"><div class="lbl">Block Motivational</div><ion-toggle formControlName="block_Motivational"></ion-toggle></div>
-            <div class="field"><div class="lbl">Block Intellectual</div><ion-toggle formControlName="block_Intellectual"></ion-toggle></div>
-            <div class="field"><div class="lbl">Block IPR</div><ion-toggle formControlName="block_IPR"></ion-toggle></div>
-
-            <div class="field"><div class="lbl">Block Social</div><ion-toggle formControlName="block_Social"></ion-toggle></div>
-            <div class="field"><div class="lbl">Block Domestic</div><ion-toggle formControlName="block_Domestic"></ion-toggle></div>
-            <div class="field"><div class="lbl">Block Work</div><ion-toggle formControlName="block_Work"></ion-toggle></div>
-
-            <div class="field full"><div class="lbl">Block Notes</div><input class="inp" formControlName="block_Notes" /></div>
-
-            <div class="field"><div class="lbl">Sensory Noise</div><input class="inp" formControlName="sensory_Noise" /></div>
-            <div class="field"><div class="lbl">Sensory Odour</div><input class="inp" formControlName="sensory_Odour" /></div>
-            <div class="field"><div class="lbl">Sensory Colour</div><input class="inp" formControlName="sensory_Colour" /></div>
-            <div class="field"><div class="lbl">Sensory Light</div><input class="inp" formControlName="sensory_Light" /></div>
-
-            <div class="field"><div class="lbl">Miasmatic Fundamental</div><input class="inp" formControlName="miasmatic_Fundamental" /></div>
-            <div class="field"><div class="lbl">Miasmatic Dominant</div><input class="inp" formControlName="miasmatic_Dominant" /></div>
-
-            <div class="field full"><div class="lbl">Rubrics</div><input class="inp" formControlName="rubrics" /></div>
-
-            <div class="field"><div class="lbl">Provisional Diagnosis</div><input class="inp" formControlName="provisionalDiagnosis" /></div>
-            <div class="field"><div class="lbl">Final Diagnosis</div><input class="inp" formControlName="finalDiagnosis" /></div>
-            <div class="field"><div class="lbl">First Prescription</div><input class="inp" formControlName="firstPrescription" /></div>
-            <div class="field"><div class="lbl">General Instructions</div><input class="inp" formControlName="generalInstructions" /></div>
-          </div>
-        </div>
-      </ion-accordion>
-
-      <!-- =========================================================
-           SECTION 10: INTELLECTUAL STATE
-      ========================================================== -->
-      <ion-accordion value="s10">
-        <ion-item slot="header" lines="none" class="sec-header">
-          <ion-label>SECTION 10: INTELLECTUAL STATE</ion-label>
-          <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
-        </ion-item>
-
-        <div slot="content" class="sec-body" formGroupName="intellectualState">
-          <div class="intellectual-container">
-            <div class="intellectual-title">INTELLECTUAL STATE</div>
-
-            <div class="intellectual-range-box">
-              <div class="range-labels">
-                <span class="left">Capacity</span>
-                <span class="right">Performance</span>
-              </div>
-
-              <ion-range
-                min="0"
-                max="100"
-                step="1"
-                snaps="true"
-                ticks="true"
-                formControlName="capacityPerformanceRatio"
-                class="intellectual-range"
-              ></ion-range>
-
-              <div class="range-scale">
-                <span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>
-              </div>
-            </div>
-
-            <div class="intellectual-attributes-grid">
-              <div class="attr-field">
-                <span class="attr-label">Perception</span>
-                <input type="text" class="attr-input" formControlName="perception" placeholder="remark" />
-              </div>
-
-              <div class="attr-field">
-                <span class="attr-label">Memory</span>
-                <input type="text" class="attr-input" formControlName="memory" placeholder="remark" />
-              </div>
-
-              <div class="attr-field">
-                <span class="attr-label">Thinking</span>
-                <input type="text" class="attr-input" formControlName="thinking" placeholder="remark" />
-              </div>
-
-              <div class="attr-field">
-                <span class="attr-label">Decision</span>
-                <input type="text" class="attr-input" formControlName="decision" placeholder="remark" />
-              </div>
-
-              <div class="attr-field">
-                <span class="attr-label">Confidence</span>
-                <input type="text" class="attr-input" formControlName="confidence" placeholder="remark" />
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </ion-accordion>
-
-    </ion-accordion-group>
-
-    <!-- =========================
-         BOTTOM ACTIONS
-    ========================= -->
-    <div class="bottom-actions">
-      <ion-button fill="outline" size="small" type="button" (click)="goPrevIdentity()">
-        Previous: Identity
-      </ion-button>
-
-      <div class="right-actions">
-        <ion-button size="small" type="button" (click)="goNextFollowUp()">
-          Next: Follow Up
-        </ion-button>
-
-        <!-- ✅ SAVE / UPDATE (DB mode) -->
-        <ion-button
-          size="small"
-          color="success"
-          type="button"
-          (click)="saveRecord()"
-          [disabled]="loading"
-        >
-          {{ loading ? 'Saving...' : (medicalExists ? 'Update Record' : 'Save Record') }}
-        </ion-button>
-      </div>
-    </div>
-
-  </form>
-</div>
-
-
-
-
-<!-- ==========================
+  <!-- ==========================
      FOLLOWUP TAB (FULL FLOW)
 ========================== -->
-<div *ngIf="activeTab === 'followup'" class="fu-wrap">
-  <div class="page-title fu-page-title">
-    <div class="h1">Follow Up</div>
-  </div>
-
-  <div class="fu-card">
-    <!-- Header -->
-    <div class="fu-title">
-      <div class="h1">
-        <ion-icon name="clipboard-outline" class="ic"></ion-icon>
-        Follow Up
-      </div>
-      <div class="h2">Criteria → Date (optional) → Payment → Next Payment</div>
+  <div *ngIf="activeTab === 'followup'" class="fu-wrap">
+    <div class="page-title fu-page-title">
+      <div class="h1">Follow Up</div>
     </div>
 
-    <!-- ================== STEP 1: Symptoms (Criteria) ================== -->
-    <div class="panel">
-      <div class="panel-h">
-        PATIENT SYMPTOMS (REFERENCE)
-        <span class="panel-sub" *ngIf="fuCriteriaSaved">Saved</span>
-        <span class="panel-sub warn" *ngIf="!fuCriteriaSaved">First visit</span>
+    <div class="fu-card">
+      <!-- Header -->
+      <div class="fu-title">
+        <div class="h1">
+          <ion-icon name="clipboard-outline" class="ic"></ion-icon>
+          Follow Up
+        </div>
+        <div class="h2">
+          Criteria → Date (optional) → Payment → Next Payment
+        </div>
       </div>
 
-      <form [formGroup]="fuCriteriaForm">
-        <div class="tbl">
-          <div class="tbl-head">
-            <div class="c-no">SR NO</div>
-            <div class="c-sym">SYMPTOMS</div>
-          </div>
+      <!-- ================== STEP 1: Symptoms (Criteria) ================== -->
+      <div class="panel">
+        <div class="panel-h">
+          PATIENT SYMPTOMS (REFERENCE)
+          <span class="panel-sub" *ngIf="fuCriteriaSaved">Saved</span>
+          <span class="panel-sub warn" *ngIf="!fuCriteriaSaved"
+            >First visit</span
+          >
+        </div>
 
-          <div formArrayName="symptoms">
-            <div
-              class="tbl-row"
-              *ngFor="let _ of fuSymptomsArr.controls; let i = index; trackBy: trackByIndex"
-            >
-              <div class="c-no">{{ i + 1 }}</div>
+        <form [formGroup]="fuCriteriaForm">
+          <div class="tbl">
+            <div class="tbl-head">
+              <div class="c-no">SR NO</div>
+              <div class="c-sym">SYMPTOMS</div>
+            </div>
 
-              <div class="c-sym">
-                <input
-                  class="inp"
-                  [formControlName]="i"
-                  placeholder="Enter symptom..."
-                  [readonly]="fuCriteriaSaved"
-                  (input)="onCriteriaInput(i)"
-                />
+            <div formArrayName="symptoms">
+              <div
+                class="tbl-row"
+                *ngFor="let _ of fuSymptomsArr.controls; let i = index; trackBy: trackByIndex"
+              >
+                <div class="c-no">{{ i + 1 }}</div>
+
+                <div class="c-sym">
+                  <input
+                    class="inp"
+                    [formControlName]="i"
+                    placeholder="Enter symptom..."
+                    [readonly]="fuCriteriaSaved"
+                    (input)="onCriteriaInput(i)"
+                  />
+                </div>
               </div>
             </div>
+
+            <div class="hint" *ngIf="!fuCriteriaSaved">
+              Start with 6 rows. Last row filled → 2 new rows auto add.
+            </div>
           </div>
 
-          <div class="hint" *ngIf="!fuCriteriaSaved">
-            Start with 6 rows. Last row filled → 2 new rows auto add.
+          <div class="fu-actions" *ngIf="!fuCriteriaSaved">
+            <button
+              class="btn success"
+              type="button"
+              (click)="saveFollowUpCriteria()"
+              [disabled]="fuLoading || !fuHasAtLeastOneSymptom"
+            >
+              {{ fuLoading ? 'Saving...' : 'Save Criteria' }}
+            </button>
           </div>
+        </form>
+      </div>
+
+      <!-- ================== STEP 3: Date select (OPTIONAL) ================== -->
+      <div class="panel" *ngIf="fuCriteriaSaved">
+        <div class="panel-h">NEXT FOLLOW-UP (OPTIONAL)</div>
+
+        <form [formGroup]="fuNextApptForm">
+          <div class="fu-inline">
+            <div class="fu-field">
+              <div class="lbl">Follow-up Date</div>
+              <input class="inp" type="date" formControlName="followUpDate" />
+              <div class="hint">
+                Date blank chhodo → next appointment create nahi hoga.
+              </div>
+            </div>
+
+            <div class="fu-field">
+              <div class="lbl">Follow-up Time</div>
+              <input
+                class="inp"
+                type="time"
+                step="1"
+                formControlName="followUpTime"
+              />
+              <div class="hint">Default 14:30:00</div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- ================== STEP 4: Payment + Waive-Off ================== -->
+      <div class="panel" *ngIf="fuCriteriaSaved">
+        <div class="panel-h">
+          PAYMENT
+          <span class="panel-sub" *ngIf="waiveOffVerified"
+            >Waive-Off Verified</span
+          >
         </div>
 
-        <div class="fu-actions" *ngIf="!fuCriteriaSaved">
+        <form [formGroup]="fuPaymentForm">
+          <div class="fu-grid">
+            <div class="fu-field">
+              <div class="lbl">Consultation Charges *</div>
+              <input
+                class="inp"
+                type="number"
+                formControlName="consultationCharges"
+              />
+            </div>
+
+            <div class="fu-field">
+              <div class="lbl">Amount Paid *</div>
+              <input class="inp" type="number" formControlName="amountPaid" />
+            </div>
+
+            <div class="fu-field">
+              <div class="lbl">Payment Mode *</div>
+              <select class="inp" formControlName="paymentMode">
+                <option value="Cash">Cash</option>
+                <option value="Card">Card</option>
+                <option value="UPI">UPI</option>
+                <option value="Online">Online</option>
+              </select>
+            </div>
+
+            <!-- Waive-Off button -->
+            <div class="fu-field">
+              <div class="lbl">Waive-Off</div>
+
+              <button
+                class="btn outline small"
+                type="button"
+                (click)="openWaiveOffModal()"
+                [disabled]="fuLoading"
+              >
+                Waive-Off
+              </button>
+
+              <div class="hint">
+                Admin password verify karke waive-off enable hota hai.
+              </div>
+            </div>
+
+            <!-- Waive-Off Amount appears only after verified -->
+            <div class="fu-field" *ngIf="waiveOffVerified">
+              <div class="lbl">Waive-Off Amount (optional)</div>
+              <input
+                class="inp"
+                type="number"
+                formControlName="waveOffAmount"
+              />
+              <div class="hint">Blank → 0 treat hoga</div>
+            </div>
+          </div>
+        </form>
+
+        <div class="hint err" *ngIf="fuNextPaymentError">
+          {{ fuNextPaymentError }}
+        </div>
+
+        <div class="fu-actions">
           <button
-            class="btn success"
+            class="btn primary"
             type="button"
-            (click)="saveFollowUpCriteria()"
-            [disabled]="fuLoading || !fuHasAtLeastOneSymptom"
+            (click)="nextPaymentFirstVisit()"
+            [disabled]="fuLoading || !fuCanProceedNextPayment"
           >
-            {{ fuLoading ? 'Saving...' : 'Save Criteria' }}
+            {{ fuLoading ? 'Processing...' : 'Next Payment' }}
           </button>
         </div>
-      </form>
-    </div>
-
-    <!-- ================== STEP 3: Date select (OPTIONAL) ================== -->
-    <div class="panel" *ngIf="fuCriteriaSaved">
-      <div class="panel-h">NEXT FOLLOW-UP (OPTIONAL)</div>
-
-      <form [formGroup]="fuNextApptForm">
-        <div class="fu-inline">
-          <div class="fu-field">
-            <div class="lbl">Follow-up Date</div>
-            <input class="inp" type="date" formControlName="followUpDate" />
-            <div class="hint">
-              Date blank chhodo → next appointment create nahi hoga.
-            </div>
-          </div>
-
-          <div class="fu-field">
-            <div class="lbl">Follow-up Time</div>
-            <input class="inp" type="time" step="1" formControlName="followUpTime" />
-            <div class="hint">Default 14:30:00</div>
-          </div>
-        </div>
-      </form>
-    </div>
-
-    <!-- ================== STEP 4: Payment + Waive-Off ================== -->
-    <div class="panel" *ngIf="fuCriteriaSaved">
-      <div class="panel-h">
-        PAYMENT
-        <span class="panel-sub" *ngIf="waiveOffVerified">Waive-Off Verified</span>
       </div>
 
-      <form [formGroup]="fuPaymentForm">
-        <div class="fu-grid">
-          <div class="fu-field">
-            <div class="lbl">Consultation Charges *</div>
-            <input class="inp" type="number" formControlName="consultationCharges" />
-          </div>
-
-          <div class="fu-field">
-            <div class="lbl">Amount Paid *</div>
-            <input class="inp" type="number" formControlName="amountPaid" />
-          </div>
-
-          <div class="fu-field">
-            <div class="lbl">Payment Mode *</div>
-            <select class="inp" formControlName="paymentMode">
-              <option value="Cash">Cash</option>
-              <option value="Card">Card</option>
-              <option value="UPI">UPI</option>
-              <option value="Online">Online</option>
-            </select>
-          </div>
-
-          <!-- Waive-Off button -->
-          <div class="fu-field">
-            <div class="lbl">Waive-Off</div>
-
-            <button
-              class="btn outline small"
-              type="button"
-              (click)="openWaiveOffModal()"
-              [disabled]="fuLoading"
-            >
-              Waive-Off
-            </button>
-
-            <div class="hint">
-              Admin password verify karke waive-off enable hota hai.
-            </div>
-          </div>
-
-          <!-- Waive-Off Amount appears only after verified -->
-          <div class="fu-field" *ngIf="waiveOffVerified">
-            <div class="lbl">Waive-Off Amount (optional)</div>
-            <input class="inp" type="number" formControlName="waveOffAmount" />
-            <div class="hint">Blank → 0 treat hoga</div>
-          </div>
-        </div>
-      </form>
-
-      <div class="hint err" *ngIf="fuNextPaymentError">
-        {{ fuNextPaymentError }}
-      </div>
-
-      <div class="fu-actions">
+      <!-- Bottom nav -->
+      <div class="bottom-actions">
         <button
-          class="btn primary"
+          class="btn outline"
           type="button"
-          (click)="nextPaymentFirstVisit()"
-          [disabled]="fuLoading || !fuCanProceedNextPayment"
+          (click)="goPrevPhysicalExam()"
         >
-          {{ fuLoading ? 'Processing...' : 'Next Payment' }}
+          Previous: Physical Exam
         </button>
       </div>
     </div>
+  </div>
 
-    <!-- Bottom nav -->
-    <div class="bottom-actions">
-      <button class="btn outline" type="button" (click)="goPrevPhysicalExam()">
-        Previous: Physical Exam
+  <!-- ==========================
+     PAYMENT TAB
+========================== -->
+  <div *ngIf="activeTab === 'payment'" class="pay-wrap">
+    <!-- Title -->
+    <div class="page-title pay-page-title">
+      <div class="h1">Billing & Payments</div>
+      <div class="h2">
+        Manage patient account balance and track payment history
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="pay-kpi-grid">
+      <!-- Pending Amount -->
+      <div class="pay-kpi pay-kpi--pending">
+        <div class="pay-kpi-label">PENDING AMOUNT</div>
+        <div class="pay-kpi-value">
+          <span class="rs">₹</span>
+          {{ payPendingAmount || 0 }}
+        </div>
+      </div>
+
+      <!-- Total Consultation Charges -->
+      <div class="pay-kpi">
+        <div class="pay-kpi-label">TOTAL CONSULTATION CHARGES</div>
+        <div class="pay-kpi-value">
+          <span class="rs">₹</span>
+          {{ payTotalCharges || 0 }}
+        </div>
+      </div>
+
+      <!-- Total Amount Paid -->
+      <div class="pay-kpi pay-kpi--paid">
+        <div class="pay-kpi-label">TOTAL AMOUNT PAID</div>
+        <div class="pay-kpi-value pay-kpi-value--green">
+          <span class="rs">₹</span>
+          {{ payTotalPaid || 0 }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Add payment -->
+    <div class="pay-action-row">
+      <button
+        class="btn primary pay-add"
+        type="button"
+        (click)="openAddPayment()"
+      >
+        <ion-icon name="add-outline"></ion-icon>
+        Add New Payment
+      </button>
+    </div>
+
+    <!-- History -->
+    <div class="pay-history">
+      <!-- Empty -->
+      <div class="pay-empty" *ngIf="payHistory.length === 0">
+        <div class="pay-empty-ic">
+          <ion-icon name="document-text-outline"></ion-icon>
+        </div>
+        <div class="pay-empty-t1">No Payment History</div>
+        <div class="pay-empty-t2">
+          Pending payments will appear here once collected.
+        </div>
+      </div>
+
+      <!-- List (when available) -->
+      <div class="pay-list" *ngIf="payHistory.length > 0">
+        <div class="pay-row pay-row--head">
+          <div>Date</div>
+          <div>Remark</div>
+          <div class="right">Amount</div>
+        </div>
+
+        <div
+          class="pay-row"
+          *ngFor="let p of payHistory; trackBy: trackByIndex"
+        >
+          <div>{{ p.date }}</div>
+          <div class="muted">{{ p.remark || '-' }}</div>
+          <div class="right">₹ {{ p.amount || 0 }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom actions -->
+    <div class="pay-bottom">
+      <button class="btn outline" type="button" (click)="goPrevFollowUp()">
+        Previous: Follow Up
+      </button>
+
+      <button class="btn success" type="button" (click)="finalizePatient()">
+        Finalize &amp; Save Patient Record
       </button>
     </div>
   </div>
-</div>
 
-
-
-<!-- ==========================
-     PAYMENT TAB
-========================== -->
-<div *ngIf="activeTab === 'payment'" class="pay-wrap">
-  <!-- Title -->
-  <div class="page-title pay-page-title">
-    <div class="h1">Billing & Payments</div>
-    <div class="h2">Manage patient account balance and track payment history</div>
-  </div>
-
-  <!-- KPI Cards -->
-  <div class="pay-kpi-grid">
-    <!-- Pending Amount -->
-    <div class="pay-kpi pay-kpi--pending">
-      <div class="pay-kpi-label">PENDING AMOUNT</div>
-      <div class="pay-kpi-value">
-        <span class="rs">₹</span>
-        {{ payPendingAmount || 0 }}
-      </div>
-    </div>
-
-    <!-- Total Consultation Charges -->
-    <div class="pay-kpi">
-      <div class="pay-kpi-label">TOTAL CONSULTATION CHARGES</div>
-      <div class="pay-kpi-value">
-        <span class="rs">₹</span>
-        {{ payTotalCharges || 0 }}
-      </div>
-    </div>
-
-    <!-- Total Amount Paid -->
-    <div class="pay-kpi pay-kpi--paid">
-      <div class="pay-kpi-label">TOTAL AMOUNT PAID</div>
-      <div class="pay-kpi-value pay-kpi-value--green">
-        <span class="rs">₹</span>
-        {{ payTotalPaid || 0 }}
-      </div>
-    </div>
-  </div>
-
-  <!-- Add payment -->
-  <div class="pay-action-row">
-    <button class="btn primary pay-add" type="button" (click)="openAddPayment()">
-      <ion-icon name="add-outline"></ion-icon>
-      Add New Payment
-    </button>
-  </div>
-
-  <!-- History -->
-  <div class="pay-history">
-    <!-- Empty -->
-    <div class="pay-empty" *ngIf="payHistory.length === 0">
-      <div class="pay-empty-ic">
-        <ion-icon name="document-text-outline"></ion-icon>
-      </div>
-      <div class="pay-empty-t1">No Payment History</div>
-      <div class="pay-empty-t2">
-        Pending payments will appear here once collected.
-      </div>
-    </div>
-
-    <!-- List (when available) -->
-    <div class="pay-list" *ngIf="payHistory.length > 0">
-      <div class="pay-row pay-row--head">
-        <div>Date</div>
-        <div>Remark</div>
-        <div class="right">Amount</div>
-      </div>
-
-      <div class="pay-row" *ngFor="let p of payHistory; trackBy: trackByIndex">
-        <div>{{ p.date }}</div>
-        <div class="muted">{{ p.remark || '-' }}</div>
-        <div class="right">₹ {{ p.amount || 0 }}</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Bottom actions -->
-  <div class="pay-bottom">
-    <button class="btn outline" type="button" (click)="goPrevFollowUp()">
-      Previous: Follow Up
-    </button>
-
-    <button class="btn success" type="button" (click)="finalizePatient()">
-      Finalize &amp; Save Patient Record
-    </button>
-  </div>
-</div>
-
-
-<!-- ==========================
+  <!-- ==========================
        ✅ REPORTS TAB (CREATE + MATRIX) [done]
 ========================== -->
-<div *ngIf="activeTab === 'reports'" class="rep-wrap">
+  <div *ngIf="activeTab === 'reports'" class="rep-wrap">
+    <!-- Big Header (image-like) -->
+    <div class="rep-hero">
+      <div class="rep-hero-title">Laboratory Report Entry System</div>
+      <div class="rep-hero-sub">
+        Enter lab test results from paper forms into the digital system
+      </div>
+    </div>
 
-  <!-- Big Header (image-like) -->
-  <div class="rep-hero">
-    <div class="rep-hero-title">Laboratory Report Entry System</div>
-    <div class="rep-hero-sub">Enter lab test results from paper forms into the digital system</div>
-  </div>
+    <!-- Top Controls Bar -->
+    <ion-card class="rep-topcard">
+      <ion-card-content class="rep-topcontent">
+        <!-- Left Controls -->
+        <div class="rep-left">
+          <div class="rep-ctrl">
+            <div class="rep-label">Report Date</div>
+            <ion-item lines="none" class="rep-item">
+              <ion-input
+                type="date"
+                [(ngModel)]="repReportDate"
+                [ngModelOptions]="{standalone:true}"
+                (ionChange)="onReportDateChange()"
+              ></ion-input>
+            </ion-item>
+          </div>
 
-  <!-- Top Controls Bar -->
-  <ion-card class="rep-topcard">
-    <ion-card-content class="rep-topcontent">
+          <div class="rep-ctrl">
+            <div class="rep-label">Load Previous Report</div>
+            <ion-item lines="none" class="rep-item">
+              <ion-select
+                interface="popover"
+                placeholder="-- New Report --"
+                [(ngModel)]="repSelectedPrevReportId"
+                [ngModelOptions]="{ standalone: true }"
+                (ionChange)="onLoadPrevChange()"
+                [disabled]="!patientId || reportLoading"
+              >
+                <ion-select-option [value]="null"
+                  >-- New Report --</ion-select-option
+                >
 
-      <!-- Left Controls -->
-      <div class="rep-left">
-        <div class="rep-ctrl">
-          <div class="rep-label">Report Date</div>
-          <ion-item lines="none" class="rep-item">
-            <ion-input type="date" [(ngModel)]="repReportDate" [ngModelOptions]="{standalone:true}"
-                       (ionChange)="onReportDateChange()"></ion-input>
-          </ion-item>
-        </div>
+                <ion-select-option
+                  *ngFor="let r of repSummaryList; trackBy: trackByIndex"
+                  [value]="r.patientReportId"
+                >
+                  #{{ r.patientReportId }} • {{ r.uiDate }} • {{ r.reportName ||
+                  'Report' }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
 
-        <div class="rep-ctrl">
-          <div class="rep-label">Load Previous Report</div>
-          <ion-item lines="none" class="rep-item">
-            <ion-select
-              interface="popover"
-              placeholder="-- New Report --"
-              [(ngModel)]="repSelectedPrevReportId"
-              [ngModelOptions]="{ standalone: true }"
-              (ionChange)="onLoadPrevChange()"
+          <div class="rep-ctrl rep-save">
+            <div class="rep-label">&nbsp;</div>
+            <ion-button
+              class="rep-savebtn"
+              (click)="saveReport()"
               [disabled]="!patientId || reportLoading"
             >
-              <ion-select-option [value]="null">-- New Report --</ion-select-option>
-
-              <ion-select-option
-                *ngFor="let r of repSummaryList; trackBy: trackByIndex"
-                [value]="r.patientReportId"
-              >
-                #{{ r.patientReportId }} • {{ r.uiDate }} • {{ r.reportName || 'Report' }}
-              </ion-select-option>
-            </ion-select>
-          </ion-item>
+              <ion-icon name="save-outline" slot="start"></ion-icon>
+              {{ reportLoading ? 'Saving...' : 'Save' }}
+            </ion-button>
+          </div>
         </div>
 
-        <div class="rep-ctrl rep-save">
-          <div class="rep-label">&nbsp;</div>
+        <!-- Right Mode Switch -->
+        <div class="rep-right">
           <ion-button
-            class="rep-savebtn"
-            (click)="saveReport()"
-            [disabled]="!patientId || reportLoading"
+            class="rep-mode"
+            [class.is-active]="repMode==='entry'"
+            fill="outline"
+            (click)="setReportMode('entry')"
+            [disabled]="!patientId"
           >
-            <ion-icon name="save-outline" slot="start"></ion-icon>
-            {{ reportLoading ? 'Saving...' : 'Save' }}
+            Entry Mode
+          </ion-button>
+
+          <ion-button
+            class="rep-mode"
+            [class.is-active]="repMode==='compare'"
+            fill="outline"
+            (click)="setReportMode('compare')"
+            [disabled]="!patientId"
+          >
+            Comparison Mode
           </ion-button>
         </div>
-      </div>
+      </ion-card-content>
+    </ion-card>
 
-      <!-- Right Mode Switch -->
-      <div class="rep-right">
-        <ion-button
-          class="rep-mode"
-          [class.is-active]="repMode==='entry'"
-          fill="outline"
-          (click)="setReportMode('entry')"
-          [disabled]="!patientId"
-        >
-          Entry Mode
-        </ion-button>
+    <!-- If no patient -->
+    <div class="rep-empty" *ngIf="!patientId">
+      Open patient in edit mode to create & compare reports.
+    </div>
 
-        <ion-button
-          class="rep-mode"
-          [class.is-active]="repMode==='compare'"
-          fill="outline"
-          (click)="setReportMode('compare')"
-          [disabled]="!patientId"
-        >
-          Comparison Mode
-        </ion-button>
-      </div>
-
-    </ion-card-content>
-  </ion-card>
-
-  <!-- If no patient -->
-  <div class="rep-empty" *ngIf="!patientId">
-    Open patient in edit mode to create & compare reports.
-  </div>
-
-  <!-- ==========================
+    <!-- ==========================
        ENTRY MODE
   ========================== -->
-  <ion-card class="rep-card" *ngIf="patientId && repMode==='entry'">
-    <ion-card-content>
+    <ion-card class="rep-card" *ngIf="patientId && repMode==='entry'">
+      <ion-card-content>
+        <div class="rep-table">
+          <div class="rep-thead">
+            <div class="c1">TEST NAME</div>
+            <div class="c2">RESULT</div>
+          </div>
 
-      <div class="rep-table">
-        <div class="rep-thead">
-          <div class="c1">TEST NAME</div>
-          <div class="c2">RESULT</div>
-        </div>
-
-        <div class="rep-tbody">
-          <div class="rep-row" *ngFor="let row of repRows; trackBy: trackByIndex">
-            <div class="c1">{{ row.label }}</div>
-            <div class="c2">
-              <ion-input
-                class="rep-input"
-                inputmode="decimal"
-                placeholder=""
-                [(ngModel)]="row.value"
-                [ngModelOptions]="{standalone:true}"
-              ></ion-input>
+          <div class="rep-tbody">
+            <div
+              class="rep-row"
+              *ngFor="let row of repRows; trackBy: trackByIndex"
+            >
+              <div class="c1">{{ row.label }}</div>
+              <div class="c2">
+                <ion-input
+                  class="rep-input"
+                  inputmode="decimal"
+                  placeholder=""
+                  [(ngModel)]="row.value"
+                  [ngModelOptions]="{standalone:true}"
+                ></ion-input>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </ion-card-content>
+    </ion-card>
 
-    </ion-card-content>
-  </ion-card>
-
-  <!-- ==========================
+    <!-- ==========================
        COMPARISON MODE
   ========================== -->
-  <ion-card class="rep-card" *ngIf="patientId && repMode==='compare'">
-    <ion-card-content>
+    <ion-card class="rep-card" *ngIf="patientId && repMode==='compare'">
+      <ion-card-content>
+        <div class="rep-compare-box">
+          <div class="rep-compare-title">Select Reports to Compare (Max 5)</div>
 
-      <div class="rep-compare-box">
-        <div class="rep-compare-title">Select Reports to Compare (Max 5)</div>
-
-        <div class="rep-checklist">
-          <label class="rep-check" *ngFor="let d of repAllUiDates; trackBy: trackByIndex">
-            <ion-checkbox
-              [checked]="repSelectedUiDates.includes(d)"
-              (ionChange)="toggleCompareDate(d, $event)"
-            ></ion-checkbox>
-            <span>{{ d }}</span>
-          </label>
-        </div>
-
-        <div class="rep-small" *ngIf="repSelectedUiDates.length">
-          Selected: {{ repSelectedUiDates.length }}/5
-        </div>
-      </div>
-
-      <!-- Matrix -->
-      <div class="rep-matrix-wrap" *ngIf="repDisplayUiDates.length">
-        <div class="rep-matrix">
-
-          <!-- Header -->
-          <div class="m-head">
-            <div class="m-cell m-test sticky">TEST NAME</div>
-
-            <div
-              class="m-cell m-date"
-              *ngFor="let d of repDisplayUiDates; trackBy: trackByIndex"
-              (click)="onDateHeaderClick(d)"
-              [class.is-active]="repSelectedHeaderDate===d"
-              role="button"
-              tabindex="0"
+          <div class="rep-checklist">
+            <label
+              class="rep-check"
+              *ngFor="let d of repAllUiDates; trackBy: trackByIndex"
             >
-              {{ d }}
-            </div>
+              <ion-checkbox
+                [checked]="repSelectedUiDates.includes(d)"
+                (ionChange)="toggleCompareDate(d, $event)"
+              ></ion-checkbox>
+              <span>{{ d }}</span>
+            </label>
           </div>
 
-          <!-- Rows -->
-          <div class="m-row" *ngFor="let r of repMatrix; trackBy: trackByIndex">
-            <div class="m-cell m-test sticky">{{ r.label }}</div>
+          <div class="rep-small" *ngIf="repSelectedUiDates.length">
+            Selected: {{ repSelectedUiDates.length }}/5
+          </div>
+        </div>
 
+        <!-- Matrix -->
+        <div class="rep-matrix-wrap" *ngIf="repDisplayUiDates.length">
+          <div class="rep-matrix">
+            <!-- Header -->
+            <div class="m-head">
+              <div class="m-cell m-test sticky">TEST NAME</div>
+
+              <div
+                class="m-cell m-date"
+                *ngFor="let d of repDisplayUiDates; trackBy: trackByIndex"
+                (click)="onDateHeaderClick(d)"
+                [class.is-active]="repSelectedHeaderDate===d"
+                role="button"
+                tabindex="0"
+              >
+                {{ d }}
+              </div>
+            </div>
+
+            <!-- Rows -->
             <div
-              class="m-cell"
-              *ngFor="let d of repDisplayUiDates; trackBy: trackByIndex"
-              [class.is-active]="repSelectedHeaderDate===d"
+              class="m-row"
+              *ngFor="let r of repMatrix; trackBy: trackByIndex"
             >
-              {{ r.values[d] || '-' }}
+              <div class="m-cell m-test sticky">{{ r.label }}</div>
+
+              <div
+                class="m-cell"
+                *ngFor="let d of repDisplayUiDates; trackBy: trackByIndex"
+                [class.is-active]="repSelectedHeaderDate===d"
+              >
+                {{ r.values[d] || '-' }}
+              </div>
             </div>
           </div>
-
         </div>
-      </div>
 
-      <div class="rep-empty" *ngIf="!repDisplayUiDates.length">
-        Select at least 1 report date to see comparison.
-      </div>
+        <div class="rep-empty" *ngIf="!repDisplayUiDates.length">
+          Select at least 1 report date to see comparison.
+        </div>
 
-      <div class="rep-tip" *ngIf="repDisplayUiDates.length">
-        Tip: Date header pe click karo → form auto-fill ho jayega.
-      </div>
-
-    </ion-card-content>
-  </ion-card>
-
-</div>
-
-
-
-
+        <div class="rep-tip" *ngIf="repDisplayUiDates.length">
+          Tip: Date header pe click karo → form auto-fill ho jayega.
+        </div>
+      </ion-card-content>
+    </ion-card>
+  </div>
 </ion-content>
