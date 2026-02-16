@@ -916,7 +916,7 @@ closeSuccessModal() {
 
   // ✅ Redirect only if it was CREATE
   if (this.successMode === 'create') {
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/patients/list']);
   }
 }
 
