@@ -1,0 +1,123 @@
+/* Background */
+.medicine-page {
+  background: #6c63ff;
+  padding: 40px;
+  min-height: 100vh;
+}
+
+/* Card */
+.medicine-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 30px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* Header */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.card-header h2 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+/* New Button */
+.btn-new {
+  background: #6c63ff;
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+/* Search Box */
+.search-box {
+  position: relative;
+  margin-bottom: 25px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 14px 12px 40px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  font-size: 14px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #888;
+}
+
+/* Table */
+.medicine-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.medicine-table thead {
+  background: #f1f3f9;
+}
+
+.medicine-table th {
+  text-align: left;
+  padding: 14px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.medicine-table td {
+  padding: 16px 14px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.med-name {
+  font-weight: 600;
+}
+
+/* Stock Badge */
+.stock-badge {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+/* Badge Colors */
+.badge-green {
+  background: #d4f4dd;
+  color: #1e7d3e;
+}
+
+.badge-orange {
+  background: #ffe6c7;
+  color: #c67c00;
+}
+
+.badge-red {
+  background: #ffd6d6;
+  color: #c40000;
+}
+
+/* Edit Button */
+.btn-edit {
+  background: #3f8efc;
+  color: white;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+}

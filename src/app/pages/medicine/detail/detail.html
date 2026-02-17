@@ -1,0 +1,116 @@
+<ion-header>
+  <ion-toolbar class="detail-toolbar">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title>
+      {{ isEdit ? 'Edit Medicine' : 'Create Medicine' }}
+    </ion-title>
+
+  
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="detail-bg">
+
+  <div class="medicine-wrapper">
+
+    <div class="medicine-card">
+
+      <div class="card-top">
+        <a class="back-link" (click)="cancel()">
+          ← Back to Listing
+        </a>
+      </div>
+
+      <!-- AUTO FILL BUTTON -->
+      <div *ngIf="!isEdit" class="auto-fill-section">
+        <button
+          type="button"
+          class="btn-auto"
+          (click)="autoFillTemplate()"
+        >
+          ⚡ Auto Fill From Existing
+        </button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()">
+
+        <div class="section-title">Basic Information</div>
+
+        <div class="form-group">
+          <label>Medicine Name *</label>
+          <input type="text" formControlName="name" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Strength *</label>
+            <input type="text" formControlName="strength" />
+          </div>
+
+          <div class="form-group">
+            <label>Dosage Form *</label>
+            <select formControlName="dosageForm">
+              <option value="">Select form</option>
+              <option value="Tablet">Tablet</option>
+              <option value="Capsule">Capsule</option>
+              <option value="Syrup">Syrup</option>
+              <option value="Injection">Injection</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Stock Quantity *</label>
+            <input type="number" formControlName="stockQuantity" />
+          </div>
+
+          <div class="form-group">
+            <label>Unit *</label>
+            <input type="text" formControlName="unit" />
+          </div>
+        </div>
+
+        <div class="section-title">Additional Details</div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Batch Number *</label>
+            <input type="text" formControlName="batchNumber" />
+          </div>
+
+          <div class="form-group">
+            <label>Expiry Date *</label>
+            <input type="date" formControlName="expiryDate" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Notes</label>
+          <textarea rows="3" formControlName="notes"></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" (click)="cancel()">
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="btn-save"
+            [disabled]="form.invalid"
+          >
+            {{ isEdit ? 'Update Medicine' : 'Create Medicine' }}
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+</ion-content>

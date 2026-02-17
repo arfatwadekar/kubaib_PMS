@@ -1,0 +1,90 @@
+
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title>Medicine Listing</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="refresh()">Refresh</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="medicine-page">
+
+  <div class="medicine-card">
+
+    <!-- Header -->
+    <div class="card-header">
+      <h2>Medicine Search</h2>
+
+      <button class="btn-new" (click)="create()">
+        + New Medicine
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="search-box">
+      <!-- <ion-icon name="search-outline" class="search-icon"></ion-icon> -->
+
+      <input
+        type="text"
+        [(ngModel)]="search"
+        (ngModelChange)="onSearchChange()"
+        placeholder="Search medicine by name..."
+      />
+    </div>
+
+    <!-- Table -->
+    <table class="medicine-table">
+
+      <thead>
+        <tr>
+          <th>Medicine Name</th>
+          <th>Strength</th>
+          <th>Dosage Form</th>
+          <th>Available Stock</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let m of medicines">
+
+          <td class="med-name">{{ m.name }}</td>
+
+          <td>{{ m.strength }}</td>
+
+          <td>{{ m.dosageForm }}</td>
+
+          <td>
+            <span
+              class="stock-badge"
+              [ngClass]="getStockClass(m.stockQuantity)"
+            >
+              {{ m.stockQuantity }} {{ m.unit }}
+            </span>
+          </td>
+
+          <td>
+            <button
+              class="btn-edit"
+              (click)="edit(m.medicineId)"
+            >
+              Edit
+            </button>
+          </td>
+
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+</ion-content>

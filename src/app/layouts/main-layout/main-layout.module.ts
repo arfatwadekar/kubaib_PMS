@@ -93,22 +93,13 @@ const routes: Routes = [
       // ======================
       // Doctor Only
       // ======================
-      {
-        path: 'medicines',
-        loadChildren: () =>
-          import('../../pages/coming-soon/coming-soon.module')
-            .then(m => m.ComingSoonModule),
-        canActivate: [RoleGuard],
-        data: { roles: ['Doctor'] },
-      },
-      {
-        path: 'medicines/create',
-        loadChildren: () =>
-          import('../../pages/coming-soon/coming-soon.module')
-            .then(m => m.ComingSoonModule),
-        canActivate: [RoleGuard],
-        data: { roles: ['Doctor'] },
-      },
+{
+  path: 'medicines',
+  loadChildren: () =>
+    import('../../pages/medicine/medicine.module')
+      .then(m => m.MedicineModule)
+}
+,
       {
         path: 'notifications',
         loadChildren: () =>
