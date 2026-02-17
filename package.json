@@ -27,6 +27,7 @@
     "@capacitor/keyboard": "8.0.0",
     "@capacitor/status-bar": "8.0.0",
     "@ionic/angular": "^8.0.0",
+    "@microsoft/signalr": "^10.0.0",
     "@swimlane/ngx-charts": "^23.1.0",
     "d3": "^7.9.0",
     "d3-array": "^3.2.4",

@@ -1,0 +1,97 @@
+
+<ion-header>
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title>Notifications</ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button fill="clear" (click)="refresh()">Refresh</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+
+<ion-content class="notification-content">
+
+  <!-- TOP SECTION -->
+  <div class="top-bar">
+
+    <div class="title-area">
+      <h2>Inbox</h2>
+      <span class="badge" *ngIf="unreadCount > 0">
+        {{ unreadCount }} New
+      </span>
+    </div>
+
+  </div>
+
+  <!-- LOADING -->
+  <div *ngIf="loading" class="loading">
+    <ion-spinner name="crescent"></ion-spinner>
+  </div>
+
+  <!-- LIST -->
+  <div *ngIf="!loading && notifications.length > 0"
+       class="notification-wrapper">
+
+    <div *ngFor="let n of notifications"
+         class="notification-card"
+         [class.unread]="!n.isRead"
+         (click)="openDetail(n)">
+
+      <!-- ICON -->
+      <div class="icon-circle">
+        <ion-icon name="mail-outline"></ion-icon>
+      </div>
+
+      <!-- BODY -->
+      <div class="card-body">
+
+        <div class="card-header">
+          <h3>{{ n.name }}</h3>
+          <span class="date">
+            {{ n.createdOn | date:'short' }}
+          </span>
+        </div>
+
+        <p class="email">{{ n.email }}</p>
+        <p class="message">{{ n.message }}</p>
+
+      </div>
+
+      <!-- ACTION -->
+      <div class="card-action">
+
+        <ion-button
+          *ngIf="!n.isRead"
+          size="small"
+          color="primary"
+          fill="solid"
+          (click)="markAsRead(n, $event)">
+          <ion-icon name="checkmark-outline" slot="icon-only"></ion-icon>
+        </ion-button>
+
+        <ion-icon
+          *ngIf="n.isRead"
+          name="checkmark-done-outline"
+          class="read-indicator">
+        </ion-icon>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div *ngIf="!loading && notifications.length === 0"
+       class="empty">
+    <ion-icon name="notifications-off-outline"></ion-icon>
+    <p>No Notifications Yet</p>
+  </div>
+
+</ion-content>
+

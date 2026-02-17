@@ -100,14 +100,15 @@ const routes: Routes = [
       .then(m => m.MedicineModule)
 }
 ,
-      {
-        path: 'notifications',
-        loadChildren: () =>
-          import('../../pages/coming-soon/coming-soon.module')
-            .then(m => m.ComingSoonModule),
-        canActivate: [RoleGuard],
-        data: { roles: ['Doctor'] },
-      },
+    {
+  path: 'notifications',
+  loadChildren: () =>
+    import('../../pages/notifications/notification.module')
+      .then(m => m.NotificationsModule),
+  canActivate: [RoleGuard],
+  data: { roles: ['Doctor'] },
+},
+
       {
         path: 'announcements',
         loadChildren: () =>

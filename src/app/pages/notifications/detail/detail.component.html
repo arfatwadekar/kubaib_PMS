@@ -1,0 +1,16 @@
+<div *ngIf="notification" class="detail-card">
+
+  <h2>{{ notification.name }}</h2>
+
+  <p><strong>Email:</strong> {{ notification.email }}</p>
+  <p><strong>Phone:</strong> {{ notification.phoneNumber }}</p>
+
+  <hr>
+
+  <p>{{ notification.message }}</p>
+
+  <small>
+    {{ notification.createdOn | date:'medium' }}
+  </small>
+
+</div>
