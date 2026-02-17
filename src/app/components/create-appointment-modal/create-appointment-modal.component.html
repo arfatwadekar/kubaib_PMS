@@ -8,10 +8,11 @@
         {{ mode === 'edit' ? 'Appointment Detail' : 'Create Appointment' }}
       </div>
 
-      <button type="button"
-              class="cap-close"
-              (click)="close()"
-              [disabled]="creating">
+      <button
+        type="button"
+        class="cap-close"
+        (click)="close()"
+        [disabled]="creating">
         <ion-icon name="close-outline"></ion-icon>
       </button>
     </div>
@@ -36,7 +37,7 @@
           </div>
         </div>
 
-        <!-- Status Section -->
+        <!-- Status (Edit Mode Only) -->
         <div *ngIf="mode === 'edit'" class="cap-info">
 
           <div class="cap-status-row">
@@ -48,9 +49,10 @@
 
           <div class="cap-field">
             <label class="cap-label">Update Status</label>
-            <select class="cap-inp"
-                    [ngModel]="selectedStatus"
-                    (ngModelChange)="onStatusChange($event)">
+            <select
+              class="cap-inp"
+              [ngModel]="selectedStatus"
+              (ngModelChange)="onStatusChange($event)">
               <option *ngFor="let s of statusOptions"
                       [ngValue]="s.value">
                 {{ s.label }}
@@ -63,34 +65,50 @@
         <!-- FORM -->
         <form [formGroup]="form" class="cap-form">
 
+          <!-- Date (Required) -->
           <div class="cap-field">
-            <label class="cap-label">Appointment Date *</label>
+            <label class="cap-label">
+              Appointment Date *
+            </label>
+
             <input
               type="date"
               class="cap-inp"
               formControlName="appointmentDate"
               [min]="minDate"
-              [max]="maxDate"
-            />
+              [max]="maxDate" />
+
+            <div class="cap-error"
+                 *ngIf="form.get('appointmentDate')?.invalid && form.get('appointmentDate')?.touched">
+              Appointment Date is required
+            </div>
           </div>
 
+          <!-- Time (Optional) -->
           <div class="cap-field">
-            <label class="cap-label">Appointment Time *</label>
+            <label class="cap-label">
+              Appointment Time
+            </label>
+
             <input
               type="time"
               class="cap-inp"
-              formControlName="appointmentTime"
-            />
+              formControlName="appointmentTime" />
+
+            <div class="cap-hint"
+                 *ngIf="!form.get('appointmentTime')?.value">
+              No Time Selected
+            </div>
           </div>
 
+          <!-- Remark -->
           <div class="cap-field">
             <label class="cap-label">Remark</label>
             <input
               type="text"
               class="cap-inp"
               formControlName="remark"
-              maxlength="250"
-            />
+              maxlength="250" />
           </div>
 
         </form>
@@ -107,9 +125,10 @@
         (click)="submit()"
         [disabled]="creating || loadingDetail">
 
-        <ion-spinner *ngIf="creating"
-                     name="crescent"
-                     class="btn-spinner">
+        <ion-spinner
+          *ngIf="creating"
+          name="crescent"
+          class="btn-spinner">
         </ion-spinner>
 
         {{ mode === 'edit' ? 'Update Appointment' : 'Create Appointment' }}

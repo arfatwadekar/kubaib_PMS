@@ -1,24 +1,23 @@
 import { Component, Input, OnInit } from '@angular/core';
-import { FormBuilder, Validators } from '@angular/forms';
+import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import { ModalController, ToastController } from '@ionic/angular';
 import {
   AppointmentService,
   AppointmentStatus,
 } from 'src/app/services/appointment.service';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, of, switchMap } from 'rxjs';
 
-export type PatientMini = {
+type Mode = 'create' | 'edit';
+
+type PatientMini = {
   id: number;
   pid: string;
   name: string;
   phone: string;
 };
 
-type Mode = 'create' | 'edit';
-
 function todayYmd(): string {
-  const d = new Date();
-  return d.toISOString().substring(0, 10);
+  return new Date().toISOString().substring(0, 10);
 }
 
 function addMonthsYmd(months: number): string {
@@ -31,7 +30,7 @@ function addMonthsYmd(months: number): string {
   selector: 'app-create-appointment-modal',
   templateUrl: './create-appointment-modal.component.html',
   styleUrls: ['./create-appointment-modal.component.scss'],
-  standalone: false,
+  standalone: false, // keep false if using module
 })
 export class CreateAppointmentModalComponent implements OnInit {
 
@@ -58,10 +57,14 @@ export class CreateAppointmentModalComponent implements OnInit {
     { value: AppointmentStatus.Cancelled, label: 'Cancelled' },
   ];
 
+  // ✅ STRICT SAFE FORM (TIME OPTIONAL)
   form = this.fb.group({
-    appointmentDate: [todayYmd(), Validators.required],
-    appointmentTime: ['11:45', Validators.required],
-    remark: [''],
+    appointmentDate: new FormControl<string | null>(
+      todayYmd(),
+      { nonNullable: false, validators: [Validators.required] }
+    ),
+    appointmentTime: new FormControl<string | null>(null),
+    remark: new FormControl<string | null>(''),
   });
 
   constructor(
@@ -78,16 +81,17 @@ export class CreateAppointmentModalComponent implements OnInit {
   }
 
   close(): void {
-    if (this.creating) return;
-    this.modalCtrl.dismiss(null, 'cancel');
+    if (!this.creating) {
+      this.modalCtrl.dismiss(null, 'cancel');
+    }
   }
 
   onStatusChange(value: AppointmentStatus): void {
-    this.selectedStatus = Number(value) as AppointmentStatus;
+    this.selectedStatus = Number(value);
   }
 
   private loadActiveAppointment(): void {
-    const patientId = Number(this.patient?.id || 0);
+    const patientId = Number(this.patient?.id);
     if (!patientId) return;
 
     this.loadingDetail = true;
@@ -108,18 +112,20 @@ export class CreateAppointmentModalComponent implements OnInit {
           return;
         }
 
-        this.appointmentId = Number(appt?.appointmentId || 0) || null;
+        this.appointmentId = Number(appt.appointmentId) || null;
 
-        const status = Number(appt?.status || 0) as AppointmentStatus;
+        const status = Number(appt.status) as AppointmentStatus;
         this.currentStatus = status;
         this.selectedStatus = status;
         this.statusText =
-          appt?.statusText || this.apptService.statusLabel(status);
+          appt.statusText || this.apptService.statusLabel(status);
 
         this.form.patchValue({
-          appointmentDate: appt?.appointmentDate?.substring(0, 10) || todayYmd(),
-          appointmentTime: this.apptService.toHHmmFromApiTime(appt),
-          remark: appt?.remark || '',
+          appointmentDate:
+            appt.appointmentDate?.substring(0, 10) || todayYmd(),
+          appointmentTime:
+            this.apptService.toHHmmFromApiTime(appt) || null,
+          remark: appt.remark || '',
         });
       });
   }
@@ -130,21 +136,29 @@ export class CreateAppointmentModalComponent implements OnInit {
 
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      return this.showToast(null, 'Date and Time are required.');
+      return this.showToast(null, 'Appointment Date is required.');
     }
 
-    const patientId = Number(this.patient?.id || 0);
-    const appointmentDate = this.form.value.appointmentDate!;
-    const hhmm = this.form.value.appointmentTime!;
-    const remark = this.form.value.remark || '';
+    const raw = this.form.getRawValue();
+
+    const appointmentDate = raw.appointmentDate as string; // safe because required
+    const appointmentTime = raw.appointmentTime;
+    const remark = raw.remark ?? '';
+
+    const patientId = Number(this.patient?.id);
+
+    const timeString = appointmentTime
+      ? this.apptService.hhmmToTimeString(appointmentTime)
+      : null;
 
     this.creating = true;
 
     if (this.mode === 'create') {
+
       const payload = {
         patientId,
         appointmentDate,
-        appointmentTime: this.apptService.hhmmToTimeString(hhmm),
+        appointmentTime: timeString ?? '', // adjust if backend doesn't allow null
         remark,
       };
 
@@ -157,36 +171,35 @@ export class CreateAppointmentModalComponent implements OnInit {
         error: async err => {
           this.creating = false;
           await this.showToast(err, 'Create Appointment failed');
-        },
+        }
       });
 
       return;
     }
 
-    const apptId = Number(this.appointmentId || 0);
-    if (!apptId) {
+    if (!this.appointmentId) {
       this.creating = false;
       return this.showToast(null, 'Appointment ID missing.');
     }
 
     const updatePayload = {
       appointmentDate,
-      appointmentTime: this.apptService.hhmmToTimeString(hhmm),
+      appointmentTime: timeString ?? '',
       remark,
     };
 
     const shouldUpdateStatus =
-      this.selectedStatus &&
       this.selectedStatus !== this.currentStatus;
 
-    this.apptService.updateAppointment(apptId, updatePayload)
+    this.apptService.updateAppointment(this.appointmentId, updatePayload)
       .pipe(
         switchMap(res => {
-          if (!shouldUpdateStatus) return of(res);
-
+          if (!shouldUpdateStatus || this.selectedStatus == null) {
+            return of(res);
+          }
           return this.apptService.updateAppointmentStatus(
-            apptId,
-            this.selectedStatus!
+            this.appointmentId!,
+            this.selectedStatus
           );
         })
       )
@@ -199,7 +212,7 @@ export class CreateAppointmentModalComponent implements OnInit {
         error: async err => {
           this.creating = false;
           await this.showToast(err, 'Update failed');
-        },
+        }
       });
   }
 
@@ -213,8 +226,8 @@ export class CreateAppointmentModalComponent implements OnInit {
 
     const toast = await this.toastCtrl.create({
       message,
-      duration: 2800,
-      position: 'top',
+      duration: 2500,
+      position: 'top'
     });
 
     await toast.present();
