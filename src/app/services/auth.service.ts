@@ -100,4 +100,23 @@ export class AuthService {
       return true; // invalid token treated as expired
     }
   }
+
+
+  // ===============================
+// PASSWORD RESET APIs
+// ===============================
+
+forgotPassword(email: string) {
+  return this.http.post(
+    `${environment.apiBaseUrl}/api/Users/forgot-password`,
+    { email }
+  );
+}
+
+resetPassword(token: string, newPassword: string) {
+  return this.http.post(
+    `${environment.apiBaseUrl}/api/Users/reset-password`,
+    { token, newPassword }
+  );
+}
 }
