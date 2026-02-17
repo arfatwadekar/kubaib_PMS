@@ -1734,10 +1734,23 @@
       <div class="panel">
         <div class="panel-h">
           PATIENT SYMPTOMS (REFERENCE)
-          <span class="panel-sub" *ngIf="fuCriteriaSaved">Saved</span>
-          <span class="panel-sub warn" *ngIf="!fuCriteriaSaved"
-            >First visit</span
+
+          <!-- State badge -->
+          <span
+            class="panel-sub"
+            *ngIf="fuCriteriaSaved && !fuCriteriaEditMode"
           >
+            Saved
+          </span>
+          <span
+            class="panel-sub warn"
+            *ngIf="fuCriteriaSaved && fuCriteriaEditMode"
+          >
+            Editing
+          </span>
+          <span class="panel-sub warn" *ngIf="!fuCriteriaSaved">
+            First visit
+          </span>
         </div>
 
         <form [formGroup]="fuCriteriaForm">
@@ -1753,145 +1766,67 @@
                 *ngFor="let _ of fuSymptomsArr.controls; let i = index; trackBy: trackByIndex"
               >
                 <div class="c-no">{{ i + 1 }}</div>
-
                 <div class="c-sym">
                   <input
                     class="inp"
                     [formControlName]="i"
                     placeholder="Enter symptom..."
-                    [readonly]="fuCriteriaSaved"
                     (input)="onCriteriaInput(i)"
                   />
                 </div>
               </div>
             </div>
 
-            <div class="hint" *ngIf="!fuCriteriaSaved">
-              Start with 6 rows. Last row filled → 2 new rows auto add.
+            <div class="hint" *ngIf="!fuCriteriaSaved || fuCriteriaEditMode">
+              Last row filled → 2 new rows auto-add.
             </div>
           </div>
 
-          <div class="fu-actions" *ngIf="!fuCriteriaSaved">
+          <div class="fu-actions">
+            <!-- CASE 1: First visit — Save button -->
             <button
               class="btn success"
               type="button"
+              *ngIf="!fuCriteriaSaved"
               (click)="saveFollowUpCriteria()"
               [disabled]="fuLoading || !fuHasAtLeastOneSymptom"
             >
               {{ fuLoading ? 'Saving...' : 'Save Criteria' }}
             </button>
-          </div>
-        </form>
-      </div>
 
-      <!-- ================== STEP 3: Date select (OPTIONAL) ================== -->
-      <div class="panel" *ngIf="fuCriteriaSaved">
-        <div class="panel-h">NEXT FOLLOW-UP (OPTIONAL)</div>
+            <!-- CASE 2: Saved, not editing — Edit button only -->
+            <button
+              class="btn outline"
+              type="button"
+              *ngIf="fuCriteriaSaved && !fuCriteriaEditMode"
+              (click)="enableCriteriaEdit()"
+              [disabled]="fuLoading"
+            >
+              Edit Criteria
+            </button>
 
-        <form [formGroup]="fuNextApptForm">
-          <div class="fu-inline">
-            <div class="fu-field">
-              <div class="lbl">Follow-up Date</div>
-              <input class="inp" type="date" formControlName="followUpDate" />
-              <div class="hint">
-                Date blank chhodo → next appointment create nahi hoga.
-              </div>
-            </div>
-
-            <div class="fu-field">
-              <div class="lbl">Follow-up Time</div>
-              <input
-                class="inp"
-                type="time"
-                step="1"
-                formControlName="followUpTime"
-              />
-              <div class="hint">Default 14:30:00</div>
-            </div>
-          </div>
-        </form>
-      </div>
-
-      <!-- ================== STEP 4: Payment + Waive-Off ================== -->
-      <div class="panel" *ngIf="fuCriteriaSaved">
-        <div class="panel-h">
-          PAYMENT
-          <span class="panel-sub" *ngIf="waiveOffVerified"
-            >Waive-Off Verified</span
-          >
-        </div>
-
-        <form [formGroup]="fuPaymentForm">
-          <div class="fu-grid">
-            <div class="fu-field">
-              <div class="lbl">Consultation Charges *</div>
-              <input
-                class="inp"
-                type="number"
-                formControlName="consultationCharges"
-              />
-            </div>
-
-            <div class="fu-field">
-              <div class="lbl">Amount Paid *</div>
-              <input class="inp" type="number" formControlName="amountPaid" />
-            </div>
-
-            <div class="fu-field">
-              <div class="lbl">Payment Mode *</div>
-              <select class="inp" formControlName="paymentMode">
-                <option value="Cash">Cash</option>
-                <option value="Card">Card</option>
-                <option value="UPI">UPI</option>
-                <option value="Online">Online</option>
-              </select>
-            </div>
-
-            <!-- Waive-Off button -->
-            <div class="fu-field">
-              <div class="lbl">Waive-Off</div>
-
+            <!-- CASE 3: Saved + editing — Update + Cancel -->
+            <ng-container *ngIf="fuCriteriaSaved && fuCriteriaEditMode">
               <button
-                class="btn outline small"
+                class="btn success"
                 type="button"
-                (click)="openWaiveOffModal()"
-                [disabled]="fuLoading"
+                (click)="saveFollowUpCriteria()"
+                [disabled]="fuLoading || !fuHasAtLeastOneSymptom"
               >
-                Waive-Off
+                {{ fuLoading ? 'Updating...' : 'Update Criteria' }}
               </button>
 
-              <div class="hint">
-                Admin password verify karke waive-off enable hota hai.
-              </div>
-            </div>
-
-            <!-- Waive-Off Amount appears only after verified -->
-            <div class="fu-field" *ngIf="waiveOffVerified">
-              <div class="lbl">Waive-Off Amount (optional)</div>
-              <input
-                class="inp"
-                type="number"
-                formControlName="waveOffAmount"
-              />
-              <div class="hint">Blank → 0 treat hoga</div>
-            </div>
+              <button
+                class="btn outline"
+                type="button"
+                (click)="cancelCriteriaEdit()"
+                [disabled]="fuLoading"
+              >
+                Cancel
+              </button>
+            </ng-container>
           </div>
         </form>
-
-        <div class="hint err" *ngIf="fuNextPaymentError">
-          {{ fuNextPaymentError }}
-        </div>
-
-        <div class="fu-actions">
-          <button
-            class="btn primary"
-            type="button"
-            (click)="nextPaymentFirstVisit()"
-            [disabled]="fuLoading || !fuCanProceedNextPayment"
-          >
-            {{ fuLoading ? 'Processing...' : 'Next Payment' }}
-          </button>
-        </div>
       </div>
 
       <!-- Bottom nav -->

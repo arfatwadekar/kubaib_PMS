@@ -30,6 +30,14 @@ export type FollowUpCriteriaDto = {
   criteriaName?: string;
 };
 
+
+// ADD this after FollowUpCriteriaDto type (~line 28)
+export type FollowUpCriteriaUpdatePayload = {
+  patientFollowUpCriteriaId: number;
+  patientId: number;
+  criteriaName: string;
+};
+
 // =======================
 // ✅ FollowUp Entry Types (if still used elsewhere)
 // =======================
@@ -160,9 +168,15 @@ export class FollowUpService {
     return this.http.post(this.url(this.ENDPOINTS.CRITERIA), body);
   }
 
-  updateCriteria(payload: any): Observable<any> {
-    return this.http.put(this.url(this.ENDPOINTS.CRITERIA), payload);
-  }
+// REPLACE existing updateCriteria with:
+updateCriteria(payload: FollowUpCriteriaUpdatePayload): Observable<any> {
+  const body: FollowUpCriteriaUpdatePayload = {
+    patientFollowUpCriteriaId: safeNum(payload?.patientFollowUpCriteriaId),
+    patientId: safeNum(payload?.patientId),
+    criteriaName: safeStr(payload?.criteriaName),
+  };
+  return this.http.put(this.url(this.ENDPOINTS.CRITERIA), body);
+}
 
   deleteCriteria(criteriaId: number): Observable<any> {
     return this.http.delete(this.url(`${this.ENDPOINTS.CRITERIA}/${safeNum(criteriaId)}`));

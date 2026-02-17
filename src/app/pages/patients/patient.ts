@@ -126,6 +126,7 @@ type ReportDetail = PatientReportPayload & {
   standalone: false,
 })
 export class PatientPage implements OnInit, OnDestroy {
+  fuCriteriaEditMode = false;  // ← ADD THIS
   showSuccessModal = false;
   successMode: 'create' | 'update' = 'create';
   successPatient: any = null;
@@ -1408,75 +1409,159 @@ lastName: '',
     this.addFuRows(this.FU_ADD_STEP);
   }
 
-  private async loadFollowUpCriteria(debug = false) {
-    if (!this.patientId) return;
+private async loadFollowUpCriteria(debug = false) {
+  if (!this.patientId) return;
 
-    const res: any = await firstValueFrom(
-      this.fuApi.getCriteriaByPatient(this.patientId),
-    );
-    const list = this.extractArray(res);
+  const res: any = await firstValueFrom(
+    this.fuApi.getCriteriaByPatient(this.patientId),
+  );
+  const list = this.extractArray(res);
 
-    this.fuCriteriaFromDb = (Array.isArray(list) ? list : []) as any[];
-    this.fuCriteriaSaved = this.fuCriteriaFromDb.length > 0;
+  this.fuCriteriaFromDb = (Array.isArray(list) ? list : []) as any[];
+  this.fuCriteriaSaved = this.fuCriteriaFromDb.length > 0;
 
-    if (this.fuCriteriaSaved) {
-      const names = this.fuCriteriaFromDb
-        .map((x: any) => (x?.criteriaName ?? '').toString().trim())
-        .filter(Boolean);
-
-      while (this.fuSymptomsArr.length < names.length)
-        this.addFuRows(this.FU_ADD_STEP);
-
-      for (let i = 0; i < this.fuSymptomsArr.length; i++) {
-        this.fuSymptomsArr.at(i).setValue(names[i] || '', { emitEvent: false });
-        this.fuSymptomsArr.at(i).disable({ emitEvent: false });
-      }
-    } else {
-      for (let i = 0; i < this.fuSymptomsArr.length; i++) {
-        this.fuSymptomsArr.at(i).enable({ emitEvent: false });
-      }
-    }
-
-    if (debug) console.log('[FU][criteria]', res);
-  }
-
-  async saveFollowUpCriteria() {
-    if (!this.patientId) {
-      await this.toast('PatientId missing. Open patient in edit mode.');
-      return;
-    }
-
-    const names = (this.fuCriteriaForm.getRawValue().symptoms || [])
-      .map((x: any) => (x ?? '').toString().trim())
+  if (this.fuCriteriaSaved) {
+    const names = this.fuCriteriaFromDb
+      .map((x: any) => (x?.criteriaName ?? '').toString().trim())
       .filter(Boolean);
 
-    if (!names.length) {
-      await this.toast('Enter at least 1 symptom');
-      return;
+    while (this.fuSymptomsArr.length < names.length)
+      this.addFuRows(this.FU_ADD_STEP);
+
+    for (let i = 0; i < this.fuSymptomsArr.length; i++) {
+      this.fuSymptomsArr.at(i).setValue(names[i] || '', { emitEvent: false });
+      // ✅ lock only when NOT in edit mode
+      if (!this.fuCriteriaEditMode) {
+        this.fuSymptomsArr.at(i).disable({ emitEvent: false });
+      }
     }
 
-    if (this.fuLoading) return;
+    // ✅ always reset edit mode after a successful load
+    this.fuCriteriaEditMode = false;
 
-    this.fuLoading = true;
-    try {
-      await firstValueFrom(
-        this.fuApi.createCriteria({
-          patientId: this.patientId,
-          criteriaNames: names,
-        }),
-      );
-
-      await this.loadFollowUpCriteria(false);
-      await this.toast('Criteria saved');
-    } catch (e: any) {
-      await this.presentSimpleAlert(
-        'Save Failed',
-        e?.error?.message || e?.message || 'Failed to save criteria',
-      );
-    } finally {
-      this.fuLoading = false;
+  } else {
+    this.fuCriteriaEditMode = false;
+    for (let i = 0; i < this.fuSymptomsArr.length; i++) {
+      this.fuSymptomsArr.at(i).enable({ emitEvent: false });
     }
   }
+
+  if (debug) console.log('[FU][criteria]', res);
+}
+
+async saveFollowUpCriteria() {
+  if (!this.patientId) {
+    await this.toast('PatientId missing. Open patient in edit mode.');
+    return;
+  }
+
+  const names = (this.fuCriteriaForm.getRawValue().symptoms || [])
+    .map((x: any) => (x ?? '').toString().trim())
+    .filter(Boolean);
+
+  if (!names.length) {
+    await this.toast('Enter at least 1 symptom');
+    return;
+  }
+
+  if (this.fuLoading) return;
+  this.fuLoading = true;
+
+  try {
+    if (this.fuCriteriaSaved) {
+      // ✅ UPDATE MODE
+      // fuCriteriaFromDb has the IDs from original load
+      // Update existing rows one by one, then POST any new ones
+
+      const existingCount = this.fuCriteriaFromDb.length;
+      const updatePromises: Promise<any>[] = [];
+      const newNames: string[] = [];
+
+      names.forEach((name, i) => {
+        if (i < existingCount) {
+          // existing row → PUT with its ID
+          const dbRow = this.fuCriteriaFromDb[i];
+          const criteriaId = safeNum(
+            dbRow?.patientFollowUpCriteriaId ??
+            dbRow?.criteriaId ??
+            dbRow?.id
+          );
+          updatePromises.push(
+            firstValueFrom(
+              this.fuApi.updateCriteria({
+                patientFollowUpCriteriaId: criteriaId,
+                patientId: this.patientId!,
+                criteriaName: name,
+              })
+            )
+          );
+        } else {
+          // new row → collect for POST
+          newNames.push(name);
+        }
+      });
+
+      // run all PUTs in parallel
+      if (updatePromises.length) {
+        await Promise.all(updatePromises);
+      }
+
+      // POST new ones if any
+      if (newNames.length) {
+        await firstValueFrom(
+          this.fuApi.createCriteria({
+            patientId: this.patientId!,
+            criteriaNames: newNames,
+          })
+        );
+      }
+
+      await this.toast('Criteria updated');
+
+    } else {
+      // ✅ CREATE MODE — first visit
+      await firstValueFrom(
+        this.fuApi.createCriteria({
+          patientId: this.patientId!,
+          criteriaNames: names,
+        })
+      );
+      await this.toast('Criteria saved');
+    }
+
+    // reload from DB → locks fields, resets fuCriteriaEditMode = false
+    await this.loadFollowUpCriteria(false);
+
+  } catch (e: any) {
+    await this.presentSimpleAlert(
+      'Save Failed',
+      e?.error?.message || e?.message || 'Failed to save criteria',
+    );
+  } finally {
+    this.fuLoading = false;
+  }
+}
+
+enableCriteriaEdit() {
+  this.fuCriteriaEditMode = true;
+
+  // unlock all existing rows
+  for (let i = 0; i < this.fuSymptomsArr.length; i++) {
+    this.fuSymptomsArr.at(i).enable({ emitEvent: false });
+  }
+
+  // add 2 empty rows at bottom so user can add new symptoms
+  const lastVal = (
+    this.fuSymptomsArr.at(this.fuSymptomsArr.length - 1)?.value ?? ''
+  ).toString().trim();
+  if (lastVal) this.addFuRows(this.FU_ADD_STEP);
+}
+
+cancelCriteriaEdit() {
+  this.fuCriteriaEditMode = false;
+  // reloads from DB → restores original values + locks fields
+  void this.loadFollowUpCriteria(false);
+}
 
   // ============================================================
   // ✅ REPORTS (your existing code - unchanged)
