@@ -1,0 +1,242 @@
+
+
+<ion-content class="ion-padding">
+  <div class="page-title">
+    <div class="h1">Preliminary Information</div>
+
+    <ion-button
+      size="small"
+      fill="clear"
+      *ngIf="!isEditMode"
+      (click)="autoFill()"
+      [disabled]="loading"
+    >
+      Auto Fill
+    </ion-button>
+  </div>
+
+  <form class="card" [formGroup]="form" (ngSubmit)="submit()">
+    <ion-grid>
+      <!-- FIRST NAME + LAST NAME -->
+      <ion-row>
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>FIRST NAME <span class="req">*</span></label>
+            <input class="inp" formControlName="firstName" placeholder="First Name" />
+            <div class="err" *ngIf="form.controls.firstName.touched && form.controls.firstName.invalid">
+              Required
+            </div>
+          </div>
+        </ion-col>
+
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>LAST NAME <span class="req">*</span></label>
+            <input class="inp" formControlName="lastName" placeholder="Last Name" />
+            <div class="err" *ngIf="form.controls.lastName.touched && form.controls.lastName.invalid">
+              Required
+            </div>
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <!-- DOB + AGE -->
+      <ion-row>
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>DOB <span class="req">*</span></label>
+            <input class="inp" type="date" formControlName="dateOfBirth" />
+          </div>
+        </ion-col>
+
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>AGE</label>
+            <input class="inp" formControlName="age" readonly />
+          </div>
+        </ion-col>
+
+        <!-- PHONE NUMBER -->
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>PHONE NUMBER <span class="req">*</span></label>
+            <input
+              class="inp"
+              formControlName="phoneNumber"
+              placeholder="10 digits"
+              (input)="onPhoneInput()"
+            />
+            <div class="err" *ngIf="form.controls.phoneNumber.touched && form.controls.phoneNumber.invalid">
+              Enter 10 digits
+            </div>
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <!-- ALT NUMBER + EMAIL -->
+      <ion-row>
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>ALTERNATE NUMBER</label>
+            <input
+              class="inp"
+              formControlName="alternateNumber"
+              placeholder="Optional"
+              (input)="onAltPhoneInput()"
+            />
+          </div>
+        </ion-col>
+
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>EMAIL</label>
+            <input class="inp" formControlName="email" placeholder="Optional" />
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <!-- MARITAL STATUS -->
+      <ion-row>
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>MARITAL STATUS</label>
+            <select class="inp" formControlName="maritalStatus">
+              <option value="Single">Single</option>
+              <option value="Married">Married</option>
+              <option value="Divorced">Divorced</option>
+              <option value="Widowed">Widowed</option>
+            </select>
+          </div>
+        </ion-col>
+
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>MARITAL STATUS SINCE</label>
+            <input class="inp" type="date" formControlName="maritalStatusSince" />
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <!-- RELIGION + DIET -->
+      <ion-row>
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>RELIGION</label>
+            <input class="inp" formControlName="religion" placeholder="Optional" />
+          </div>
+        </ion-col>
+
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>DIET</label>
+            <input class="inp" formControlName="diet" placeholder="Optional" />
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <!-- EDUCATION + OCCUPATION -->
+      <ion-row>
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>EDUCATION</label>
+            <input class="inp" formControlName="education" placeholder="Optional" />
+          </div>
+        </ion-col>
+
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>OCCUPATION</label>
+            <input class="inp" formControlName="occupation" placeholder="Optional" />
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <!-- AADHAR + PAN -->
+      <ion-row>
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>AADHAR NUMBER</label>
+            <input
+              class="inp"
+              formControlName="aadharNumber"
+              placeholder="12 digits"
+              (input)="onAadharInput()"
+            />
+          </div>
+        </ion-col>
+
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>PAN NUMBER</label>
+            <input class="inp" formControlName="panNumber" placeholder="Optional" />
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <!-- ADDRESS -->
+      <ion-row>
+        <ion-col size="12">
+          <div class="f">
+            <label>ADDRESS</label>
+            <input class="inp" formControlName="address" placeholder="Optional" />
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <!-- CITY + STATE -->
+      <ion-row>
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>CITY</label>
+            <input class="inp" formControlName="city" placeholder="Optional" />
+          </div>
+        </ion-col>
+
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>STATE</label>
+            <input class="inp" formControlName="state" placeholder="Optional" />
+          </div>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+
+    <div class="actions">
+      <button class="btn primary" type="submit" [disabled]="loading">
+        {{ loading ? (isEditMode ? 'Updating...' : 'Creating...') : (isEditMode ? 'Update Patient' : 'Create Patient') }}
+      </button>
+    </div>
+  </form>
+
+  <!-- SUCCESS MODAL -->
+  <div class="success-backdrop" *ngIf="showSuccessModal">
+    <div class="success-modal">
+      <div class="success-icon">✔</div>
+
+      <h2 class="success-title">
+        PID Successfully {{ successMode === 'create' ? 'Created' : 'Updated' }}!
+      </h2>
+
+      <p class="success-sub">
+        Patient profile has been {{ successMode === 'create' ? 'registered' : 'updated' }} in the system.
+      </p>
+
+      <div class="success-details" *ngIf="successPatient">
+        <div class="row">
+          <span>PATIENT ID</span>
+          <strong>{{ successPatient?.pid || successPatient?.patientsId }}</strong>
+        </div>
+        <div class="row">
+          <span>DATE</span>
+          <strong>{{ today }}</strong>
+        </div>
+        <div class="row">
+          <span>REGISTERED BY</span>
+          <strong>{{ role }}</strong>
+        </div>
+      </div>
+
+      <button class="btn primary" (click)="closeSuccessModal()">OK</button>
+    </div>
+  </div>
+</ion-content>

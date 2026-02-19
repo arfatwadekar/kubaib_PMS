@@ -45,19 +45,19 @@ const routes: Routes = [
             .then(m => m.PatientListPageModule),
       },
 
-      {
-        path: 'patients/create',
-        loadChildren: () =>
-          import('../../pages/patients/create-patient/create-patient.module')
-            .then(m => m.CreatePatientPageModule),
-      },
+      // {
+      //   path: 'patients/create',
+      //   loadChildren: () =>
+      //     import('../../../../../create-patient/create-patient.module')
+      //       .then(m => m.CreatePatientPageModule),
+      // },
 
-      {
-        path: 'patients/follow-up',
-        loadChildren: () =>
-          import('../../pages/patients/followUp/follow-up.module')
-            .then(m => m.FollowUpPageModule),
-      },
+      // {
+      //   path: 'patients/follow-up',
+      //   loadChildren: () =>
+      //     import('../../pages/patients/followUp/follow-up.module')
+      //       .then(m => m.FollowUpPageModule),
+      // },
 
       // ======================
       // Reports

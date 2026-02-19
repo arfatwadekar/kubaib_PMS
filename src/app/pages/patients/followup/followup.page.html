@@ -1,0 +1,117 @@
+
+
+<ion-content class="ion-padding">
+  <div class="fu-wrap">
+    <div class="page-title fu-page-title">
+      <div class="h1">Follow Up</div>
+    </div>
+
+    <div class="fu-card">
+      <!-- Header -->
+      <div class="fu-title">
+        <div class="h1">
+          <ion-icon name="clipboard-outline" class="ic"></ion-icon>
+          Follow Up
+        </div>
+        <div class="h2">Criteria → Date (optional) → Payment → Next Payment</div>
+      </div>
+
+      <!-- ================== STEP 1: Symptoms (Criteria) ================== -->
+      <div class="panel">
+        <div class="panel-h">
+          PATIENT SYMPTOMS (REFERENCE)
+
+          <span class="panel-sub" *ngIf="fuCriteriaSaved && !fuCriteriaEditMode">Saved</span>
+          <span class="panel-sub warn" *ngIf="fuCriteriaSaved && fuCriteriaEditMode">Editing</span>
+          <span class="panel-sub warn" *ngIf="!fuCriteriaSaved">First visit</span>
+        </div>
+
+        <form [formGroup]="fuCriteriaForm">
+          <div class="tbl">
+            <div class="tbl-head">
+              <div class="c-no">SR NO</div>
+              <div class="c-sym">SYMPTOMS</div>
+            </div>
+
+            <div formArrayName="symptoms">
+              <div
+                class="tbl-row"
+                *ngFor="let _ of fuSymptomsArr.controls; let i = index; trackBy: trackByIndex"
+              >
+                <div class="c-no">{{ i + 1 }}</div>
+                <div class="c-sym">
+                  <input
+                    class="inp"
+                    [formControlName]="i"
+                    placeholder="Enter symptom..."
+                    (input)="onCriteriaInput(i)"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="hint" *ngIf="!fuCriteriaSaved || fuCriteriaEditMode">
+              Last row filled → 2 new rows auto-add.
+            </div>
+          </div>
+
+          <div class="fu-actions">
+            <!-- CASE 1: First visit -->
+            <button
+              class="btn success"
+              type="button"
+              *ngIf="!fuCriteriaSaved"
+              (click)="saveFollowUpCriteria()"
+              [disabled]="fuLoading || !fuHasAtLeastOneSymptom"
+            >
+              {{ fuLoading ? 'Saving...' : 'Save Criteria' }}
+            </button>
+
+            <!-- CASE 2: Saved, not editing -->
+            <button
+              class="btn outline"
+              type="button"
+              *ngIf="fuCriteriaSaved && !fuCriteriaEditMode"
+              (click)="enableCriteriaEdit()"
+              [disabled]="fuLoading"
+            >
+              Edit Criteria
+            </button>
+
+            <!-- CASE 3: Saved + editing -->
+            <ng-container *ngIf="fuCriteriaSaved && fuCriteriaEditMode">
+              <button
+                class="btn success"
+                type="button"
+                (click)="saveFollowUpCriteria()"
+                [disabled]="fuLoading || !fuHasAtLeastOneSymptom"
+              >
+                {{ fuLoading ? 'Updating...' : 'Update Criteria' }}
+              </button>
+
+              <button
+                class="btn outline"
+                type="button"
+                (click)="cancelCriteriaEdit()"
+                [disabled]="fuLoading"
+              >
+                Cancel
+              </button>
+            </ng-container>
+          </div>
+        </form>
+      </div>
+
+      <!-- Bottom nav -->
+      <div class="bottom-actions">
+        <button class="btn outline" type="button" (click)="goPrevMedical()">
+          Previous: Medical
+        </button>
+
+        <button class="btn primary" type="button" (click)="goNextPayment()">
+          Next: Payment
+        </button>
+      </div>
+    </div>
+  </div>
+</ion-content>

@@ -1,0 +1,257 @@
+/* ============================================================
+   PATIENT FOLLOW UP TAB - SCSS
+============================================================ */
+
+:host {
+  --fu-bg: #f6f8fc;
+  --fu-card: #ffffff;
+  --fu-border: #e6ebf5;
+  --fu-text: #12223a;
+  --fu-muted: #6b7a90;
+  --fu-primary: #2f6fed;
+  --fu-success: #16a34a;
+  --fu-shadow: 0 8px 26px rgba(16, 24, 40, 0.08);
+}
+
+// ===== WRAPPER =====
+.fu-wrap {
+  padding: 0 8px 16px;
+}
+
+.fu-page-title {
+  margin-bottom: 10px;
+
+  .h1 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--fu-text);
+  }
+}
+
+// ===== MAIN CARD =====
+.fu-card {
+  max-width: 980px;
+  margin: 0 auto 14px;
+  background: var(--fu-card);
+  border: 1px solid var(--fu-border);
+  border-radius: 12px;
+  box-shadow: var(--fu-shadow);
+  padding: 14px;
+}
+
+// ===== CARD TITLE =====
+.fu-title {
+  padding: 6px 8px 12px;
+  border-bottom: 1px solid var(--fu-border);
+
+  .h1 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    color: var(--fu-text);
+  }
+
+  .ic {
+    font-size: 18px;
+    opacity: 0.9;
+  }
+
+  .h2 {
+    margin-top: 4px;
+    color: var(--fu-muted);
+    font-size: 13px;
+  }
+}
+
+// ===== PANEL =====
+.panel {
+  margin-top: 12px;
+  border: 1px solid var(--fu-border);
+  border-radius: 10px;
+  overflow: hidden;
+
+  .panel-h {
+    background: #f8fbff;
+    border-bottom: 1px solid var(--fu-border);
+    padding: 10px 12px;
+    font-size: 12px;
+    font-weight: 800;
+    color: #2a3c55;
+    letter-spacing: 0.4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .panel-sub {
+    font-size: 11px;
+    font-weight: 900;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background: #eaf2ff;
+    border: 1px solid rgba(47, 111, 237, 0.25);
+    color: #24405d;
+
+    &.warn {
+      background: #fff7ed;
+      border-color: rgba(249, 115, 22, 0.25);
+      color: #9a3412;
+    }
+  }
+}
+
+// ===== SYMPTOMS TABLE =====
+.tbl {
+  .tbl-head,
+  .tbl-row {
+    display: grid;
+    grid-template-columns: 70px 1fr;
+    align-items: center;
+  }
+
+  .tbl-head {
+    background: #f8fbff;
+    color: #2a3c55;
+    font-weight: 800;
+    font-size: 12px;
+    border-bottom: 1px solid var(--fu-border);
+
+    > div {
+      padding: 10px 12px;
+    }
+  }
+
+  .tbl-row {
+    border-bottom: 1px solid var(--fu-border);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .c-no {
+      padding: 10px 12px;
+      color: #334155;
+      font-weight: 700;
+      font-size: 12px;
+      border-right: 1px solid var(--fu-border);
+    }
+
+    .c-sym {
+      padding: 8px 10px;
+    }
+  }
+}
+
+// ===== INPUT =====
+.inp {
+  width: 100%;
+  height: 38px;
+  border: 1px solid var(--fu-border);
+  border-radius: 8px;
+  padding: 0 10px;
+  outline: none;
+  background: #fff;
+  color: var(--fu-text);
+  font-size: 13px;
+
+  &:focus {
+    border-color: rgba(47, 111, 237, 0.55);
+    box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.12);
+  }
+
+  &:disabled {
+    background: #f8fafc;
+    color: #475569;
+    cursor: not-allowed;
+  }
+}
+
+// ===== HINT =====
+.hint {
+  padding: 10px 12px;
+  color: var(--fu-muted);
+  font-size: 12px;
+}
+
+// ===== ACTIONS (inside panel) =====
+.fu-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--fu-border);
+}
+
+// ===== BOTTOM NAVIGATION =====
+.bottom-actions {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--fu-border);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+// ===== BUTTONS =====
+.btn {
+  height: 38px;
+  border-radius: 10px;
+  padding: 0 14px;
+  border: 1px solid transparent;
+  font-weight: 900;
+  font-size: 13px;
+  cursor: pointer;
+
+  &.primary {
+    background: var(--fu-primary);
+    color: #fff;
+  }
+
+  &.success {
+    background: var(--fu-success);
+    color: #fff;
+  }
+
+  &.outline {
+    background: #fff;
+    border-color: rgba(47, 111, 237, 0.45);
+    color: var(--fu-primary);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+// ===== RESPONSIVE =====
+@media (max-width: 600px) {
+  .fu-card {
+    padding: 10px;
+  }
+
+  .tbl {
+    .tbl-head,
+    .tbl-row {
+      grid-template-columns: 50px 1fr;
+    }
+  }
+
+  .bottom-actions {
+    flex-direction: column;
+
+    .btn {
+      width: 100%;
+    }
+  }
+
+  .fu-actions {
+    flex-direction: column;
+
+    .btn {
+      width: 100%;
+    }
+  }
+}

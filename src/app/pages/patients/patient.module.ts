@@ -2,11 +2,11 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { RouterModule, Routes } from '@angular/router';
 
+import { RouterModule, Routes } from '@angular/router';
 import { PatientPage } from './patient';
 
-const routes: Routes = [{ path: '', component: PatientPage }];
+import { PatientRoutingModule } from './patient-routing.module';
 
 @NgModule({
   declarations: [PatientPage],
@@ -15,7 +15,7 @@ const routes: Routes = [{ path: '', component: PatientPage }];
     IonicModule,
     FormsModule,           // ✅ (ngModel/segment ke liye safe)
     ReactiveFormsModule,   // ✅ REQUIRED for [formGroup], formControlName
-    RouterModule.forChild(routes),
+    PatientRoutingModule,
   ],
 })
 export class PatientPageModule {}

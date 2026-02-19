@@ -1,0 +1,198 @@
+<ion-content class="ion-padding">
+  <div class="rep-wrap">
+
+    <!-- Hero Header -->
+    <div class="rep-hero">
+      <div class="rep-hero-title">Laboratory Report Entry System</div>
+      <div class="rep-hero-sub">Enter lab test results from paper forms into the digital system</div>
+    </div>
+
+    <!-- Top Controls Bar -->
+    <ion-card class="rep-topcard">
+      <ion-card-content class="rep-topcontent">
+
+        <!-- Left Controls -->
+        <div class="rep-left">
+          <div class="rep-ctrl">
+            <div class="rep-label">Report Date</div>
+            <ion-item lines="none" class="rep-item">
+              <ion-input
+                type="date"
+                [(ngModel)]="repReportDate"
+                [ngModelOptions]="{ standalone: true }"
+                (ionChange)="onReportDateChange()"
+              ></ion-input>
+            </ion-item>
+          </div>
+
+          <div class="rep-ctrl">
+            <div class="rep-label">Load Previous Report</div>
+            <ion-item lines="none" class="rep-item">
+              <ion-select
+                interface="popover"
+                placeholder="-- New Report --"
+                [(ngModel)]="repSelectedPrevReportId"
+                [ngModelOptions]="{ standalone: true }"
+                (ionChange)="onLoadPrevChange()"
+                [disabled]="!patientId || reportLoading"
+              >
+                <ion-select-option [value]="null">-- New Report --</ion-select-option>
+                <ion-select-option
+                  *ngFor="let r of repSummaryList; trackBy: trackByIndex"
+                  [value]="r.patientReportId"
+                >
+                  #{{ r.patientReportId }} • {{ r.uiDate }} • {{ r.reportName || 'Report' }}
+                </ion-select-option>
+              </ion-select>
+            </ion-item>
+          </div>
+
+          <div class="rep-ctrl rep-save">
+            <div class="rep-label">&nbsp;</div>
+            <ion-button
+              class="rep-savebtn"
+              (click)="saveReport()"
+              [disabled]="!patientId || reportLoading"
+            >
+              <ion-icon name="save-outline" slot="start"></ion-icon>
+              {{ reportLoading ? 'Saving...' : 'Save' }}
+            </ion-button>
+          </div>
+        </div>
+
+        <!-- Right Mode Switch -->
+        <div class="rep-right">
+          <ion-button
+            class="rep-mode"
+            [class.is-active]="repMode === 'entry'"
+            fill="outline"
+            (click)="setReportMode('entry')"
+            [disabled]="!patientId"
+          >
+            Entry Mode
+          </ion-button>
+
+          <ion-button
+            class="rep-mode"
+            [class.is-active]="repMode === 'compare'"
+            fill="outline"
+            (click)="setReportMode('compare')"
+            [disabled]="!patientId"
+          >
+            Comparison Mode
+          </ion-button>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- No Patient -->
+    <div class="rep-empty" *ngIf="!patientId">
+      Open patient in edit mode to create &amp; compare reports.
+    </div>
+
+    <!-- ==========================
+         ENTRY MODE
+    ========================== -->
+    <ion-card class="rep-card" *ngIf="patientId && repMode === 'entry'">
+      <ion-card-content>
+        <div class="rep-table">
+          <div class="rep-thead">
+            <div class="c1">TEST NAME</div>
+            <div class="c2">RESULT</div>
+          </div>
+
+          <div class="rep-tbody">
+            <div
+              class="rep-row"
+              *ngFor="let row of repRows; trackBy: trackByIndex"
+            >
+              <div class="c1">{{ row.label }}</div>
+              <div class="c2">
+                <ion-input
+                  class="rep-input"
+                  inputmode="decimal"
+                  placeholder=""
+                  [(ngModel)]="row.value"
+                  [ngModelOptions]="{ standalone: true }"
+                ></ion-input>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- ==========================
+         COMPARISON MODE
+    ========================== -->
+    <ion-card class="rep-card" *ngIf="patientId && repMode === 'compare'">
+      <ion-card-content>
+
+        <div class="rep-compare-box">
+          <div class="rep-compare-title">Select Reports to Compare (Max 5)</div>
+
+          <div class="rep-checklist">
+            <label
+              class="rep-check"
+              *ngFor="let d of repAllUiDates; trackBy: trackByIndex"
+            >
+              <ion-checkbox
+                [checked]="repSelectedUiDates.includes(d)"
+                (ionChange)="toggleCompareDate(d, $event)"
+              ></ion-checkbox>
+              <span>{{ d }}</span>
+            </label>
+          </div>
+
+          <div class="rep-small" *ngIf="repSelectedUiDates.length">
+            Selected: {{ repSelectedUiDates.length }}/5
+          </div>
+        </div>
+
+        <!-- Matrix -->
+        <div class="rep-matrix-wrap" *ngIf="repDisplayUiDates.length">
+          <div class="rep-matrix">
+            <!-- Header -->
+            <div class="m-head">
+              <div class="m-cell m-test sticky">TEST NAME</div>
+              <div
+                class="m-cell m-date"
+                *ngFor="let d of repDisplayUiDates; trackBy: trackByIndex"
+                (click)="onDateHeaderClick(d)"
+                [class.is-active]="repSelectedHeaderDate === d"
+                role="button"
+                tabindex="0"
+              >
+                {{ d }}
+              </div>
+            </div>
+
+            <!-- Rows -->
+            <div
+              class="m-row"
+              *ngFor="let r of repMatrix; trackBy: trackByIndex"
+            >
+              <div class="m-cell m-test sticky">{{ r.label }}</div>
+              <div
+                class="m-cell"
+                *ngFor="let d of repDisplayUiDates; trackBy: trackByIndex"
+                [class.is-active]="repSelectedHeaderDate === d"
+              >
+                {{ r.values[d] || '-' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rep-empty" *ngIf="!repDisplayUiDates.length">
+          Select at least 1 report date to see comparison.
+        </div>
+
+        <div class="rep-tip" *ngIf="repDisplayUiDates.length">
+          Tip: Date header pe click karo → form auto-fill ho jayega.
+        </div>
+      </ion-card-content>
+    </ion-card>
+
+  </div>
+</ion-content>

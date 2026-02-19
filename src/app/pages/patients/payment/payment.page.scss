@@ -1,0 +1,219 @@
+/* ============================================================
+   PATIENT PAYMENT TAB - SCSS
+============================================================ */
+
+// ===== WRAPPER =====
+.pay-wrap {
+  padding: 10px 12px 18px;
+}
+
+// ===== PAGE TITLE =====
+.pay-page-title {
+  margin-bottom: 14px;
+
+  .h1 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1f2a37;
+  }
+
+  .h2 {
+    margin-top: 4px;
+    font-size: 12px;
+    color: #6b7280;
+  }
+}
+
+// ===== KPI GRID =====
+.pay-kpi-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 14px;
+
+  @media (max-width: 720px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pay-kpi {
+  background: #fff;
+  border: 1px solid #eef2f7;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+.pay-kpi-label {
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  color: #9aa3af;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.pay-kpi-value {
+  margin-top: 8px;
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+
+  .rs {
+    font-size: 14px;
+    opacity: 0.7;
+  }
+
+  &--green {
+    color: #16a34a;
+  }
+}
+
+.pay-kpi--pending {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+
+  .pay-kpi-value {
+    font-size: 22px;
+  }
+}
+
+// ===== ADD BUTTON ROW =====
+.pay-action-row {
+  margin-bottom: 14px;
+  display: flex;
+  justify-content: center;
+}
+
+.pay-add {
+  min-width: 190px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+// ===== HISTORY CONTAINER =====
+.pay-history {
+  background: #fff;
+  border: 1px dashed #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+}
+
+// ===== EMPTY STATE =====
+.pay-empty {
+  text-align: center;
+  padding: 18px 10px;
+}
+
+.pay-empty-ic {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 10px;
+  border-radius: 12px;
+  background: #f3f4f6;
+  display: grid;
+  place-items: center;
+  color: #6b7280;
+  font-size: 20px;
+}
+
+.pay-empty-t1 {
+  font-size: 14px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.pay-empty-t2 {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+// ===== HISTORY LIST =====
+.pay-list {
+  display: grid;
+  gap: 8px;
+}
+
+.pay-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 120px;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #eef2f7;
+  background: #fff;
+
+  &--head {
+    font-weight: 800;
+    color: #374151;
+    background: #f9fafb;
+  }
+
+  .muted {
+    color: #6b7280;
+  }
+
+  .right {
+    text-align: right;
+    font-weight: 800;
+    color: #111827;
+  }
+}
+
+// ===== BOTTOM ACTIONS =====
+.pay-bottom {
+  margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+// ===== BUTTONS =====
+.btn {
+  height: 38px;
+  border-radius: 10px;
+  padding: 0 16px;
+  border: 1px solid transparent;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+
+  &.primary {
+    background: #2563eb;
+    color: #fff;
+  }
+
+  &.outline {
+    background: #fff;
+    border-color: rgba(47, 111, 237, 0.45);
+    color: #2f6fed;
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+// ===== RESPONSIVE =====
+@media (max-width: 480px) {
+  .pay-row {
+    grid-template-columns: 90px 1fr 90px;
+  }
+
+  .pay-bottom {
+    flex-direction: column;
+
+    .btn {
+      width: 100%;
+    }
+  }
+}
