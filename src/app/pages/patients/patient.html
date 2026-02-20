@@ -19,6 +19,7 @@
     >
       <ion-segment-button
         value="prelim"
+        *ngIf="isTabAllowed('prelim')"
         [disabled]="isTabDisabled('prelim')"
       >
         <ion-label>PRELIMINARY</ion-label>
@@ -26,6 +27,7 @@
 
       <ion-segment-button
         value="medical"
+        *ngIf="isTabAllowed('medical')"
         [disabled]="isTabDisabled('medical')"
       >
         <ion-label>MEDICAL</ion-label>
@@ -33,6 +35,7 @@
 
       <ion-segment-button
         value="followup"
+        *ngIf="isTabAllowed('followup')"
         [disabled]="isTabDisabled('followup')"
       >
         <ion-label>FOLLOW UP</ion-label>
@@ -40,6 +43,7 @@
 
       <ion-segment-button
         value="payment"
+        *ngIf="isTabAllowed('payment')"
         [disabled]="isTabDisabled('payment')"
       >
         <ion-label>PAYMENT</ion-label>
@@ -47,6 +51,7 @@
 
       <ion-segment-button
         value="reports"
+        *ngIf="isTabAllowed('reports')"
         [disabled]="isTabDisabled('reports')"
       >
         <ion-label>REPORTS</ion-label>

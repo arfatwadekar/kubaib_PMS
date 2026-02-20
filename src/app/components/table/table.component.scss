@@ -52,3 +52,41 @@
 .pager-btn:disabled {
   opacity: 0.5;
 }
+
+// Responsive styles
+@media (max-width: 768px) {
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .thead, .tbody {
+    min-width: 600px; // Ensure table doesn't get too narrow
+  }
+
+  .th, .td {
+    padding: 8px 6px; // Reduce padding on small screens
+    font-size: 13px;
+  }
+
+  .pager {
+    justify-content: center; // Center pagination on small screens
+    padding: 10px;
+  }
+
+  .pager-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .thead, .tbody {
+    min-width: 700px; // Wider min-width for very small screens
+  }
+
+  .th, .td {
+    padding: 6px 4px;
+    font-size: 12px;
+  }
+}

@@ -180,10 +180,16 @@ export class DashboardPage {
       .trim()
       .toLowerCase();
 
+    // Determine tab based on appointment status
+    let tab = 'prelim';
+    if (role === 'doctor') {
+      tab = row.statusCode === AppointmentStatus.AwaitingPayment ? 'payment' : 'medical';
+    }
+
     this.router.navigate(['/patients'], {
       queryParams: {
         patientId: row.patientId,
-        tab: role === 'doctor' ? 'medical' : 'prelim',
+        tab: tab,
       },
     });
   }

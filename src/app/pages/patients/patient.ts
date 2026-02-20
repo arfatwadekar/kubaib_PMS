@@ -70,13 +70,11 @@ export class PatientPage implements OnInit {
   isTabAllowed(tab: TabKey): boolean {
     if (this.role === 'Doctor') return true;
 
-    // Receptionist allowed tabs
+    // Receptionist allowed tabs: Preliminary, Payment, Reports
     return (
       tab === 'prelim' ||
       tab === 'payment' ||
-      tab === 'reports' ||
-      tab === 'followup' ||
-      tab === 'medical'
+      tab === 'reports'
     );
   }
 

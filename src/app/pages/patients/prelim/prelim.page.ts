@@ -108,7 +108,16 @@ export class PrelimPage implements OnInit, OnDestroy {
     aadharNumber: [''],
     panNumber: [''],
     referredBy: [''],
+
+    father: [''],
+    mother: [''],
+    brothers: [''],
+    sisters: [''],
+    spouse: [''],
+    sons: [''],
+    daughters: [''],
   });
+  
 
   constructor(
     private fb: FormBuilder,
@@ -169,14 +178,24 @@ export class PrelimPage implements OnInit, OnDestroy {
 
       const birthDate = new Date(dob);
       const today = new Date();
-      let age = today.getFullYear() - birthDate.getFullYear();
-      const monthDiff = today.getMonth() - birthDate.getMonth();
+      let years = today.getFullYear() - birthDate.getFullYear();
+      let months = today.getMonth() - birthDate.getMonth();
 
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--;
+      if (months < 0 || (months === 0 && today.getDate() < birthDate.getDate())) {
+        years--;
+        months += 12;
       }
 
-      this.form.patchValue({ age: age.toString() }, { emitEvent: false });
+      if (today.getDate() < birthDate.getDate()) {
+        months--;
+        if (months < 0) {
+          months += 12;
+          years--;
+        }
+      }
+
+      const ageStr = years > 0 ? `${years} Years ${months} Months` : `${months} Months`;
+      this.form.patchValue({ age: ageStr }, { emitEvent: false });
     });
   }
 
@@ -231,6 +250,14 @@ export class PrelimPage implements OnInit, OnDestroy {
           aadharNumber: safeStr(p?.aadharNumber),
           panNumber: safeStr(p?.panNumber),
           referredBy: safeStr(p?.referredBy),
+
+          father: safeStr(p?.father),
+          mother: safeStr(p?.mother),
+          brothers: safeStr(p?.brothers),
+          sisters: safeStr(p?.sisters),
+          spouse: safeStr(p?.spouse),
+          sons: safeStr(p?.sons),
+          daughters: safeStr(p?.daughters),
         });
       },
       error: (err) => {
@@ -246,7 +273,7 @@ export class PrelimPage implements OnInit, OnDestroy {
   submit() {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
-      void this.toast('Full Name, DOB and Phone Number (10 digits) are required.');
+      void this.toast('First Name, Last Name, Gender, DOB and Phone Number (10 digits) are required.');
       return;
     }
 
@@ -344,6 +371,14 @@ export class PrelimPage implements OnInit, OnDestroy {
       aadharNumber: nullIfDigitsBlank(v.aadharNumber, 12),
       panNumber: nullIfBlank(v.panNumber),
       referredBy: nullIfBlank(v.referredBy),
+
+      father: nullIfBlank(v.father),
+      mother: nullIfBlank(v.mother),
+      brothers: nullIfBlank(v.brothers),
+      sisters: nullIfBlank(v.sisters),
+      spouse: nullIfBlank(v.spouse),
+      sons: nullIfBlank(v.sons),
+      daughters: nullIfBlank(v.daughters),
     };
   }
 
@@ -382,6 +417,14 @@ export class PrelimPage implements OnInit, OnDestroy {
       aadharNumber: nullIfDigitsBlank(v.aadharNumber, 12),
       panNumber: nullIfBlank(v.panNumber),
       referredBy: nullIfBlank(v.referredBy),
+
+      father: nullIfBlank(v.father),
+      mother: nullIfBlank(v.mother),
+      brothers: nullIfBlank(v.brothers),
+      sisters: nullIfBlank(v.sisters),
+      spouse: nullIfBlank(v.spouse),
+      sons: nullIfBlank(v.sons),
+      daughters: nullIfBlank(v.daughters),
     };
   }
 
@@ -410,6 +453,14 @@ export class PrelimPage implements OnInit, OnDestroy {
       aadharNumber: '',
       panNumber: '',
       referredBy: '',
+
+      father: '',
+      mother: '',
+      brothers: '',
+      sisters: '',
+      spouse: '',
+      sons: '',
+      daughters: '',
     });
   }
 

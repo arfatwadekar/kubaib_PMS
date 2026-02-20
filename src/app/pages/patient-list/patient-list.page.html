@@ -74,13 +74,23 @@
     ></app-table>
 
     <ng-template #actionTpl let-r>
-      <button
-        class="pill-btn"
-        type="button"
-        (click)="openApptModal(r, $event)"
-      >
-        {{ r.hasActiveAppointment ? 'View Appointment' : 'Create Appointment' }}
-      </button>
+      <div class="action-buttons">
+        <button
+          class="pill-btn pill-btn--edit"
+          type="button"
+          (click)="editPatient(r, $event)"
+        >
+          Edit
+        </button>
+
+        <button
+          class="pill-btn"
+          type="button"
+          (click)="openApptModal(r, $event)"
+        >
+          {{ r.hasActiveAppointment ? 'View Appointment' : 'Create Appointment' }}
+        </button>
+      </div>
     </ng-template>
   </div>
 </ion-content>

@@ -115,11 +115,79 @@ export class ReportPage implements OnInit, OnDestroy {
 
     // ✅ Build rows once
     this.buildRows();
+
+    // ✅ Clear fields when date changes
+    this.form.get('reportDate')?.valueChanges.pipe(takeUntil(this.destroy$)).subscribe((newDate) => {
+      if (newDate && this.patientId) {
+        this.loadReportForDate(newDate);
+      } else {
+        this.clearReportFields();
+      }
+    });
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  // -----------------------------
+  // Load Report for Date
+  // -----------------------------
+  private loadReportForDate(date: string) {
+    if (!this.patientId) return;
+
+    this.loading = true;
+    this.api.getByPatient(this.patientId).pipe(takeUntil(this.destroy$)).subscribe({
+      next: (res: any) => {
+        const reports = res?.data || res || [];
+        const report = reports.find((r: any) => r.reportDate?.startsWith(date));
+
+        if (report) {
+          this.populateFormFromReport(report);
+        } else {
+          this.clearReportFields();
+        }
+        this.loading = false;
+      },
+      error: () => {
+        this.clearReportFields();
+        this.loading = false;
+      }
+    });
+  }
+
+  private populateFormFromReport(report: any) {
+    this.form.patchValue({
+      reportName: report.reportName || '',
+      labName: report.labName || '',
+      referredBy: report.referredBy || '',
+      summary: report.summary || '',
+    });
+
+    // Populate items from report data
+    this.rowsMeta.forEach((meta, index) => {
+      const value = report[meta.apiKey] || '';
+      this.items.at(index).get('value')?.setValue(value);
+    });
+  }
+
+  // -----------------------------
+  // Clear Fields on Date Change
+  // -----------------------------
+  private clearReportFields() {
+    // Clear all item values
+    this.items.controls.forEach(control => {
+      control.get('value')?.setValue('');
+    });
+
+    // Clear other fields except date
+    this.form.patchValue({
+      reportName: '',
+      labName: '',
+      referredBy: '',
+      summary: '',
+    });
   }
 
   // -----------------------------

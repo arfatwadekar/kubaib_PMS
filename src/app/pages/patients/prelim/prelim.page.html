@@ -40,23 +40,38 @@
         </ion-col>
       </ion-row>
 
-      <!-- DOB + AGE -->
+      <!-- GENDER + DOB -->
       <ion-row>
         <ion-col size="12" sizeMd="6">
           <div class="f">
-            <label>DOB <span class="req">*</span></label>
-            <input class="inp" type="date" formControlName="dateOfBirth" />
+            <label>GENDER <span class="req">*</span></label>
+            <select class="inp" formControlName="gender">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+            </select>
           </div>
         </ion-col>
 
         <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>DATE OF BIRTH <span class="req">*</span></label>
+            <input class="inp" type="date" formControlName="dateOfBirth" />
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <!-- AGE -->
+      <ion-row>
+        <ion-col size="12">
           <div class="f">
             <label>AGE</label>
             <input class="inp" formControlName="age" readonly />
           </div>
         </ion-col>
+      </ion-row>
 
-        <!-- PHONE NUMBER -->
+      <!-- PHONE NUMBER -->
+      <ion-row>
         <ion-col size="12" sizeMd="6">
           <div class="f">
             <label>PHONE NUMBER <span class="req">*</span></label>
@@ -147,6 +162,64 @@
           <div class="f">
             <label>OCCUPATION</label>
             <input class="inp" formControlName="occupation" placeholder="Optional" />
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <!-- FAMILY -->
+      <ion-row>
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>FATHER</label>
+            <input class="inp" formControlName="father" placeholder="Optional" />
+          </div>
+        </ion-col>
+
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>MOTHER</label>
+            <input class="inp" formControlName="mother" placeholder="Optional" />
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>BROTHERS</label>
+            <input class="inp" formControlName="brothers" placeholder="Optional" />
+          </div>
+        </ion-col>
+
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>SISTERS</label>
+            <input class="inp" formControlName="sisters" placeholder="Optional" />
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>SPOUSE</label>
+            <input class="inp" formControlName="spouse" placeholder="Optional" />
+          </div>
+        </ion-col>
+
+        <ion-col size="12" sizeMd="6">
+          <div class="f">
+            <label>SONS</label>
+            <input class="inp" formControlName="sons" placeholder="Optional" />
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="12">
+          <div class="f">
+            <label>DAUGHTERS</label>
+            <input class="inp" formControlName="daughters" placeholder="Optional" />
           </div>
         </ion-col>
       </ion-row>

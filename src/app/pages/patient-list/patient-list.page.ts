@@ -54,11 +54,11 @@ export class PatientListPage implements OnInit, OnDestroy {
 
   // ---------------- TABLE CONFIG ----------------
   columns: TableColumn[] = [
-    { key: 'srNo', label: 'Sr', width: '60px', align: 'center' },
-    { key: 'pid', label: 'Patient ID', width: '140px' },
+    { key: 'srNo', label: 'Sr', width: '50px', align: 'center' },
+    { key: 'pid', label: 'Patient ID', width: '120px' },
     { key: 'name', label: 'Patient Name' },
-    { key: 'phone', label: 'Phone Number', width: '150px' },
-    { key: 'actions', label: 'Action', width: '200px', align: 'end' },
+    { key: 'phone', label: 'Phone Number', width: '130px' },
+    { key: 'actions', label: 'Action', width: '180px', align: 'end' },
   ];
 
   // ---------------- STREAMS ----------------
@@ -79,6 +79,11 @@ export class PatientListPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.setupSearchStream();
     this.loadPatients(true);   // 🔥 ALWAYS fires on page load
+  }
+
+  ionViewWillEnter(): void {
+    // Refresh the patient list when returning to this page (e.g., after creating a patient)
+    this.loadPatients(true);
   }
 
   ngOnDestroy(): void {
@@ -228,6 +233,13 @@ export class PatientListPage implements OnInit, OnDestroy {
   // MODAL
   // ============================================================
 
+  editPatient(row: Row, ev?: Event): void {
+    ev?.stopPropagation();
+    this.router.navigate(['/patients'], {
+      queryParams: { patientId: row.id, tab: 'prelim' },
+    });
+  }
+
   async openApptModal(row: Row, ev?: Event) {
     ev?.stopPropagation();
 
@@ -255,7 +267,7 @@ export class PatientListPage implements OnInit, OnDestroy {
   }
 
   goToCreatePatient(): void {
-    this.router.navigate(['/patients/create'], {
+    this.router.navigate(['/patients'], {
       queryParams: { q: this.searchText.trim() },
     });
   }
