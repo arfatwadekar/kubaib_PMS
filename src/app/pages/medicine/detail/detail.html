@@ -5,10 +5,12 @@
     </ion-buttons>
 
     <ion-title>
-      {{ isEdit ? 'Edit Medicine' : 'Create Medicine' }}
+      {{
+        mode === 'create' ? 'Create Medicine' :
+        mode === 'edit' ? 'Edit Medicine' :
+        'View Medicine'
+      }}
     </ion-title>
-
-  
   </ion-toolbar>
 </ion-header>
 
@@ -18,41 +20,55 @@
 
     <div class="medicine-card">
 
+      <!-- BACK LINK -->
       <div class="card-top">
         <a class="back-link" (click)="cancel()">
           ← Back to Listing
         </a>
       </div>
 
-      <!-- AUTO FILL BUTTON -->
-      <div *ngIf="!isEdit" class="auto-fill-section">
-        <button
-          type="button"
-          class="btn-auto"
-          (click)="autoFillTemplate()"
-        >
-          ⚡ Auto Fill From Existing
-        </button>
+      <!-- LOADING -->
+      <div *ngIf="loading" class="loading-state">
+        <ion-spinner name="crescent"></ion-spinner>
       </div>
 
-      <form [formGroup]="form" (ngSubmit)="save()">
+      <!-- FORM -->
+      <form
+        *ngIf="!loading"
+        [formGroup]="form"
+        (ngSubmit)="save()"
+      >
+
+        <!-- ================= BASIC INFO ================= -->
 
         <div class="section-title">Basic Information</div>
 
         <div class="form-group">
           <label>Medicine Name *</label>
-          <input type="text" formControlName="name" />
+          <input
+            type="text"
+            formControlName="name"
+            [readonly]="mode !== 'create'"
+          />
         </div>
 
         <div class="form-row">
+
           <div class="form-group">
             <label>Strength *</label>
-            <input type="text" formControlName="strength" />
+            <input
+              type="text"
+              formControlName="strength"
+              [readonly]="mode === 'view'"
+            />
           </div>
 
           <div class="form-group">
             <label>Dosage Form *</label>
-            <select formControlName="dosageForm">
+            <select
+              formControlName="dosageForm"
+              [disabled]="mode === 'view'"
+            >
               <option value="">Select form</option>
               <option value="Tablet">Tablet</option>
               <option value="Capsule">Capsule</option>
@@ -60,41 +76,104 @@
               <option value="Injection">Injection</option>
             </select>
           </div>
+
         </div>
 
         <div class="form-row">
+
           <div class="form-group">
             <label>Stock Quantity *</label>
-            <input type="number" formControlName="stockQuantity" />
+            <input
+              type="number"
+              formControlName="stockQuantity"
+              [readonly]="mode !== 'create'"
+            />
           </div>
 
           <div class="form-group">
             <label>Unit *</label>
-            <input type="text" formControlName="unit" />
+            <input
+              type="text"
+              formControlName="unit"
+              [readonly]="mode === 'view'"
+            />
           </div>
+
         </div>
+
+        <!-- ================= ADDITIONAL DETAILS ================= -->
 
         <div class="section-title">Additional Details</div>
 
         <div class="form-row">
+
           <div class="form-group">
-            <label>Batch Number *</label>
-            <input type="text" formControlName="batchNumber" />
+            <label>Batch Number</label>
+            <input
+              type="text"
+              formControlName="batchNumber"
+              [readonly]="mode === 'view'"
+            />
           </div>
 
           <div class="form-group">
-            <label>Expiry Date *</label>
-            <input type="date" formControlName="expiryDate" />
+            <label>Expiry Date</label>
+            <input
+              type="date"
+              formControlName="expiryDate"
+              [readonly]="mode === 'view'"
+            />
           </div>
+
         </div>
 
         <div class="form-group">
           <label>Notes</label>
-          <textarea rows="3" formControlName="notes"></textarea>
+          <textarea
+            rows="3"
+            formControlName="notes"
+            [readonly]="mode === 'view'"
+          ></textarea>
         </div>
 
-        <div class="form-actions">
-          <button type="button" class="btn-cancel" (click)="cancel()">
+        <!-- ================= STOCK MANAGEMENT ================= -->
+
+        <div
+          *ngIf="mode === 'edit'"
+          class="stock-management"
+        >
+          <div class="section-title">Stock Management</div>
+
+          <div class="stock-actions">
+            <button
+              type="button"
+              class="btn-primary"
+              (click)="adjustStock('add')"
+            >
+              + Add Stock
+            </button>
+
+            <button
+              type="button"
+              class="btn-danger"
+              (click)="adjustStock('reduce')"
+            >
+              - Reduce Stock
+            </button>
+          </div>
+        </div>
+
+        <!-- ================= ACTION BUTTONS ================= -->
+
+        <div
+          *ngIf="mode !== 'view'"
+          class="form-actions"
+        >
+          <button
+            type="button"
+            class="btn-cancel"
+            (click)="cancel()"
+          >
             Cancel
           </button>
 
@@ -103,7 +182,7 @@
             class="btn-save"
             [disabled]="form.invalid"
           >
-            {{ isEdit ? 'Update Medicine' : 'Create Medicine' }}
+            {{ mode === 'edit' ? 'Update Medicine' : 'Create Medicine' }}
           </button>
         </div>
 

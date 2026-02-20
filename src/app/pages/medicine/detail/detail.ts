@@ -1,8 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
+import { Subject, takeUntil } from 'rxjs';
 import { MedicineService, Medicine } from 'src/app/services/medicine.service';
+
+type PageMode = 'create' | 'edit' | 'view';
 
 @Component({
   selector: 'app-medicine-detail',
@@ -10,14 +13,17 @@ import { MedicineService, Medicine } from 'src/app/services/medicine.service';
   styleUrls: ['./detail.scss'],
   standalone: false,
 })
-export class DetailPage implements OnInit {
+export class DetailPage implements OnInit, OnDestroy {
 
   form!: FormGroup;
-  isEdit = false;
+
+  mode: PageMode = 'create';
   id!: number;
 
-  existingMedicines: Medicine[] = [];
   loading = false;
+  existingMedicines: Medicine[] = [];
+
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder,
@@ -28,128 +34,126 @@ export class DetailPage implements OnInit {
     private alertCtrl: AlertController
   ) {}
 
-  // ===============================
+  // ============================================================
   // INIT
-  // ===============================
+  // ============================================================
+
   ngOnInit(): void {
-    this.initForm();
+
+    this.initializeForm();
+    this.resolveMode();
+  }
+
+  private resolveMode(): void {
 
     const paramId = this.route.snapshot.paramMap.get('id');
+    const url = this.router.url;
 
-    if (paramId) {
-      this.isEdit = true;
+    if (url.includes('/view/')) {
+      this.mode = 'view';
+    } else if (paramId) {
+      this.mode = 'edit';
       this.id = +paramId;
-      this.loadMedicine();
     } else {
-      this.isEdit = false;
+      this.mode = 'create';
+    }
+
+    if (this.mode === 'create') {
       this.loadAllMedicines();
+    }
+
+    if (this.mode === 'edit' || this.mode === 'view') {
+      this.id = +paramId!;
+      this.loadMedicine();
     }
   }
 
-  // ===============================
+  // ============================================================
   // FORM INIT
-  // ===============================
-  private initForm(): void {
+  // ============================================================
+
+  private initializeForm(): void {
+
     this.form = this.fb.group({
-      name: [''],
-      strength: [''],
-      dosageForm: [''],
-      stockQuantity: [0],
-      unit: [''],
+      name: ['', Validators.required],
+      strength: ['', Validators.required],
+      dosageForm: ['', Validators.required],
+      stockQuantity: [0, [Validators.required, Validators.min(0)]],
+      unit: ['', Validators.required],
       batchNumber: [''],
       expiryDate: [''],
       notes: ['']
     });
   }
 
-  // ===============================
-  // LOAD SINGLE MEDICINE
-  // ===============================
+  // ============================================================
+  // LOAD SINGLE
+  // ============================================================
+
   private loadMedicine(): void {
+
     this.loading = true;
 
-    this.medicineService.getById(this.id).subscribe({
-      next: (res) => {
-        this.form.patchValue(res);
-        this.loading = false;
-      },
-      error: () => {
-        this.loading = false;
-        this.showToast('Failed to load medicine.', 'danger');
-      }
-    });
+    this.medicineService.getById(this.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+
+          this.form.patchValue(res);
+
+          // PRD RULE: Name non-editable in edit mode
+          if (this.mode === 'edit') {
+            this.form.get('name')?.disable();
+          }
+
+          // View mode: full disable
+          if (this.mode === 'view') {
+            this.form.disable();
+          }
+
+          this.loading = false;
+        },
+        error: () => {
+          this.loading = false;
+          this.showToast('Failed to load medicine.', 'danger');
+        }
+      });
   }
 
-  // ===============================
-  // LOAD ALL MEDICINES (FOR DUPLICATE CHECK)
-  // ===============================
+  // ============================================================
+  // LOAD ALL (DUPLICATE CHECK)
+  // ============================================================
+
   private loadAllMedicines(): void {
-    this.medicineService.getAll(1, 1000).subscribe({
-      next: (res) => {
-        this.existingMedicines = res?.data?.items ?? [];
-      },
-      error: () => {
-        this.existingMedicines = [];
-        this.showToast('Failed to load medicines list.', 'danger');
-      }
-    });
+
+    this.medicineService.getAll(1, 1000)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          this.existingMedicines = res?.data?.items ?? [];
+        },
+        error: () => {
+          this.existingMedicines = [];
+        }
+      });
   }
 
-  // ===============================
-  // AUTO FILL TEMPLATE
-  // ===============================
-  autoFillTemplate(): void {
-    if (!this.existingMedicines.length) {
-      this.showToast('No existing medicines available.', 'warning');
-      return;
-    }
+  // ============================================================
+  // SAVE
+  // ============================================================
 
-    const template = this.existingMedicines[0];
-
-    this.form.patchValue({
-      name: template.name || '',
-      strength: template.strength || '',
-      dosageForm: template.dosageForm || '',
-      unit: template.unit || '',
-      stockQuantity: 0,
-      batchNumber: '',
-      expiryDate: '',
-      notes: ''
-    });
-
-    this.showToast('Template applied successfully.', 'success');
-  }
-
-  // ===============================
-  // SAVE (PROFESSIONAL FLOW)
-  // ===============================
   async save(): Promise<void> {
 
-    const data = this.form.value;
-
-    // -------- BASIC VALIDATION --------
-    if (!data.name?.trim()) {
-      this.showToast('Medicine name is required.', 'warning');
+    if (this.mode === 'view') return;
+    if (this.form.invalid) {
+      this.showToast('Please fill all mandatory fields.', 'warning');
       return;
     }
 
-    if (!data.strength?.trim()) {
-      this.showToast('Strength is required.', 'warning');
-      return;
-    }
+    const data = this.form.getRawValue();
 
-    if (!data.dosageForm?.trim()) {
-      this.showToast('Dosage form is required.', 'warning');
-      return;
-    }
-
-    if (!data.unit?.trim()) {
-      this.showToast('Unit is required.', 'warning');
-      return;
-    }
-
-    // -------- DUPLICATE CHECK (CREATE ONLY) --------
-    if (!this.isEdit) {
+    // Duplicate check (create only)
+    if (this.mode === 'create') {
 
       const duplicate = this.existingMedicines.find(m =>
         m.name?.toLowerCase().trim() === data.name.toLowerCase().trim() &&
@@ -165,42 +169,114 @@ export class DetailPage implements OnInit {
 
     this.loading = true;
 
-    // -------- API CALL --------
-    if (this.isEdit) {
-      this.medicineService.update(this.id, data).subscribe({
+    const request$ =
+      this.mode === 'edit'
+        ? this.medicineService.update(this.id, data)
+        : this.medicineService.create(data);
+
+    request$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
         next: () => {
           this.loading = false;
-          this.showToast('Medicine updated successfully.', 'success');
+          this.showToast(
+            this.mode === 'edit'
+              ? 'Medicine updated successfully.'
+              : 'Medicine created successfully.',
+            'success'
+          );
           this.router.navigate(['/medicines']);
         },
         error: () => {
           this.loading = false;
-          this.showToast('Failed to update medicine.', 'danger');
+          this.showToast('Operation failed.', 'danger');
         }
       });
-    } else {
-      this.medicineService.create(data).subscribe({
-        next: () => {
-          this.loading = false;
-          this.showToast('Medicine created successfully.', 'success');
-          this.router.navigate(['/medicines']);
-        },
-        error: () => {
-          this.loading = false;
-          this.showToast('Failed to create medicine.', 'danger');
-        }
-      });
-    }
   }
 
-  // ===============================
-  // DUPLICATE CONFIRM POPUP
-  // ===============================
+  // ============================================================
+  // STOCK MANAGEMENT (EDIT ONLY)
+  // ============================================================
+
+  async adjustStock(type: 'add' | 'reduce') {
+
+    if (this.mode !== 'edit') return;
+
+    const alert = await this.alertCtrl.create({
+      header: type === 'add' ? 'Add Stock' : 'Reduce Stock',
+      inputs: [
+        {
+          name: 'quantity',
+          type: 'number',
+          placeholder: 'Enter quantity'
+        }
+      ],
+      buttons: [
+        { text: 'Cancel', role: 'cancel' },
+        {
+          text: 'Confirm',
+          handler: (data) => {
+
+            const qty = Number(data.quantity);
+
+            if (!qty || qty <= 0) {
+              this.showToast('Enter valid quantity.');
+              return false;
+            }
+
+            const current = this.form.getRawValue().stockQuantity;
+
+            const newStock =
+              type === 'add'
+                ? current + qty
+                : current - qty;
+
+            if (newStock < 0) {
+              this.showToast('Stock cannot be negative.');
+              return false;
+            }
+
+            this.updateStock(newStock);
+            return true;
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  private updateStock(newStock: number): void {
+
+    const payload = {
+      ...this.form.getRawValue(),
+      stockQuantity: newStock
+    };
+
+    this.medicineService.update(this.id, payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.form.patchValue({ stockQuantity: newStock });
+          this.showToast('Stock updated successfully.', 'success');
+        },
+        error: () => {
+          this.showToast('Stock update failed.', 'danger');
+        }
+      });
+  }
+
+  // ============================================================
+  // DUPLICATE CONFIRM
+  // ============================================================
+
   private async confirmDuplicate(): Promise<boolean> {
+
     return new Promise(async (resolve) => {
+
       const alert = await this.alertCtrl.create({
-        header: 'Medicine Already Exists',
-        message: 'A medicine with same details already exists. Do you want to continue?',
+        header: 'Duplicate Medicine',
+        message: 'A similar medicine already exists. Continue?',
         buttons: [
           {
             text: 'Cancel',
@@ -218,17 +294,20 @@ export class DetailPage implements OnInit {
     });
   }
 
-  // ===============================
-  // CANCEL
-  // ===============================
+  // ============================================================
+  // NAVIGATION
+  // ============================================================
+
   cancel(): void {
     this.router.navigate(['/medicines']);
   }
 
-  // ===============================
+  // ============================================================
   // TOAST
-  // ===============================
+  // ============================================================
+
   private async showToast(message: string, color: string = 'primary') {
+
     const toast = await this.toastCtrl.create({
       message,
       duration: 2500,
@@ -237,5 +316,14 @@ export class DetailPage implements OnInit {
     });
 
     await toast.present();
+  }
+
+  // ============================================================
+  // CLEANUP
+  // ============================================================
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

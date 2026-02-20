@@ -6,7 +6,8 @@ import { DetailPage } from './detail/detail';
 const routes: Routes = [
   { path: '', component: ListingPage },
   { path: 'create', component: DetailPage },
-  { path: 'edit/:id', component: DetailPage }
+  { path: 'edit/:id', component: DetailPage },
+  { path: 'view/:id', component: DetailPage }  // ✅ ADD THIS
 ];
 
 @NgModule({

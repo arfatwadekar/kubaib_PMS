@@ -1,11 +1,10 @@
-
 <ion-header>
   <ion-toolbar>
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
 
-    <ion-title>Medicine Listing</ion-title>
+    <ion-title>Medicine Dashboard</ion-title>
 
     <ion-buttons slot="end">
       <ion-button fill="clear" (click)="refresh()">Refresh</ion-button>
@@ -20,16 +19,11 @@
     <!-- Header -->
     <div class="card-header">
       <h2>Medicine Search</h2>
-
-      <button class="btn-new" (click)="create()">
-        + New Medicine
-      </button>
+      <button class="btn-new" (click)="create()">+ New Medicine</button>
     </div>
 
     <!-- Search -->
     <div class="search-box">
-      <!-- <ion-icon name="search-outline" class="search-icon"></ion-icon> -->
-
       <input
         type="text"
         [(ngModel)]="search"
@@ -38,52 +32,82 @@
       />
     </div>
 
+    <!-- Loading -->
+    <div *ngIf="loading" class="loading-state">
+      <ion-spinner name="crescent"></ion-spinner>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="!loading && errorMessage" class="error-state">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Empty -->
+    <div *ngIf="!loading && medicines.length === 0 && !errorMessage" class="empty-state">
+      <p>No medicine found.</p>
+      <button class="btn-new" (click)="create()">Create New Medicine</button>
+    </div>
+
     <!-- Table -->
-    <table class="medicine-table">
+    <table *ngIf="!loading && medicines.length > 0" class="medicine-table">
 
       <thead>
         <tr>
           <th>Medicine Name</th>
           <th>Strength</th>
           <th>Dosage Form</th>
-          <th>Available Stock</th>
+          <th>Stock</th>
+          <th>Unit</th>
           <th>Actions</th>
         </tr>
       </thead>
 
       <tbody>
-
         <tr *ngFor="let m of medicines">
-
-          <td class="med-name">{{ m.name }}</td>
-
+          <td>{{ m.name }}</td>
           <td>{{ m.strength }}</td>
-
           <td>{{ m.dosageForm }}</td>
-
+          <td>{{ m.stockQuantity }}</td>
+          <td>{{ m.unit }}</td>
           <td>
-            <span
-              class="stock-badge"
-              [ngClass]="getStockClass(m.stockQuantity)"
-            >
-              {{ m.stockQuantity }} {{ m.unit }}
-            </span>
+            <button (click)="view(m.medicineId)">View</button>
+            <button (click)="edit(m.medicineId)">Edit</button>
+            <button (click)="delete(m.medicineId)">Delete</button>
           </td>
-
-          <td>
-            <button
-              class="btn-edit"
-              (click)="edit(m.medicineId)"
-            >
-              Edit
-            </button>
-          </td>
-
         </tr>
-
       </tbody>
-
     </table>
+
+    <!-- Pagination -->
+   <div *ngIf="!loading && totalPages > 1" class="pagination-container">
+
+  <button (click)="prevPage()" [disabled]="page === 1">
+    Previous
+  </button>
+
+  <ng-container *ngFor="let p of pageNumbers">
+
+    <button
+      *ngIf="p > 0"
+      (click)="goToPage(p)"
+      [class.active]="p === page"
+    >
+      {{ p }}
+    </button>
+
+    <span *ngIf="p < 0" class="ellipsis">...</span>
+
+  </ng-container>
+
+  <button (click)="nextPage()" [disabled]="page === totalPages">
+    Next
+  </button>
+
+</div>
+
+    <div *ngIf="!loading && totalCount > 0" class="total-count">
+      Total Records: {{ totalCount }}
+    </div>
 
   </div>
 
