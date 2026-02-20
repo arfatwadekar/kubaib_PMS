@@ -115,6 +115,105 @@
 </ion-grid>
 
 
+<!-- ═══════════════════════════════════════════════════════════════
+     CHARTS ROW — paste inside <div class="dash-wrap">,
+     BELOW the kpi-grid and ABOVE the table-card
+     ═══════════════════════════════════════════════════════════════ -->
+
+<ion-grid class="charts-grid">
+  <ion-row>
+
+    <!-- ── Status Overview (Doughnut) ───────────────────────── -->
+    <ion-col size="12" sizeMd="12" sizeLg="4">
+      <ion-card class="chart-card">
+        <ion-card-header>
+          <ion-card-title class="chart-title">Status Overview</ion-card-title>
+          <ion-card-subtitle class="chart-sub">Distribution of today's patients</ion-card-subtitle>
+        </ion-card-header>
+
+        <ion-card-content>
+          <!-- Doughnut canvas -->
+          <div class="donut-container">
+            <!-- centre label rendered over the canvas via CSS -->
+            <div class="donut-center">
+              <span class="donut-num">{{ cards.today }}</span>
+              <span class="donut-lbl">Total</span>
+            </div>
+            <canvas
+              #donutChartRef="base-chart"
+              baseChart
+              [data]="doughnutChartData"
+              [type]="doughnutChartType"
+              [options]="doughnutChartOptions"
+            ></canvas>
+          </div>
+
+          <!-- Legend -->
+          <div class="donut-legend">
+            <div class="legend-row">
+              <span class="legend-dot" style="background:#F97316"></span>
+              <span class="legend-name">Pending Consultation</span>
+              <span class="legend-val">{{ cards.pending }} ({{ pct(cards.pending) }})</span>
+            </div>
+            <div class="legend-row">
+              <span class="legend-dot" style="background:#3B82F6"></span>
+              <span class="legend-name">In Patient</span>
+              <span class="legend-val">{{ cards.inPatient }} ({{ pct(cards.inPatient) }})</span>
+            </div>
+            <div class="legend-row">
+              <span class="legend-dot" style="background:#EAB308"></span>
+              <span class="legend-name">Awaiting Payment</span>
+              <span class="legend-val">{{ cards.awaitingPayment }} ({{ pct(cards.awaitingPayment) }})</span>
+            </div>
+            <div class="legend-row">
+              <span class="legend-dot" style="background:#22C55E"></span>
+              <span class="legend-name">Out Patient</span>
+              <span class="legend-val">{{ cards.outPatient }} ({{ pct(cards.outPatient) }})</span>
+            </div>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </ion-col>
+
+    <!-- ── Weekly Overview (Bar) ────────────────────────────── -->
+    <ion-col size="12" sizeMd="12" sizeLg="8">
+      <ion-card class="chart-card">
+        <ion-card-header>
+          <div class="weekly-header">
+            <div>
+              <ion-card-title class="chart-title">Weekly Overview</ion-card-title>
+              <ion-card-subtitle class="chart-sub">Total patients per day</ion-card-subtitle>
+            </div>
+            <div class="week-nav">
+              <ion-button fill="clear" (click)="prevWeek()">
+                <ion-icon name="chevron-back-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+              <span class="week-label">{{ weekLabel }}</span>
+              <ion-button fill="clear" (click)="nextWeek()">
+                <ion-icon name="chevron-forward-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+            </div>
+          </div>
+        </ion-card-header>
+
+        <ion-card-content>
+          <div class="bar-container">
+            <canvas
+              #barChartRef="base-chart"
+              baseChart
+              [data]="barChartData"
+              [type]="barChartType"
+              [options]="barChartOptions"
+            ></canvas>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </ion-col>
+
+  </ion-row>
+</ion-grid>
+
+
     <!-- TABLE CARD (Like Screenshot) -->
     <ion-card class="table-card">
       <!-- Top bar -->

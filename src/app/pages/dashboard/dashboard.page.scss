@@ -302,3 +302,136 @@
     overflow-x: auto;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   CHART STYLES — add to dashboard.page.scss
+   ═══════════════════════════════════════════════════════════ */
+
+.charts-grid {
+  padding: 0;
+
+  ion-col { padding: 6px; }
+}
+
+.chart-card {
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  margin: 0;
+
+  ion-card-header { padding-bottom: 4px; }
+}
+
+.chart-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.chart-sub {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+// ── Doughnut ─────────────────────────────────────────────────
+.donut-container {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  margin: 8px auto 20px;
+
+  canvas { display: block; }
+}
+
+.donut-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.donut-num {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1;
+}
+
+.donut-lbl {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+// ── Legend ───────────────────────────────────────────────────
+.donut-legend { padding: 0 4px; }
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-top: 1px solid #f1f5f9;
+
+  &:first-child { border-top: none; }
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-name {
+  flex: 1;
+  font-size: 0.82rem;
+  color: #475569;
+}
+
+.legend-val {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #1e293b;
+  white-space: nowrap;
+}
+
+// ── Weekly header ─────────────────────────────────────────────
+.weekly-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.week-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  ion-button {
+    --padding-start: 4px;
+    --padding-end:   4px;
+    color: #64748b;
+  }
+}
+
+.week-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  min-width: 110px;
+  text-align: center;
+}
+
+// ── Bar chart canvas ─────────────────────────────────────────
+.bar-container {
+  position: relative;
+  height: 200px;   // fixed height so Chart.js respects maintainAspectRatio: false
+
+  canvas { display: block; }
+}

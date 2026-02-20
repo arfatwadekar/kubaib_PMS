@@ -1,85 +1,91 @@
-
 <ion-content class="ion-padding">
-  <div class="pay-wrap">
 
-    <!-- Title -->
-    <div class="page-title pay-page-title">
-      <div class="h1">Billing &amp; Payments</div>
-      <div class="h2">Manage patient account balance and track payment history</div>
+<div class="billing-wrap">
+
+  <!-- SUMMARY CARDS -->
+  <div class="billing-summary">
+
+    <div class="summary-card">
+      <div class="label">Consultation Charges (This Visit)</div>
+      <div class="value">₹ {{ consultationCharges }}</div>
     </div>
 
-    <!-- KPI Cards -->
-    <div class="pay-kpi-grid">
-      <div class="pay-kpi pay-kpi--pending">
-        <div class="pay-kpi-label">PENDING AMOUNT</div>
-        <div class="pay-kpi-value">
-          <span class="rs">₹</span>
-          {{ payPendingAmount || 0 }}
-        </div>
-      </div>
-
-      <div class="pay-kpi">
-        <div class="pay-kpi-label">TOTAL CONSULTATION CHARGES</div>
-        <div class="pay-kpi-value">
-          <span class="rs">₹</span>
-          {{ payTotalCharges || 0 }}
-        </div>
-      </div>
-
-      <div class="pay-kpi pay-kpi--paid">
-        <div class="pay-kpi-label">TOTAL AMOUNT PAID</div>
-        <div class="pay-kpi-value pay-kpi-value--green">
-          <span class="rs">₹</span>
-          {{ payTotalPaid || 0 }}
-        </div>
-      </div>
+    <div class="summary-card">
+      <div class="label">Pending Balance (Previous)</div>
+      <div class="value">₹ {{ pendingBalance }}</div>
     </div>
 
-    <!-- Add Payment Button -->
-    <div class="pay-action-row">
-      <button class="btn primary pay-add" type="button" (click)="openAddPayment()">
-        <ion-icon name="add-outline"></ion-icon>
-        Add New Payment
-      </button>
-    </div>
-
-    <!-- Payment History -->
-    <div class="pay-history">
-
-      <!-- Empty State -->
-      <div class="pay-empty" *ngIf="payHistory.length === 0">
-        <div class="pay-empty-ic">
-          <ion-icon name="document-text-outline"></ion-icon>
-        </div>
-        <div class="pay-empty-t1">No Payment History</div>
-        <div class="pay-empty-t2">Pending payments will appear here once collected.</div>
-      </div>
-
-      <!-- History List -->
-      <div class="pay-list" *ngIf="payHistory.length > 0">
-        <div class="pay-row pay-row--head">
-          <div>Date</div>
-          <div>Remark</div>
-          <div class="right">Amount</div>
-        </div>
-
-        <div
-          class="pay-row"
-          *ngFor="let p of payHistory; trackBy: trackByIndex"
-        >
-          <div>{{ p.date }}</div>
-          <div class="muted">{{ p.remark || '-' }}</div>
-          <div class="right">₹ {{ p.amount || 0 }}</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Bottom Actions -->
-    <div class="pay-bottom">
-      <button class="btn outline" type="button" (click)="goPrevFollowUp()">
-        Previous: Follow Up
-      </button>
+    <div class="summary-card highlight">
+      <div class="label">Total Amount</div>
+      <div class="value">₹ {{ totalAmount }}</div>
     </div>
 
   </div>
+
+  <!-- ADD PAYMENT -->
+  <div class="add-payment-row">
+    <button class="btn-primary" (click)="addPaymentSection()">
+      + Add Payment
+    </button>
+  </div>
+
+  <!-- PAYMENT ENTRY STACK -->
+  <div *ngFor="let entry of paymentEntries" class="payment-entry">
+
+    <div class="form-row">
+      <label>Date</label>
+      <input type="date" [(ngModel)]="entry.date" />
+    </div>
+
+    <div class="form-row">
+      <label>Amount Paid</label>
+      <input type="number" [(ngModel)]="entry.amountPaid" />
+    </div>
+
+    <div class="form-row">
+      <label>Payment Mode</label>
+      <select [(ngModel)]="entry.paymentMode">
+        <option value="Cash">Cash</option>
+        <option value="Online">Online</option>
+      </select>
+    </div>
+
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="preview-section">
+    <div>New Pending Balance:</div>
+    <div class="preview-value">₹ {{ previewPendingBalance }}</div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="history-section" *ngIf="paymentHistory.length > 0">
+
+    <div class="history-row"
+         *ngFor="let h of paymentHistory">
+      <div>{{ h.paymentDate | date:'dd/MM/yyyy' }}</div>
+      <div>{{ h.paymentMode }}</div>
+      <div>₹ {{ h.amountPaid }}</div>
+    </div>
+
+  </div>
+
+  <!-- ACTION BUTTONS -->
+  <div class="footer-actions">
+
+    <button class="btn-success"
+            (click)="finalizePayments()"
+            [disabled]="paymentEntries.length === 0">
+      Save Payments
+    </button>
+
+    <button class="btn-outline"
+            (click)="markOutPatient()">
+      Mark as Out Patient
+    </button>
+
+  </div>
+
+</div>
+
 </ion-content>
