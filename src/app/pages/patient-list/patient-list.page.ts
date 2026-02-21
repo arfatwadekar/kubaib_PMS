@@ -25,6 +25,8 @@ type Row = {
   pid: string;
   name: string;
   phone: string;
+  gender: string;
+  status: 'Active' | 'Deactive';
   hasActiveAppointment: boolean;
   raw: any;
 };
@@ -36,7 +38,8 @@ type Row = {
   standalone: false,
 })
 export class PatientListPage implements OnInit, OnDestroy {
-  // ---------------- UI STATE ----------------
+
+  // ---------------- STATE ----------------
   loading = false;
 
   searchText = '';
@@ -52,16 +55,17 @@ export class PatientListPage implements OnInit, OnDestroy {
 
   rows: Row[] = [];
 
-  // ---------------- TABLE CONFIG ----------------
+  // ---------------- TABLE ----------------
   columns: TableColumn[] = [
     { key: 'srNo', label: 'Sr', width: '50px', align: 'center' },
     { key: 'pid', label: 'Patient ID', width: '120px' },
     { key: 'name', label: 'Patient Name' },
     { key: 'phone', label: 'Phone Number', width: '130px' },
+    { key: 'gender', label: 'Gender', width: '100px', align: 'center' },
+    { key: 'status', label: 'Status', width: '120px', align: 'center' },
     { key: 'actions', label: 'Action', width: '180px', align: 'end' },
   ];
 
-  // ---------------- STREAMS ----------------
   private subs = new Subscription();
   private search$ = new Subject<string>();
 
@@ -78,11 +82,10 @@ export class PatientListPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.setupSearchStream();
-    this.loadPatients(true);   // 🔥 ALWAYS fires on page load
+    this.loadPatients(true);
   }
 
   ionViewWillEnter(): void {
-    // Refresh the patient list when returning to this page (e.g., after creating a patient)
     this.loadPatients(true);
   }
 
@@ -99,23 +102,21 @@ export class PatientListPage implements OnInit, OnDestroy {
       .pipe(
         debounceTime(350),
         distinctUntilChanged(),
-        switchMap((q) => {
-          const query = (q || '').trim();
+        switchMap((query) => {
+          const q = (query || '').trim();
 
-          if (!query) {
-            // reset to listing mode
+          if (!q) {
             this.isSearching = false;
             this.searchedOnce = false;
             this.page = 1;
             return this.fetchPatients();
           }
 
-          // search mode
           this.isSearching = true;
           this.searchedOnce = true;
           this.loading = true;
 
-          return this.patientService.searchPatients(query).pipe(
+          return this.patientService.searchPatients(q).pipe(
             catchError((err) => {
               this.handleError(err, 'Search failed');
               return of(null);
@@ -129,7 +130,24 @@ export class PatientListPage implements OnInit, OnDestroy {
           return;
         }
 
-        const list = this.extractArray(res);
+        let list = this.extractArray(res);
+
+        // Exact match first
+        if (this.isSearching && this.searchText.trim()) {
+          const q = this.searchText.trim().toLowerCase();
+
+          list = list.sort((a: any, b: any) => {
+            const aExact =
+              a?.patientIdFormatted?.toLowerCase() === q ||
+              a?.phoneNumber === q;
+
+            const bExact =
+              b?.patientIdFormatted?.toLowerCase() === q ||
+              b?.phoneNumber === q;
+
+            return Number(bExact) - Number(aExact);
+          });
+        }
 
         if (this.isSearching) {
           this.rows = this.mapRows(list, 1);
@@ -151,8 +169,8 @@ export class PatientListPage implements OnInit, OnDestroy {
   // DATA LOAD
   // ============================================================
 
-  loadPatients(resetPage = false): void {
-    if (resetPage) this.page = 1;
+  loadPatients(reset = false): void {
+    if (reset) this.page = 1;
 
     this.isSearching = false;
     this.searchedOnce = false;
@@ -165,7 +183,7 @@ export class PatientListPage implements OnInit, OnDestroy {
         this.rows = this.mapRows(list, this.page);
         this.updatePagination(res, list);
       },
-      error: (err) => this.handleError(err, 'Failed to load patients'),
+      error: () => this.handleError(null, 'Failed to load patients'),
       complete: () => (this.loading = false),
     });
   }
@@ -173,12 +191,14 @@ export class PatientListPage implements OnInit, OnDestroy {
   private fetchPatients() {
     this.loading = true;
 
-    return this.patientService.getPatients(this.page, this.pageSize).pipe(
-      catchError((err) => {
-        this.handleError(err, 'Failed to load patients');
-        return of(null);
-      })
-    );
+    return this.patientService
+      .getPatients(this.page, this.pageSize)
+      .pipe(
+        catchError((err) => {
+          this.handleError(err, 'Failed to load patients');
+          return of(null);
+        })
+      );
   }
 
   // ============================================================
@@ -204,7 +224,7 @@ export class PatientListPage implements OnInit, OnDestroy {
       this.searchedOnce &&
       !this.loading &&
       this.rows.length === 0 &&
-      (this.searchText || '').trim().length > 0
+      this.searchText.trim().length > 0
     );
   }
 
@@ -230,7 +250,7 @@ export class PatientListPage implements OnInit, OnDestroy {
   }
 
   // ============================================================
-  // MODAL
+  // ACTIONS
   // ============================================================
 
   editPatient(row: Row, ev?: Event): void {
@@ -254,7 +274,6 @@ export class PatientListPage implements OnInit, OnDestroy {
         },
         mode: row.hasActiveAppointment ? 'edit' : 'create',
       },
-      cssClass: 'mhc-appt-modal',
       backdropDismiss: false,
     });
 
@@ -278,13 +297,7 @@ export class PatientListPage implements OnInit, OnDestroy {
 
   private extractArray(res: any): any[] {
     if (Array.isArray(res)) return res;
-    return (
-      res?.items ||
-      res?.data ||
-      res?.result ||
-      res?.patients ||
-      []
-    );
+    return res?.items || res?.data || res?.result || res?.patients || [];
   }
 
   private updatePagination(res: any, list: any[]): void {
@@ -297,15 +310,12 @@ export class PatientListPage implements OnInit, OnDestroy {
 
     this.totalCount = count;
     this.totalPages = pages;
-
-    this.hasNext =
-      pages > 0 ? this.page < pages : list.length === this.pageSize;
+    this.hasNext = pages > 0 ? this.page < pages : list.length === this.pageSize;
   }
 
   private mapRows(list: any[], page: number): Row[] {
     return list.map((p: any, idx: number) => {
-      const id =
-        Number(p?.patientsId ?? p?.patientId ?? p?.id ?? 0) || 0;
+      const id = Number(p?.patientsId ?? p?.patientId ?? p?.id ?? 0) || 0;
 
       const pid =
         p?.patientIdFormatted ??
@@ -324,6 +334,8 @@ export class PatientListPage implements OnInit, OnDestroy {
         pid: String(pid),
         name,
         phone: p?.phoneNumber || '-',
+        gender: p?.gender || 'NA',
+        status: p?.isActive === false ? 'Deactive' : 'Active',
         hasActiveAppointment: !!p?.hasActiveAppointment,
         raw: p,
       };
@@ -331,10 +343,7 @@ export class PatientListPage implements OnInit, OnDestroy {
   }
 
   private async handleError(err: any, fallback: string) {
-    const message =
-      err?.error?.message ||
-      err?.message ||
-      fallback;
+    const message = err?.error?.message || err?.message || fallback;
 
     const toast = await this.toastCtrl.create({
       message,
