@@ -1,0 +1,12 @@
+:host {
+  display: block;
+}
+
+.app-header ion-toolbar {
+  --background: #ffffff;
+  --border-color: rgba(0, 0, 0, 0.06);
+}
+
+.app-header ion-title {
+  font-weight: 600;
+}

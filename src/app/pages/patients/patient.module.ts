@@ -7,12 +7,14 @@ import { RouterModule, Routes } from '@angular/router';
 import { PatientPage } from './patient';
 
 import { PatientRoutingModule } from './patient-routing.module';
+import { HeaderModule } from 'src/app/components/header/header.module';
 
 @NgModule({
   declarations: [PatientPage],
   imports: [
     CommonModule,
     IonicModule,
+    HeaderModule,
     FormsModule,           // ✅ (ngModel/segment ke liye safe)
     ReactiveFormsModule,   // ✅ REQUIRED for [formGroup], formControlName
     PatientRoutingModule,

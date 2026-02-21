@@ -1,18 +1,6 @@
-<ion-header>
-  <ion-toolbar class="detail-toolbar">
-    <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
-    </ion-buttons>
-
-    <ion-title>
-      {{
-        mode === 'create' ? 'Create Medicine' :
-        mode === 'edit' ? 'Edit Medicine' :
-        'View Medicine'
-      }}
-    </ion-title>
-  </ion-toolbar>
-</ion-header>
+<app-header
+  [title]="mode === 'create' ? 'Create Medicine' : (mode === 'edit' ? 'Edit Medicine' : 'View Medicine')"
+></app-header>
 
 <ion-content [fullscreen]="true" class="detail-bg">
 

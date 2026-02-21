@@ -1,16 +1,4 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
-    </ion-buttons>
-
-    <ion-title>Medicine Dashboard</ion-title>
-
-    <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="refresh()">Refresh</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<app-header title="Medicine Dashboard" actionLabel="Refresh" (action)="refresh()"></app-header>
 
 <ion-content class="medicine-page">
 

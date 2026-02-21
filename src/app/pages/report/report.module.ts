@@ -5,6 +5,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
 
 import { ReportPage } from './report';
+import { HeaderModule } from 'src/app/components/header/header.module';
 
 const routes: Routes = [
   {
@@ -17,6 +18,7 @@ const routes: Routes = [
   imports: [
     CommonModule,
     IonicModule,
+    HeaderModule,
     ReactiveFormsModule, // ✅ IMPORTANT
     RouterModule.forChild(routes),
   ],

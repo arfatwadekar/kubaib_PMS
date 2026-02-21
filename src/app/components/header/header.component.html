@@ -1,0 +1,22 @@
+<ion-header class="app-header" mode="md">
+  <ion-toolbar>
+    <ion-buttons slot="start">
+      <ion-back-button
+        *ngIf="showBack"
+        defaultHref="/home"
+        text=""
+      ></ion-back-button>
+
+      <ion-menu-button *ngIf="!showBack"></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title>{{ title }}</ion-title>
+
+    <ion-buttons slot="end" *ngIf="actionIcon || actionLabel">
+      <ion-button (click)="onActionClick()">
+        <ion-icon *ngIf="actionIcon" slot="icon-only" [name]="actionIcon"></ion-icon>
+        <ng-container *ngIf="!actionIcon && actionLabel">{{ actionLabel }}</ng-container>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>

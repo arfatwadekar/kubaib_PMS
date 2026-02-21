@@ -104,6 +104,16 @@ export class SideMenuComponent implements OnInit {
 
   async go(url: string): Promise<void> {
     await this.menuCtrl.close(this.MENU_ID);
+
+    // If user is going to create a new patient (no patientId yet),
+    // force the prelim tab and disable other tabs via query param.
+    if (url === '/patients') {
+      await this.router.navigate(['/patients'], {
+        queryParams: { tab: 'prelim', mode: 'create' },
+      });
+      return;
+    }
+
     await this.router.navigateByUrl(url);
   }
 

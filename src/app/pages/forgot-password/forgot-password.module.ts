@@ -5,6 +5,7 @@ import { IonicModule } from '@ionic/angular';
 import { RouterModule, Routes } from '@angular/router';
 
 import { ForgotPasswordPage } from './forgot-password.page';
+import { HeaderModule } from 'src/app/components/header/header.module';
 
 const routes: Routes = [
   {
@@ -19,6 +20,7 @@ const routes: Routes = [
     FormsModule,
     ReactiveFormsModule,
     IonicModule,
+    HeaderModule,
     RouterModule.forChild(routes)
   ],
   declarations: [ForgotPasswordPage]

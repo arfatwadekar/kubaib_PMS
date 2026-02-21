@@ -1,89 +1,123 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
-    </ion-buttons>
+<app-header title="Patient List"></app-header>
 
-    <ion-title>Patient Listing</ion-title>
+<ion-content class="app-bg">
 
-    <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="refresh()">Refresh</ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+  <div class="app-card">
 
-<ion-content class="mhc-bg">
-  <div class="card">
-    <div class="card__head">
-      <div class="card__title">All Patients</div>
+    <!-- HEADER -->
+    <div class="card-header">
+      <div class="header-left">
+        <h2>All Patients</h2>
+        <p class="sub-text">Manage and track patient records</p>
+      </div>
 
-      <div class="topbar">
-        <div class="search">
+      <div class="header-right">
+
+        <div class="search-box">
           <ion-icon name="search-outline"></ion-icon>
           <input
+            type="text"
             placeholder="Search PID / Name / Phone"
             [(ngModel)]="searchText"
-            (input)="onSearchInput()"
             (keyup.enter)="search()"
           />
         </div>
 
-        <button
-          class="btn btn--primary"
-          *ngIf="!showCreatePatientBtn"
-          (click)="search()"
-          [disabled]="loading"
-        >
-          Search
-        </button>
+        <button class="btn btn-search" (click)="search()">Search</button>
+        <button class="btn btn-outline" (click)="clearSearch()">Clear</button>
 
-        <button
-          class="btn btn--primary"
-          *ngIf="showCreatePatientBtn"
-          (click)="goToCreatePatient()"
-        >
-          + Create Patient
-        </button>
-
-        <button
-          class="btn btn--ghost"
-          (click)="clearSearch()"
-          [disabled]="loading"
-        >
-          Clear
-        </button>
       </div>
     </div>
 
-    <app-table
-      [columns]="columns"
-      [rows]="rows"
-      [loading]="loading"
-      emptyText="No patients found."
-      [page]="page"
-      [disablePrev]="page === 1 || loading || isSearching"
-      [disableNext]="loading || isSearching || !hasNext"
-      (prev)="prevPage()"
-      (next)="nextPage()"
-      [rowTemplate]="actionTpl"
-    ></app-table>
+    <!-- TABLE -->
+    <div class="table-wrapper">
 
-    <ng-template #actionTpl let-r>
-      <div class="action-buttons">
-        <button
-          class="pill-btn pill-btn--edit"
-          (click)="editPatient(r, $event)"
-        >
-          Edit
-        </button>
-
-        <button
-          class="pill-btn"
-          (click)="openApptModal(r, $event)"
-        >
-          {{ r.hasActiveAppointment ? 'View Appointment' : 'Create Appointment' }}
-        </button>
+      <div class="table-head">
+        <div>Sr</div>
+        <div>PID</div>
+        <div>Name</div>
+        <div>Phone</div>
+        <div>Gender</div>
+        <div>Status</div>
+        <div>Actions</div>
       </div>
-    </ng-template>
+
+      <div *ngIf="loading" class="table-state">
+        Loading patients...
+      </div>
+
+      <div *ngIf="!loading && rows.length === 0" class="table-state">
+        No patients found
+      </div>
+
+      <div class="table-row" *ngFor="let r of rows; let i = index">
+
+        <div>{{ i + 1 }}</div>
+
+        <div>
+          <span class="pid-chip">{{ r.pid }}</span>
+        </div>
+
+        <div class="name-cell">{{ r.name }}</div>
+
+        <div>{{ r.phone }}</div>
+
+        <div>
+          <span class="gender-chip"
+                [ngClass]="{
+                  male: r.gender === 'Male',
+                  female: r.gender === 'Female'
+                }">
+            {{ r.gender }}
+          </span>
+        </div>
+
+        <div>
+          <span class="status-chip"
+                [ngClass]="{
+                  active: r.status === 'Active',
+                  inactive: r.status === 'Deactive'
+                }">
+            {{ r.status }}
+          </span>
+        </div>
+
+        <div class="actions">
+          <button class="btn btn-edit"
+                  (click)="editPatient(r)">
+            Edit
+          </button>
+
+          <button class="btn"
+                  [ngClass]="r.hasActiveAppointment ? 'btn-view' : 'btn-create'"
+                  (click)="openApptModal(r)">
+            {{ r.hasActiveAppointment ? 'View' : 'Create' }}
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- PAGINATION -->
+    <div class="pagination">
+      <button class="btn btn-outline"
+              (click)="prevPage()"
+              [disabled]="page === 1">
+        ← Prev
+      </button>
+
+      <div class="page-info">
+        Page {{ page }} of {{ totalPages }}
+      </div>
+
+      <button class="btn btn-outline"
+              (click)="nextPage()"
+              [disabled]="page === totalPages">
+        Next →
+      </button>
+    </div>
+
   </div>
+
 </ion-content>

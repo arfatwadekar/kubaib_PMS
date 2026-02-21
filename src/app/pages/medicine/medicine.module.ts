@@ -6,6 +6,7 @@ import { MedicineRoutingModule } from './medicine-routing.module';
 import { ListingPage } from './listing/listing';
 import { DetailPage } from './detail/detail';
 import { IonicModule } from '@ionic/angular';
+import { HeaderModule } from 'src/app/components/header/header.module';
 
 @NgModule({
   declarations: [
@@ -17,7 +18,8 @@ import { IonicModule } from '@ionic/angular';
     FormsModule,         // 🔥 for ngModel
     ReactiveFormsModule, // 🔥 for formGroup
     MedicineRoutingModule,
-    IonicModule
+    IonicModule,
+    HeaderModule
   ]
 })
 export class MedicineModule {}

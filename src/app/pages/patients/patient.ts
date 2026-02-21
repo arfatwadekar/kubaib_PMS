@@ -31,15 +31,23 @@ export class PatientPage implements OnInit {
       const id = Number(params['patientId']);
       this.patientId = id > 0 ? id : null;
 
-      const tab = params['tab'] as TabKey;
-      if (tab && this.isTabAllowed(tab)) {
-        this.activeTab = tab;
+      const mode = (params['mode'] || '') as string;
+      const isCreateMode = mode === 'create' || this.patientId === null;
+
+      // Always force prelim when creating
+      const tab = (params['tab'] as TabKey) || 'prelim';
+
+      // For edit/view, keep requested tab (if allowed). For create, lock to prelim.
+      const desiredTab: TabKey = isCreateMode ? 'prelim' : tab;
+
+      if (desiredTab && this.isTabAllowed(desiredTab)) {
+        this.activeTab = desiredTab;
       }
 
       // Check current child route
       const currentChild = this.route.snapshot.firstChild?.routeConfig?.path as TabKey;
-      if (tab && this.isTabAllowed(tab) && currentChild !== tab) {
-        this.navigateToTab(tab);
+      if (desiredTab && this.isTabAllowed(desiredTab) && currentChild !== desiredTab) {
+        this.navigateToTab(desiredTab);
       }
     });
   }
@@ -79,6 +87,15 @@ export class PatientPage implements OnInit {
   }
 
   isTabDisabled(tab: TabKey): boolean {
+    // When creating a patient (no patientId yet OR mode=create),
+    // only Preliminary tab should be enabled.
+    const mode = (this.route.snapshot.queryParamMap.get('mode') || '');
+    const isCreateMode = mode === 'create' || this.patientId === null;
+
+    if (isCreateMode) {
+      return tab !== 'prelim';
+    }
+
     return !this.isTabAllowed(tab);
   }
 }

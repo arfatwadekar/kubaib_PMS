@@ -8,12 +8,14 @@ import { RouterModule }          from '@angular/router';
 import { BaseChartDirective, provideCharts, withDefaultRegisterables } from 'ng2-charts';
 
 import { DashboardPage } from './dashboard.page';
+import { HeaderModule } from 'src/app/components/header/header.module';
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
     IonicModule,            // ✅ required for all ion-* elements
+    HeaderModule,
     BaseChartDirective,     // ✅ ng2-charts v5 directive (standalone, importable directly)
     RouterModule.forChild([{ path: '', component: DashboardPage }]),
   ],

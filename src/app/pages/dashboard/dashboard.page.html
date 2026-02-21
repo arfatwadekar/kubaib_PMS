@@ -1,18 +1,4 @@
-<ion-header class="dash-header">
-  <ion-toolbar>
-    <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
-    </ion-buttons>
-
-    <ion-title class="dash-title">Mariam Health Care</ion-title>
-
-    <ion-buttons slot="end">
-      <ion-button fill="clear" (click)="doRefresh()">
-        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
-      </ion-button>
-    </ion-buttons>
-  </ion-toolbar>
-</ion-header>
+<app-header title="Mariam Health Care" actionIcon="refresh-outline" (action)="doRefresh()"></app-header>
 
 <ion-content class="dash-bg">
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
