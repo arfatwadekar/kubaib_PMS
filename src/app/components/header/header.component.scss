@@ -1,12 +1,31 @@
-:host {
-  display: block;
+.profile-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.app-header ion-toolbar {
-  --background: #ffffff;
-  --border-color: rgba(0, 0, 0, 0.06);
+.role {
+  font-size: 12px;
+  color: #6b7280;
 }
 
-.app-header ion-title {
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #e6f0ff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 600;
+}
+
+ion-popover {
+  --border-radius: 12px;
+  --box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.logout {
+  color: #ef4444;
 }

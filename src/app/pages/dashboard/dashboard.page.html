@@ -1,4 +1,9 @@
-<app-header title="Mariam Health Care" actionIcon="refresh-outline" (action)="doRefresh()"></app-header>
+<app-header
+  title="Mariam Health Care"
+  [showProfile]="true"
+  (editProfile)="onEditProfile()"
+  (logout)="onLogout()"
+></app-header>
 
 <ion-content class="dash-bg">
   <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">

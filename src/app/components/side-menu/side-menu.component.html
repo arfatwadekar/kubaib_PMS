@@ -1,8 +1,12 @@
-<ion-menu menuId="mainMenu" contentId="main-content" side="start" class="glass-menu">
-
+<ion-menu
+  menuId="mainMenu"
+  contentId="main-content"
+  side="start"
+  class="glass-menu"
+>
   <ion-content class="menu-content">
 
-    <!-- Brand -->
+    <!-- ================= BRAND ================= -->
     <div class="menu-brand">
       <div class="brand-icon">
         <ion-icon name="medkit-outline"></ion-icon>
@@ -10,13 +14,13 @@
       <div class="brand-text">MHC</div>
     </div>
 
-    <!-- Dashboard -->
+    <!-- ================= DASHBOARD ================= -->
     <div class="menu-item" (click)="go('/dashboard')">
       <ion-icon name="grid-outline"></ion-icon>
       <span>Patient Dashboard</span>
     </div>
 
-    <!-- Patient Section -->
+    <!-- ================= PATIENT ================= -->
     <div class="menu-section-title">PATIENT</div>
 
     <div class="menu-item" (click)="go('/patients/list')">
@@ -35,7 +39,13 @@
       <span>Create Patient ID</span>
     </div>
 
-    <!-- Medicine -->
+    <!-- PRD REQUIRED[ Need to Add This flow] -->
+    <!-- <div class="menu-item" (click)="go('/appointments/create')">
+      <ion-icon name="calendar-number-outline"></ion-icon>
+      <span>Create Appointment</span>
+    </div> -->
+
+    <!-- ================= MEDICINE INVENTORY ================= -->
     <div class="menu-section-title">MEDICINE INVENTORY</div>
 
     <div class="menu-item" (click)="go('/medicines')">
@@ -43,25 +53,35 @@
       <span>Medicine Dashboard</span>
     </div>
 
-    <div class="menu-item" (click)="go('/medicines')">
+    <div class="menu-item" (click)="go('/medicines/create')">
       <ion-icon name="add-circle-outline"></ion-icon>
       <span>Create Medicine</span>
     </div>
 
-    <!-- Reports -->
+    <!-- ================= OTHER ================= -->
+    <div class="menu-section-title">OTHER</div>
+
+    <div class="menu-item" (click)="go('/notifications')">
+      <ion-icon name="notifications-outline"></ion-icon>
+      <span>Notifications</span>
+    </div>
+
+    <div class="menu-item" (click)="go('/announcements')">
+      <ion-icon name="megaphone-outline"></ion-icon>
+      <span>Announcements</span>
+    </div>
+
+    <div class="menu-item" (click)="go('/reviews')">
+      <ion-icon name="logo-youtube"></ion-icon>
+      <span>Add Reviews</span>
+    </div>
+
     <div class="menu-item" (click)="go('/reports')">
       <ion-icon name="document-text-outline"></ion-icon>
       <span>Reports</span>
     </div>
 
-
-    <!-- Notification -->
-     <div class="menu-item" (click)="go('/notifications')">
-      <ion-icon name="notifications-outline"></ion-icon>
-      <span>Notification</span>
-    </div>
-
-    <!-- Logout -->
+    <!-- ================= LOGOUT ================= -->
     <div class="menu-item logout" (click)="logout()">
       <ion-icon name="log-out-outline"></ion-icon>
       <span>Logout</span>

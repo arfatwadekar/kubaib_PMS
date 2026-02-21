@@ -1,13 +1,13 @@
 <app-header title="Search Appointments"></app-header>
 
-<!-- SEGMENT BELOW HEADER -->
+<!-- SEGMENT -->
 <ion-toolbar class="segment-bar">
   <ion-segment
     [value]="viewMode"
     (ionChange)="onSegmentChange($event)"
   >
     <ion-segment-button value="queue">
-      <ion-label>Queue</ion-label>
+      <ion-label>Future</ion-label>
     </ion-segment-button>
 
     <ion-segment-button value="today">
@@ -16,14 +16,13 @@
   </ion-segment>
 </ion-toolbar>
 
-<ion-content class="page" style="    --padding-bottom: 11rem !important;">
+<ion-content class="page" style="--padding-bottom: 11rem !important;">
 
-  <!-- REFRESH -->
   <ion-refresher slot="fixed" (ionRefresh)="load($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- FILTERS -->
+  <!-- FILTER -->
   <div class="card filters">
     <div class="grid">
 
@@ -41,6 +40,7 @@
         <ion-select
           [(ngModel)]="statusFilter"
           (ionChange)="applyFilter()"
+          [disabled]="viewMode === 'queue'"
         >
           <ion-select-option
             *ngFor="let s of statusOptions"
@@ -77,16 +77,16 @@
           {{ r.patient?.fullName || 'Unknown' }}
         </div>
         <div class="sub">
-          {{ r.patient?.patientIdFormatted }} •
-          {{ r.patient?.phoneNumber }}
+          {{ r.patient?.patientIdFormatted || '—' }} •
+          {{ r.patient?.phoneNumber || '—' }}
         </div>
       </div>
 
       <ion-chip
         class="status-chip"
-        [color]="statusColor(r.status)"
+        [color]="viewMode === 'queue' ? 'medium' : statusColor(r.status)"
       >
-        {{ r.statusText }}
+        {{ viewMode === 'queue' ? 'Upcoming' : r.statusText }}
       </ion-chip>
     </div>
 
@@ -94,12 +94,16 @@
     <div class="meta">
       <div class="m">
         <div class="k">Date</div>
-        <div class="v">{{ r.appointmentDate | date:'mediumDate' }}</div>
+        <div class="v">
+          {{ r.appointmentDate | date:'mediumDate' }}
+        </div>
       </div>
 
       <div class="m">
         <div class="k">Time</div>
-        <div class="v">{{ r.appointmentTimeFormatted }}</div>
+        <div class="v">
+          {{ r.appointmentTimeFormatted || '—' }}
+        </div>
       </div>
 
       <div class="m">
@@ -113,34 +117,50 @@
     <!-- ACTIONS -->
     <div class="actions">
 
+      <!-- FUTURE TAB -->
       <ion-button
+        *ngIf="viewMode === 'queue'"
         size="small"
-        fill="outline"
-        (click)="r._editing ? closeEdit(r) : openEdit(r)"
+        color="danger"
+        (click)="confirmStatus(r, AppointmentStatus.Cancelled)"
         [disabled]="r._saving"
       >
-        {{ r._editing ? 'Cancel' : 'Edit' }}
+        Cancel
       </ion-button>
 
-      <ion-select
-        class="status-dd"
-        placeholder="Change Status"
-        (ionChange)="confirmStatus(r, $event.detail.value)"
-        [disabled]="r._saving"
-      >
-        <ion-select-option
-          *ngFor="let s of statusOptions"
-          [value]="s.value"
-          [disabled]="s.value === 0 || s.value === r.status"
+      <!-- TODAY TAB -->
+      <ng-container *ngIf="viewMode === 'today'">
+
+        <ion-button
+          size="small"
+          fill="outline"
+          (click)="r._editing ? closeEdit(r) : openEdit(r)"
+          [disabled]="r._saving"
         >
-          {{ s.label }}
-        </ion-select-option>
-      </ion-select>
+          {{ r._editing ? 'Cancel' : 'Edit' }}
+        </ion-button>
+
+        <ion-select
+          class="status-dd"
+          placeholder="Change Status"
+          (ionChange)="confirmStatus(r, $event.detail.value)"
+          [disabled]="r._saving"
+        >
+          <ion-select-option
+            *ngFor="let s of statusOptions"
+            [value]="s.value"
+            [disabled]="s.value === 0 || s.value === r.status"
+          >
+            {{ s.label }}
+          </ion-select-option>
+        </ion-select>
+
+      </ng-container>
 
     </div>
 
-    <!-- EDIT PANEL -->
-    <div *ngIf="r._editing" class="edit">
+    <!-- EDIT PANEL (ONLY TODAY) -->
+    <div *ngIf="r._editing && viewMode === 'today'" class="edit">
 
       <div class="edit-grid">
 

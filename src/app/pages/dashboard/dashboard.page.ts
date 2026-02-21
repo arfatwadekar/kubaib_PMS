@@ -532,4 +532,13 @@ export class DashboardPage {
     const t = await this.toastCtrl.create({ message, duration: 2500, position: 'top' });
     t.present();
   }
+
+  onEditProfile() {
+  console.log('Navigate to profile page');
+}
+
+onLogout() {
+  localStorage.clear();
+  console.log('Navigate to login');
+}
 }
