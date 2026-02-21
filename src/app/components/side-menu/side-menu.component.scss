@@ -1,104 +1,97 @@
 /* =========================================
-   GLASS SIDEBAR CONTAINER
+   PREMIUM GLASS SIDEBAR (GREEN THEME)
 ========================================= */
 
 ion-menu {
-  --width: 270px;
+  --width: 285px;
 }
 
 ion-menu::part(backdrop) {
-  background: rgba(15, 23, 42, 0.2);
-}
-
-ion-content {
-  --background: transparent;
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-
-  background: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.75),
-    rgba(255, 255, 255, 0.55)
-  );
-
-  border-right: 1px solid rgba(255, 255, 255, 0.4);
-
-  box-shadow:
-    0 8px 32px rgba(15, 23, 42, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
-
-  padding: 22px 16px;
+  background: rgba(15, 23, 42, 0.4);
 }
 
 /* =========================================
-   BRAND SECTION
+   GLASS PANEL
+========================================= */
+
+ion-content {
+  --background: transparent;
+
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  border-top-right-radius: 28px;
+  border-bottom-right-radius: 28px;
+
+  padding: 28px 20px;
+
+  box-shadow:
+    0 30px 70px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  position: relative;
+}
+
+/* =========================================
+   SCROLL - SMOOTH + HIDDEN
+========================================= */
+
+ion-content::part(scroll) {
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+ion-content::part(scroll)::-webkit-scrollbar {
+  display: none;
+}
+
+/* =========================================
+   BRAND
 ========================================= */
 
 .menu-brand {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 14px;
-  margin-bottom: 24px;
-
-  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  margin: 16px 25px 29px 17px;
 }
 
 .brand-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 14px;
+  width: 50px;
+  height: 50px;
+  border-radius: 18px;
 
   display: grid;
   place-items: center;
 
-  background: linear-gradient(135deg, #2563eb, #1e40af);
+  background: linear-gradient(135deg, #22c55e, #16a34a);
   color: #fff;
-  font-size: 20px;
+  font-size: 22px;
 
-  box-shadow:
-    0 8px 20px rgba(37, 99, 235, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: 0 12px 28px rgba(34,197,94,0.35);
 }
 
 .brand-text {
-  font-size: 20px;
+  font-size: 21px;
   font-weight: 700;
-  letter-spacing: 0.4px;
-  color: #1e293b;
+  color: #0f172a;
 }
 
 /* =========================================
    SECTION TITLES
 ========================================= */
 
-.sec-title {
-  position: relative;
-  margin: 22px 8px 12px;
-  padding-left: 16px;
-
+.menu-section-title {
+  margin: 24px 8px 12px;
   font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.4px;
+  font-weight: 600;
+  letter-spacing: 1.6px;
   text-transform: uppercase;
-
-  color: rgba(30, 41, 59, 0.65);
-}
-
-.sec-title::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-
-  width: 4px;
-  height: 16px;
-  border-radius: 4px;
-
-  background: linear-gradient(180deg, #2563eb, #60a5fa);
-
-  box-shadow: 0 0 10px rgba(37, 99, 235, 0.6);
+  color: #64748b;
 }
 
 /* =========================================
@@ -106,79 +99,108 @@ ion-content {
 ========================================= */
 
 .menu-item {
+  position: relative;
+  overflow: hidden; /* needed for ripple */
+
   display: flex;
   align-items: center;
   gap: 14px;
 
-  padding: 12px 14px;
-  margin-bottom: 8px;
+  padding: 13px 16px;
+  margin: 10px;
+  width: 91%;
 
-  border-radius: 14px;
-
-  background: rgba(255, 255, 255, 0.45);
-  backdrop-filter: blur(10px);
+  border-radius: 16px;
 
   font-size: 14px;
   font-weight: 500;
-  color: #334155;
 
+  color: #111827;
   cursor: pointer;
 
   transition: all 0.25s ease;
 }
 
+/* LEFT GLOW STRIP (ACTIVE INDICATOR) */
+.menu-item.active::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 10%;
+  height: 80%;
+  width: 6px;
+  border-radius: 6px;
+
+  background: linear-gradient(180deg, #22c55e, #16a34a);
+  box-shadow: 0 0 12px rgba(34,197,94,0.8);
+}
+
 /* Icon */
 .menu-item ion-icon {
   font-size: 18px;
-  color: #475569;
-  transition: color 0.25s ease;
+  color: #374151;
+  transition: 0.25s ease;
 }
 
-/* Hover Effect */
+/* =========================================
+   HOVER EFFECT
+========================================= */
+
 .menu-item:hover {
-  transform: translateX(5px);
-  background: rgba(255, 255, 255, 0.7);
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #ffffff;
+  transform: translateX(6px);
+  box-shadow: 0 14px 30px rgba(34,197,94,0.35);
 }
 
-/* Active Item */
-.menu-item.active {
-  background: linear-gradient(
-    135deg,
-    rgba(37, 99, 235, 0.25),
-    rgba(37, 99, 235, 0.15)
-  );
-  color: #1e40af;
-  font-weight: 600;
+.menu-item:hover ion-icon {
+  color: #ffffff;
+}
 
-  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.25);
+/* =========================================
+   RIPPLE EFFECT
+========================================= */
+
+.menu-item::after {
+  content: "";
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.4);
+  transform: scale(0);
+  opacity: 0;
+  transition: transform 0.5s ease, opacity 0.8s ease;
+}
+
+.menu-item:active::after {
+  width: 200px;
+  height: 200px;
+  transform: scale(1);
+  opacity: 1;
+  transition: 0s;
+}
+
+/* =========================================
+   ACTIVE STATE
+========================================= */
+
+.menu-item.active {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 18px 40px rgba(22,163,74,0.4);
 }
 
 .menu-item.active ion-icon {
-  color: #1e40af;
+  color: #ffffff;
 }
 
 /* Chevron */
 .chev {
   margin-left: auto;
   font-size: 16px;
-  color: rgba(30, 41, 59, 0.5);
-}
-
-/* =========================================
-   DIVIDER
-========================================= */
-
-.divider {
-  height: 1px;
-  margin: 22px 0;
-
-  background: linear-gradient(
-    to right,
-    transparent,
-    rgba(148, 163, 184, 0.35),
-    transparent
-  );
+  opacity: 0.6;
 }
 
 /* =========================================
@@ -189,14 +211,9 @@ ion-content {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-
   margin-left: auto;
-
-  background: #2563eb;
-
-  box-shadow:
-    0 0 8px rgba(37, 99, 235, 0.7),
-    0 0 16px rgba(37, 99, 235, 0.4);
+  background: #ef4444;
+  box-shadow: 0 0 10px rgba(239,68,68,0.6);
 }
 
 /* =========================================
@@ -204,34 +221,73 @@ ion-content {
 ========================================= */
 
 .logout {
-  margin-top: 24px;
-  background: rgba(255, 255, 255, 0.35);
+  margin-top: 28px;
 }
 
 .logout:hover {
-  background: rgba(255, 255, 255, 0.6);
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: #ffffff;
+}
+
+.logout:hover ion-icon {
+  color: #ffffff;
 }
 
 /* =========================================
-   ENTRY ANIMATION
+   FIXED GLASS SIDEBAR CONTAINER
 ========================================= */
 
-.menu-item {
-  animation: fadeIn 0.35s ease;
+ion-menu {
+  --width: 285px;
+  --background: transparent;
+  background: transparent;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateX(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+/* Remove default white layer */
+ion-menu::part(container) {
+  background: transparent;
 }
 
-.menu-section-title {
-  padding: 14px;
-  font-weight: bold;
+/* Backdrop */
+ion-menu::part(backdrop) {
+  background: rgba(15, 23, 42, 0.45);
+}
+
+/* Rounded Glass Card */
+ion-content {
+  --background: transparent;
+
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+
+  height: 100%;
+  margin: 10px 0 10px 10px; /* little gap from top & bottom */
+
+  border-radius: 28px;
+
+  box-shadow:
+    0 30px 70px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  overflow: hidden;
+}
+
+/* =========================================
+   REMOVE DEFAULT IONIC MENU BACKGROUND
+========================================= */
+
+ion-menu {
+  --background: transparent !important;
+  background: transparent !important;
+}
+
+/* Remove inner container background */
+ion-menu::part(container) {
+  background: transparent !important;
+}
+
+/* Also remove inner shadow */
+ion-menu::part(container) {
+  box-shadow: none !important;
 }
