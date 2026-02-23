@@ -199,18 +199,57 @@ export class PatientListPage implements OnInit, OnDestroy {
   }
 
   // ================= ACTIONS =================
+async openActions(ev: Event, row: Row) {
 
-  async openActions(ev: Event, row: Row) {
+  ev.stopPropagation(); // important
 
-    const popover = await this.popoverCtrl.create({
-      component: PatientActionPopoverComponent,
-      event: ev,
-      translucent: true,
-      componentProps: { patient: row }
-    });
+  const popover = await this.popoverCtrl.create({
+    component: PatientActionPopoverComponent,
+    event: ev,
+    translucent: true,
+    componentProps: { patient: row }
+  });
 
-    await popover.present();
+  await popover.present();
+
+  const { data } = await popover.onDidDismiss();
+
+  if (!data?.action) return;
+
+  switch (data.action) {
+    case 'edit':
+      this.router.navigate(['/patients'], {
+        queryParams: { patientId: row.id, tab: 'prelim' }
+      });
+      break;
+
+    case 'appointment':
+      this.openAppointmentModal(row);
+      break;
+
+    case 'status':
+      console.log('Change status clicked');
+      break;
   }
+}
+
+async openAppointmentModal(row: Row) {
+
+  const modal = await this.modalCtrl.create({
+    component: CreateAppointmentModalComponent,
+    componentProps: {
+      patient: row
+    }
+  });
+
+  await modal.present();
+
+  const { role } = await modal.onWillDismiss();
+
+  if (role === 'success') {
+    this.loadPatients();
+  }
+}
 
   goToCreatePatient(): void {
     this.router.navigate(['/patients'], {
