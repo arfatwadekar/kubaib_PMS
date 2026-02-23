@@ -1,0 +1,52 @@
+.popover-container {
+  min-width: 220px;
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.popover-header {
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 16px;
+  color: #333;
+  border-bottom: 1px solid #eee;
+}
+
+.popover-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  width: 100%;
+
+  text-align: left;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.popover-item:hover {
+  background: #f4f6fa;
+}
+
+.popover-item ion-icon {
+  font-size: 18px;
+  color: #555;
+}
+
+.popover-item span {
+  flex: 1;
+}
+
+.popover-item.danger:hover {
+  background: #ffeaea;
+  color: #d63031;
+}
+
+.popover-item.danger ion-icon {
+  color: #d63031;
+}

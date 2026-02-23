@@ -1,31 +1,27 @@
 <app-header title="Search Appointments"></app-header>
 
-<!-- SEGMENT -->
+<!-- SEGMENT BELOW HEADER -->
 <ion-toolbar class="segment-bar">
-  <ion-segment
-    [value]="viewMode"
-    (ionChange)="onSegmentChange($event)"
-  >
+  <ion-segment [value]="viewMode" (ionChange)="onSegmentChange($event)">
     <ion-segment-button value="queue">
-      <ion-label>Future</ion-label>
+      <ion-label>All Appoinments</ion-label>
     </ion-segment-button>
 
     <ion-segment-button value="today">
-      <ion-label>Today</ion-label>
+      <ion-label>Today Appoinments</ion-label>
     </ion-segment-button>
   </ion-segment>
 </ion-toolbar>
 
-<ion-content class="page" style="--padding-bottom: 11rem !important;">
-
+<ion-content class="page" style="--padding-bottom: 11rem !important">
+  <!-- REFRESH -->
   <ion-refresher slot="fixed" (ionRefresh)="load($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
 
-  <!-- FILTER -->
+  <!-- FILTERS -->
   <div class="card filters">
     <div class="grid">
-
       <div class="field">
         <div class="label">Search</div>
         <ion-input
@@ -37,27 +33,17 @@
 
       <div class="field">
         <div class="label">Status</div>
-        <ion-select
-          [(ngModel)]="statusFilter"
-          (ionChange)="applyFilter()"
-          [disabled]="viewMode === 'queue'"
-        >
-          <ion-select-option
-            *ngFor="let s of statusOptions"
-            [value]="s.value"
-          >
+        <ion-select [(ngModel)]="statusFilter" (ionChange)="applyFilter()">
+          <ion-select-option *ngFor="let s of statusOptions" [value]="s.value">
             {{ s.label }}
           </ion-select-option>
         </ion-select>
       </div>
-
     </div>
   </div>
 
   <!-- LOADING -->
-  <div *ngIf="loading" class="card empty">
-    Loading appointments...
-  </div>
+  <div *ngIf="loading" class="card empty">Loading appointments...</div>
 
   <!-- EMPTY -->
   <div *ngIf="!loading && filtered.length === 0" class="card empty">
@@ -65,28 +51,18 @@
   </div>
 
   <!-- LIST -->
-  <div
-    class="card list"
-    *ngFor="let r of filtered; trackBy: trackById"
-  >
-
+  <div class="card list" *ngFor="let r of filtered; trackBy: trackById">
     <!-- TOP -->
     <div class="row-top">
       <div class="who">
-        <div class="name">
-          {{ r.patient?.fullName || 'Unknown' }}
-        </div>
+        <div class="name">{{ r.patient?.fullName || 'Unknown' }}</div>
         <div class="sub">
-          {{ r.patient?.patientIdFormatted || '—' }} •
-          {{ r.patient?.phoneNumber || '—' }}
+          {{ r.patient?.patientIdFormatted }} • {{ r.patient?.phoneNumber }}
         </div>
       </div>
 
-      <ion-chip
-        class="status-chip"
-        [color]="viewMode === 'queue' ? 'medium' : statusColor(r.status)"
-      >
-        {{ viewMode === 'queue' ? 'Upcoming' : r.statusText }}
+      <ion-chip class="status-chip" [color]="statusColor(r.status)">
+        {{ r.statusText }}
       </ion-chip>
     </div>
 
@@ -94,85 +70,53 @@
     <div class="meta">
       <div class="m">
         <div class="k">Date</div>
-        <div class="v">
-          {{ r.appointmentDate | date:'mediumDate' }}
-        </div>
+        <div class="v">{{ r.appointmentDate | date:'mediumDate' }}</div>
       </div>
 
       <div class="m">
         <div class="k">Time</div>
-        <div class="v">
-          {{ r.appointmentTimeFormatted || '—' }}
-        </div>
+        <div class="v">{{ r.appointmentTimeFormatted }}</div>
       </div>
 
       <div class="m">
         <div class="k">Remark</div>
-        <div class="v">
-          {{ r.remark || '—' }}
-        </div>
+        <div class="v">{{ r.remark || '—' }}</div>
       </div>
     </div>
 
     <!-- ACTIONS -->
     <div class="actions">
-
-      <!-- FUTURE TAB -->
       <ion-button
-        *ngIf="viewMode === 'queue'"
         size="small"
-        color="danger"
-        (click)="confirmStatus(r, AppointmentStatus.Cancelled)"
+        fill="outline"
+        (click)="r._editing ? closeEdit(r) : openEdit(r)"
         [disabled]="r._saving"
       >
-        Cancel
+        {{ r._editing ? 'Cancel' : 'Edit' }}
       </ion-button>
 
-      <!-- TODAY TAB -->
-      <ng-container *ngIf="viewMode === 'today'">
-
-        <ion-button
-          size="small"
-          fill="outline"
-          (click)="r._editing ? closeEdit(r) : openEdit(r)"
-          [disabled]="r._saving"
+      <ion-select
+        class="status-dd"
+        placeholder="Change Status"
+        (ionChange)="confirmStatus(r, $event.detail.value)"
+        [disabled]="r._saving"
+      >
+        <ion-select-option
+          *ngFor="let s of statusOptions"
+          [value]="s.value"
+          [disabled]="s.value === 0 || s.value === r.status"
         >
-          {{ r._editing ? 'Cancel' : 'Edit' }}
-        </ion-button>
-
-        <ion-select
-          class="status-dd"
-          placeholder="Change Status"
-          (ionChange)="confirmStatus(r, $event.detail.value)"
-          [disabled]="r._saving"
-        >
-          <ion-select-option
-            *ngFor="let s of statusOptions"
-            [value]="s.value"
-            [disabled]="s.value === 0 || s.value === r.status"
-          >
-            {{ s.label }}
-          </ion-select-option>
-        </ion-select>
-
-      </ng-container>
-
+          {{ s.label }}
+        </ion-select-option>
+      </ion-select>
     </div>
 
-    <!-- EDIT PANEL (ONLY TODAY) -->
-    <div *ngIf="r._editing && viewMode === 'today'" class="edit">
-
+    <!-- EDIT PANEL -->
+    <div *ngIf="r._editing" class="edit">
       <div class="edit-grid">
+        <ion-input type="date" [(ngModel)]="r._dateDraft"></ion-input>
 
-        <ion-input
-          type="date"
-          [(ngModel)]="r._dateDraft"
-        ></ion-input>
-
-        <ion-input
-          type="time"
-          [(ngModel)]="r._timeDraft"
-        ></ion-input>
+        <ion-input type="time" [(ngModel)]="r._timeDraft"></ion-input>
 
         <ion-textarea
           class="full"
@@ -180,20 +124,13 @@
           [(ngModel)]="r._remarkDraft"
           placeholder="Optional remark"
         ></ion-textarea>
-
       </div>
 
       <div class="edit-actions">
-        <ion-button
-          (click)="saveEdit(r)"
-          [disabled]="r._saving"
-        >
+        <ion-button (click)="saveEdit(r)" [disabled]="r._saving">
           {{ r._saving ? 'Saving...' : 'Save Changes' }}
         </ion-button>
       </div>
-
     </div>
-
   </div>
-
 </ion-content>

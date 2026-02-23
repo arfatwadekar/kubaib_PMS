@@ -69,14 +69,38 @@
 
         <div class="form-row">
 
-          <div class="form-group">
-            <label>Stock Quantity *</label>
-            <input
-              type="number"
-              formControlName="stockQuantity"
-              [readonly]="mode !== 'create'"
-            />
-          </div>
+       <div class="form-group">
+  <label>Stock Quantity *</label>
+
+  <div class="quantity-control">
+
+    <button
+      type="button"
+      class="qty-btn"
+      (click)="changeQuantity(-1)"
+      [disabled]="mode === 'view' || form.get('stockQuantity')?.value <= 0"
+    >
+      −
+    </button>
+
+    <input
+      type="number"
+      formControlName="stockQuantity"
+      class="qty-input"
+      [readonly]="mode === 'view'"
+    />
+
+    <button
+      type="button"
+      class="qty-btn"
+      (click)="changeQuantity(1)"
+      [disabled]="mode === 'view'"
+    >
+      +
+    </button>
+
+  </div>
+</div>
 
           <div class="form-group">
             <label>Unit *</label>
@@ -122,33 +146,6 @@
             formControlName="notes"
             [readonly]="mode === 'view'"
           ></textarea>
-        </div>
-
-        <!-- ================= STOCK MANAGEMENT ================= -->
-
-        <div
-          *ngIf="mode === 'edit'"
-          class="stock-management"
-        >
-          <div class="section-title">Stock Management</div>
-
-          <div class="stock-actions">
-            <button
-              type="button"
-              class="btn-primary"
-              (click)="adjustStock('add')"
-            >
-              + Add Stock
-            </button>
-
-            <button
-              type="button"
-              class="btn-danger"
-              (click)="adjustStock('reduce')"
-            >
-              - Reduce Stock
-            </button>
-          </div>
         </div>
 
         <!-- ================= ACTION BUTTONS ================= -->

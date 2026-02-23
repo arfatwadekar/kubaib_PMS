@@ -3,16 +3,18 @@
 <ion-content class="notification-content" fullscreen>
 
   <div class="page-container">
-    <!-- Loading -->
+
+    <!-- ================= LOADING ================= -->
     <div *ngIf="loading" class="loading">
       <ion-spinner name="crescent"></ion-spinner>
     </div>
 
-    <!-- Notification List -->
+    <!-- ================= NOTIFICATION LIST ================= -->
     <div
       *ngIf="!loading && notifications.length > 0"
       class="notification-list"
     >
+
       <div
         *ngFor="let n of notifications"
         class="notification-card"
@@ -20,38 +22,57 @@
         (click)="openDetail(n)"
       >
 
+        <!-- LEFT ICON -->
         <div class="left">
           <div class="icon-circle">
             <ion-icon name="mail-outline"></ion-icon>
           </div>
         </div>
 
+        <!-- CENTER CONTENT -->
         <div class="center">
-          <div class="top">
-            <div>
-              <h3>{{ n.name }}</h3>
-              <p class="email">{{ n.email }}</p>
+
+          <!-- TOP ROW -->
+          <div class="top-row">
+
+            <div class="user-info">
+              <h3 class="name" style="color: white;">{{ n.name }}</h3>
+
+              <p class="email" *ngIf="n.email">
+                {{ n.email }}
+              </p>
+
+              <p class="phone" *ngIf="n.phone || n.phoneNumber" style="color: white;">
+                {{ n.phone || n.phoneNumber }}
+              </p>
             </div>
 
             <div class="meta">
               <span class="date">
-                {{ n.createdOn | date: 'short' }}
+                {{ n.createdOn | date:'short' }}
               </span>
             </div>
+
           </div>
 
-          <p class="message">
+          <!-- MESSAGE -->
+          <p class="message" style="color: white;">
             {{ n.message }}
           </p>
+
         </div>
 
+        <!-- RIGHT ACTION -->
         <div class="right">
+
+          <!-- Already Read -->
           <ion-icon
             *ngIf="n.isRead"
             name="checkmark-done-outline"
             class="read-icon"
           ></ion-icon>
 
+          <!-- Mark As Read Button -->
           <ion-button
             *ngIf="!n.isRead"
             size="small"
@@ -60,16 +81,22 @@
           >
             <ion-icon name="checkmark-outline" slot="icon-only"></ion-icon>
           </ion-button>
+
         </div>
 
       </div>
+
     </div>
 
-    <!-- Empty -->
-    <div *ngIf="!loading && notifications.length === 0" class="empty">
+    <!-- ================= EMPTY STATE ================= -->
+    <div
+      *ngIf="!loading && notifications.length === 0"
+      class="empty"
+    >
       <ion-icon name="notifications-off-outline"></ion-icon>
       <p>No Notifications Yet</p>
     </div>
 
   </div>
+
 </ion-content>

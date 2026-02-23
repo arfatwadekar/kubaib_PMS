@@ -139,3 +139,38 @@
   cursor: pointer;
   font-size: 14px;
 }
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qty-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: none;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  background: #f1f3f6;
+  transition: 0.2s ease;
+}
+
+.qty-btn:hover {
+  background: #e0e5ec;
+}
+
+.qty-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.qty-input {
+  width: 80px;
+  text-align: center;
+  font-size: 16px;
+  border-radius: 8px;
+  padding: 6px;
+}

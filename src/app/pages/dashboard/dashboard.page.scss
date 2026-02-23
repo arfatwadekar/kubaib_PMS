@@ -16,9 +16,9 @@
 }
 
 /* Page */
-.dash-bg {
-  --background: #f5f8ff;
-}
+// .dash-bg {
+//   --background: #f5f8ff;
+// }
 
 .dash-wrap {
   padding: 14px;
@@ -62,6 +62,7 @@
   overflow: hidden;
   background: #fff;
   box-shadow: 0 1px 0 rgba(16, 24, 40, 0.02);
+  margin-bottom: 6rem;
 }
 
 /* Top bar */
@@ -310,7 +311,9 @@
 .charts-grid {
   padding: 0;
 
-  ion-col { padding: 6px; }
+  ion-col {
+    padding: 6px;
+  }
 }
 
 .chart-card {
@@ -318,7 +321,9 @@
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
   margin: 0;
 
-  ion-card-header { padding-bottom: 4px; }
+  ion-card-header {
+    padding-bottom: 4px;
+  }
 }
 
 .chart-title {
@@ -340,7 +345,9 @@
   height: 160px;
   margin: 8px auto 20px;
 
-  canvas { display: block; }
+  canvas {
+    display: block;
+  }
 }
 
 .donut-center {
@@ -367,7 +374,9 @@
 }
 
 // ── Legend ───────────────────────────────────────────────────
-.donut-legend { padding: 0 4px; }
+.donut-legend {
+  padding: 0 4px;
+}
 
 .legend-row {
   display: flex;
@@ -376,7 +385,9 @@
   padding: 6px 0;
   border-top: 1px solid #f1f5f9;
 
-  &:first-child { border-top: none; }
+  &:first-child {
+    border-top: none;
+  }
 }
 
 .legend-dot {
@@ -415,7 +426,7 @@
 
   ion-button {
     --padding-start: 4px;
-    --padding-end:   4px;
+    --padding-end: 4px;
     color: #64748b;
   }
 }
@@ -431,7 +442,9 @@
 // ── Bar chart canvas ─────────────────────────────────────────
 .bar-container {
   position: relative;
-  height: 200px;   // fixed height so Chart.js respects maintainAspectRatio: false
+  height: 200px; // fixed height so Chart.js respects maintainAspectRatio: false
 
-  canvas { display: block; }
+  canvas {
+    display: block;
+  }
 }

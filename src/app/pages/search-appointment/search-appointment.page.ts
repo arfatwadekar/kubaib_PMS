@@ -11,6 +11,7 @@ type ViewMode = 'queue' | 'today';
 interface UiRow extends ApiAppointment {
   _editing: boolean;
   _saving: boolean;
+
   _remarkDraft: string;
   _dateDraft: string;
   _timeDraft: string;
@@ -20,10 +21,10 @@ interface UiRow extends ApiAppointment {
   selector: 'app-search-appointment',
   templateUrl: './search-appointment.page.html',
   styleUrls: ['./search-appointment.page.scss'],
-  standalone:false
+  standalone: false,
 })
 export class SearchAppointmentPage implements OnInit {
-
+  // ---------------- STATE ----------------
   loading = false;
   viewMode: ViewMode = 'queue';
 
@@ -33,8 +34,7 @@ export class SearchAppointmentPage implements OnInit {
   rows: UiRow[] = [];
   filtered: UiRow[] = [];
 
-  AppointmentStatus = AppointmentStatus;
-
+  // ---------------- STATUS OPTIONS ----------------
   statusOptions = [
     { value: 0, label: 'All' },
     { value: AppointmentStatus.Pending, label: 'Pending' },
@@ -54,15 +54,16 @@ export class SearchAppointmentPage implements OnInit {
     this.load();
   }
 
+  // ---------------- MODE SWITCH ----------------
   onSegmentChange(event: CustomEvent) {
     const value = event?.detail?.value;
     if (value === 'queue' || value === 'today') {
       this.viewMode = value;
-      this.statusFilter = 0;
       this.load();
     }
   }
 
+  // ---------------- LOAD DATA ----------------
   load(ev?: any) {
     this.loading = true;
 
@@ -74,7 +75,7 @@ export class SearchAppointmentPage implements OnInit {
     req$.subscribe({
       next: (res) => {
         const list = res?.appointments ?? [];
-        this.rows = list.map(a => this.mapToUiRow(a));
+        this.rows = list.map((a) => this.mapToUiRow(a));
         this.applyFilter();
         this.loading = false;
         ev?.target?.complete?.();
@@ -87,21 +88,23 @@ export class SearchAppointmentPage implements OnInit {
     });
   }
 
+  // ---------------- MAP API → UI MODEL ----------------
   private mapToUiRow(a: ApiAppointment): UiRow {
     return {
       ...a,
       _editing: false,
       _saving: false,
-      _remarkDraft: a.remark || '',
-      _dateDraft: a.appointmentDate?.slice(0, 10) || '',
+      _remarkDraft: a.remark ?? '',
+      _dateDraft: this.toYmd(a.appointmentDate),
       _timeDraft: this.toHHmm(a.appointmentTimeFormatted),
     };
   }
 
+  // ---------------- FILTER ----------------
   applyFilter() {
     const q = this.searchText.trim().toLowerCase();
 
-    this.filtered = this.rows.filter(r => {
+    this.filtered = this.rows.filter((r) => {
       const matchText =
         !q ||
         r.patient?.fullName?.toLowerCase().includes(q) ||
@@ -109,21 +112,20 @@ export class SearchAppointmentPage implements OnInit {
         r.patient?.patientIdFormatted?.toLowerCase().includes(q);
 
       const matchStatus =
-        this.statusFilter === 0 || r.status === this.statusFilter;
+        this.statusFilter === 0 ||
+        r.status === this.statusFilter;
 
       return matchText && matchStatus;
     });
   }
 
+  // ---------------- EDIT ----------------
   openEdit(row: UiRow) {
     row._editing = true;
   }
 
   closeEdit(row: UiRow) {
     row._editing = false;
-    row._remarkDraft = row.remark || '';
-    row._dateDraft = row.appointmentDate?.slice(0, 10) || '';
-    row._timeDraft = this.toHHmm(row.appointmentTimeFormatted);
   }
 
   saveEdit(row: UiRow) {
@@ -131,35 +133,44 @@ export class SearchAppointmentPage implements OnInit {
 
     row._saving = true;
 
-    this.api.updateAppointment(row.appointmentId, {
-      appointmentDate: row._dateDraft,
-      appointmentTime: row._timeDraft + ':00',
-      remark: row._remarkDraft,
-    }).subscribe({
-      next: (updated) => {
-        Object.assign(row, this.mapToUiRow(updated));
-        row._saving = false;
-        row._editing = false;
-        this.toast('Appointment updated');
-      },
-      error: () => {
-        row._saving = false;
-        this.toast('Update failed');
-      },
-    });
+    this.api
+      .updateAppointment(row.appointmentId, {
+        appointmentDate: row._dateDraft,
+        appointmentTime: this.toTimeWithSeconds(row._timeDraft),
+        remark: row._remarkDraft,
+      })
+      .subscribe({
+        next: (updated) => {
+          Object.assign(row, this.mapToUiRow(updated));
+          row._saving = false;
+          row._editing = false;
+          this.toast('Appointment updated');
+          this.applyFilter();
+        },
+        error: () => {
+          row._saving = false;
+          this.toast('Update failed');
+        },
+      });
   }
 
-  async confirmStatus(row: UiRow, status: AppointmentStatus) {
+  // ---------------- STATUS ----------------
+  async confirmStatus(row: UiRow, status: number) {
     if (!status || status === row.status) return;
+
+    const label =
+      this.statusOptions.find((s) => s.value === status)?.label ||
+      'Selected';
 
     const alert = await this.alertCtrl.create({
       header: 'Change Status',
-      message: 'Are you sure?',
+      message: `Set status to <b>${label}</b>?`,
       buttons: [
         { text: 'Cancel', role: 'cancel' },
         {
           text: 'Confirm',
-          handler: () => this.updateStatus(row, status),
+          handler: () =>
+            this.updateStatus(row, status as AppointmentStatus),
         },
       ],
     });
@@ -171,9 +182,11 @@ export class SearchAppointmentPage implements OnInit {
     row._saving = true;
 
     this.api.updateStatus(row.appointmentId, status).subscribe({
-      next: () => {
+      next: (updated) => {
+        Object.assign(row, this.mapToUiRow(updated));
         row._saving = false;
-        this.load();
+        this.toast('Status updated');
+        this.applyFilter();
       },
       error: () => {
         row._saving = false;
@@ -182,14 +195,21 @@ export class SearchAppointmentPage implements OnInit {
     });
   }
 
+  // ---------------- HELPERS ----------------
   statusColor(status: AppointmentStatus): string {
     switch (status) {
-      case AppointmentStatus.Pending: return 'warning';
-      case AppointmentStatus.InPatient: return 'primary';
-      case AppointmentStatus.AwaitingPayment: return 'tertiary';
-      case AppointmentStatus.OutPatient: return 'success';
-      case AppointmentStatus.Cancelled: return 'danger';
-      default: return 'medium';
+      case AppointmentStatus.Pending:
+        return 'warning';
+      case AppointmentStatus.InPatient:
+        return 'primary';
+      case AppointmentStatus.AwaitingPayment:
+        return 'tertiary';
+      case AppointmentStatus.OutPatient:
+        return 'success';
+      case AppointmentStatus.Cancelled:
+        return 'danger';
+      default:
+        return 'medium';
     }
   }
 
@@ -197,18 +217,30 @@ export class SearchAppointmentPage implements OnInit {
     return r.appointmentId;
   }
 
+  private toYmd(iso: string): string {
+    return iso?.slice(0, 10) ?? '';
+  }
+
   private toHHmm(time?: string): string {
     if (!time) return '';
-    const d = new Date(`1970-01-01T${time}`);
-    return isNaN(d.getTime())
-      ? ''
-      : `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    const d = new Date(`1970-01-01 ${time}`);
+    if (isNaN(d.getTime())) return '';
+    return `${String(d.getHours()).padStart(2, '0')}:${String(
+      d.getMinutes()
+    ).padStart(2, '0')}`;
+  }
+
+  private toTimeWithSeconds(time: string): string {
+    return /^\d{2}:\d{2}$/.test(time)
+      ? `${time}:00`
+      : time;
   }
 
   private async toast(msg: string) {
     const t = await this.toastCtrl.create({
       message: msg,
       duration: 1500,
+      position: 'bottom',
     });
     await t.present();
   }

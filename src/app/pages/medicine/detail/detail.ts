@@ -326,4 +326,17 @@ export class DetailPage implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
+  changeQuantity(change: number): void {
+
+  if (this.mode === 'view') return;
+
+  const current = this.form.get('stockQuantity')?.value ?? 0;
+  const newValue = current + change;
+
+  if (newValue < 0) return;
+
+  this.form.patchValue({
+    stockQuantity: newValue
+  });
+}
 }

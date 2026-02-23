@@ -257,25 +257,25 @@
   color: #334155;
 }
 
-/* ===============================
-   RESPONSIVE
-================================ */
 
-@media (max-width: 992px) {
 
-  .table-head {
-    display: none;
-  }
 
-  .table-row {
-    grid-template-columns: 1fr;
-    text-align: left;
-    gap: 6px;
-  }
+.action-trigger {
+  background: #f3f5f9;
+  border: none;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
-  .actions {
-    justify-content: flex-start;
-    margin-top: 8px;
-  }
+.action-trigger:hover {
+  background: #e0e6f1;
+}
 
+.action-trigger ion-icon {
+  font-size: 18px;
 }
