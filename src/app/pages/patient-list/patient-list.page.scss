@@ -1,33 +1,21 @@
-/* ===============================
-   GLOBAL BACKGROUND
-================================ */
+/* ================= GLOBAL ================= */
 
 .app-bg {
-  background: #f5f7fa;
+  background: #f4f6f9;
 }
 
-/* ===============================
-   CARD
-================================ */
-
-.app-card {
-  background: #ffffff;
-  border-radius: 14px;
-  padding: 28px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
-  border: 1px solid #e2e8f0;
+.app-container {
+  padding: 24px;
 }
 
-/* ===============================
-   HEADER
-================================ */
+/* ================= HEADER ================= */
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 22px;
-  gap: 20px;
+  margin-bottom: 24px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
@@ -35,247 +23,251 @@
   margin: 0;
   font-size: 20px;
   font-weight: 600;
-  color: #1e293b;
 }
 
 .sub-text {
-  margin: 4px 0 0;
   font-size: 13px;
-  color: #64748b;
+  color: #6b7280;
 }
 
 .header-right {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex-wrap: wrap;
 }
 
-/* ===============================
-   SEARCH
-================================ */
+/* ================= SEARCH ================= */
 
-.search-box {
+.search-wrapper {
   display: flex;
   align-items: center;
-  background: #f1f5f9;
-  border-radius: 8px;
-  padding: 8px 12px;
-  border: 1px solid #e2e8f0;
+  height: 44px;
+  width: 360px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
 }
 
-.search-box ion-icon {
-  color: #64748b;
-  margin-right: 8px;
-}
-
-.search-box input {
+.search-wrapper input {
+  flex: 1;
   border: none;
-  background: transparent;
   outline: none;
-  font-size: 14px;
-  color: #1e293b;
-  min-width: 220px;
+  background: transparent;
+  padding-left: 8px;
 }
 
-/* ===============================
-   TABLE
-================================ */
+/* ================= BUTTONS ================= */
+
+.btn-primary,
+.btn-success {
+  height: 44px;
+  padding: 0 20px;
+  border-radius: 999px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #fff;
+}
+
+.btn-success {
+  background: #22c55e;
+  color: #fff;
+}
+
+/* ================= TABLE ================= */
 
 .table-wrapper {
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  overflow-x: auto;
 }
 
-/* Equal width columns */
 .table-head,
 .table-row {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  padding: 16px 14px;
+  grid-template-columns: 60px 120px 1fr 160px 120px 60px;
   align-items: center;
-  text-align: center;
-  gap: 10px;
+  padding: 16px 20px;
+  min-width: 760px;
 }
 
 .table-head {
-  background: #f8fafc;
-  font-size: 13px;
+  background: #f9fafb;
+  font-size: 12px;
   font-weight: 600;
-  color: #475569;
-  border-bottom: 1px solid #e2e8f0;
+  text-transform: uppercase;
+  color: #6b7280;
 }
 
 .table-row {
+  border-top: 1px solid #f1f5f9;
   font-size: 14px;
-  color: #1e293b;
-  border-bottom: 1px solid #f1f5f9;
-  transition: background 0.2s ease;
 }
 
 .table-row:hover {
   background: #f9fafb;
 }
 
-.table-row:last-child {
-  border-bottom: none;
+.name {
+  font-weight: 600;
 }
-
-.name-cell {
-  text-align: left;
-  font-weight: 500;
-}
-
-/* ===============================
-   CHIPS
-================================ */
 
 .pid-chip {
-  background: #eef2ff;
-  color: #4338ca;
-  padding: 6px 10px;
-  border-radius: 8px;
+  background: #e0f2fe;
+  padding: 5px 12px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
 }
 
-.gender-chip {
-  padding: 5px 10px;
-  border-radius: 8px;
+.gender-pill {
+  padding: 5px 12px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
 }
 
-.gender-chip.male {
+.gender-pill.male {
   background: #e0f2fe;
   color: #0369a1;
 }
 
-.gender-chip.female {
+.gender-pill.female {
   background: #fce7f3;
   color: #be185d;
 }
 
-.status-chip {
-  padding: 6px 12px;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.status-chip.active {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.status-chip.inactive {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-/* ===============================
-   BUTTONS
-================================ */
-
-.btn {
-  border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.btn-search {
-  background: #2563eb;
-  color: #ffffff;
-}
-
-.btn-search:hover {
-  background: #1e40af;
-}
-
-.btn-outline {
-  background: #ffffff;
-  border: 1px solid #cbd5e1;
-  color: #334155;
-}
-
-.btn-outline:hover {
-  background: #f1f5f9;
-}
-
-.btn-edit {
-  background: #059669;
-  color: #ffffff;
-}
-
-.btn-edit:hover {
-  background: #047857;
-}
-
-.btn-view {
-  background: #4f46e5;
-  color: #ffffff;
-}
-
-.btn-view:hover {
-  background: #4338ca;
-}
-
-.btn-create {
-  background: #7c3aed;
-  color: #ffffff;
-}
-
-.btn-create:hover {
-  background: #6d28d9;
-}
-
-.actions {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-}
-
-/* ===============================
-   PAGINATION
-================================ */
+/* ================= PAGINATION ================= */
 
 .pagination {
-  margin-top: 22px;
+  margin-top: 20px;
   display: flex;
-  justify-content: end;
+  justify-content: flex-end;
+  gap: 12px;
   align-items: center;
-  gap: 18px;
+}
+
+.page-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: #16a34a;
+  color: #fff;
+  border-color: #16a34a;
+}
+
+.page-btn:disabled {
+  opacity: 0.5;
 }
 
 .page-info {
-  font-weight: 500;
-  color: #334155;
+  font-size: 13px;
+  color: #6b7280;
 }
 
+/* ================= MOBILE ================= */
 
-
-
-.action-trigger {
-  background: #f3f5f9;
-  border: none;
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.mobile-list {
+  display: none;
 }
 
-.action-trigger:hover {
-  background: #e0e6f1;
+@media (max-width: 767px) {
+  .app-container {
+    padding: 16px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-right {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .search-wrapper {
+    width: 100%;
+  }
+
+  .btn-primary,
+  .btn-success {
+    width: 100%;
+  }
+
+  .table-wrapper {
+    display: none;
+  }
+
+  .pagination {
+    display: none;
+  }
+
+  .mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 16px;
+  }
+
+  .patient-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .card-name {
+    margin-top: 16px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .card-meta {
+    margin-top: 12px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .meta-label {
+    font-size: 11px;
+    color: #9ca3af;
+  }
+
+  .meta-value {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .left {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    flex-direction: row-reverse;
+  }
+  .meta-label {
+    margin-bottom: 10px;
+  }
+  .gender-pill {
+    border-radius: 6px;
+  }
 }
 
-.action-trigger ion-icon {
-  font-size: 18px;
+button {
+  background: none;
 }

@@ -1,21 +1,18 @@
-<app-header title="Patient List"></app-header>
+<app-header title="All Patients"></app-header>
 
 <ion-content class="app-bg">
-
-  <div class="app-card">
-
-    <!-- HEADER -->
+  <div class="app-container">
+    <!-- ================= HEADER ================= -->
     <div class="card-header">
-
       <div class="header-left">
-        <h2>All Patients</h2>
-        <p class="sub-text">Manage and track patient records</p>
+        <h2>Patient Directory</h2>
+        <p class="sub-text">Search and manage patient records</p>
       </div>
 
       <div class="header-right">
-
-        <div class="search-box">
+        <div class="search-wrapper">
           <ion-icon name="search-outline"></ion-icon>
+
           <input
             type="text"
             placeholder="Search PID / Name / Phone"
@@ -23,98 +20,133 @@
             (input)="onSearchInput()"
             (keyup.enter)="search()"
           />
+
+          <ion-icon
+            *ngIf="searchText"
+            name="close-circle"
+            class="clear-ic"
+            (click)="clearSearch()"
+          ></ion-icon>
         </div>
 
-        <!-- SEARCH BUTTON -->
         <button
           *ngIf="!showCreatePatientBtn"
-          class="btn btn-search"
+          class="btn-primary"
           (click)="search()"
-          [disabled]="loading">
+          [disabled]="loading"
+        >
           Search
         </button>
 
-        <!-- CREATE BUTTON -->
         <button
           *ngIf="showCreatePatientBtn"
-          class="btn btn-create"
-          (click)="goToCreatePatient()">
-          + Create Patient
+          class="btn-success"
+          (click)="goToCreatePatient()"
+        >
+          Create
         </button>
-
-        <button
-          class="btn btn-outline"
-          (click)="clearSearch()"
-          [disabled]="loading">
-          Clear
-        </button>
-
       </div>
-
     </div>
 
-    <!-- TABLE -->
+    <!-- ================= TABLE VIEW ================= -->
     <div class="table-wrapper">
-
       <div class="table-head">
-        <div>Sr</div>
+        <div>#</div>
         <div>PID</div>
         <div>Name</div>
         <div>Phone</div>
         <div>Gender</div>
-        <div>Actions</div>
-      </div>
-
-      <div *ngIf="loading" class="table-state">
-        Loading patients...
-      </div>
-
-      
-      <div *ngIf="!loading && rows.length === 0 && !showCreatePatientBtn"
-           class="table-state">
-        No patients found
+        <div></div>
       </div>
 
       <div class="table-row" *ngFor="let r of rows">
         <div>{{ r.srNo }}</div>
-        <div><span class="pid-chip">{{ r.pid }}</span></div>
-        <div>{{ r.name }}</div>
-        <div>{{ r.phone }}</div>
-        <div>{{ r.gender }}</div>
+
         <div>
+          <span class="pid-chip">{{ r.pid }}</span>
+        </div>
+
+        <div class="name">{{ r.name }}</div>
+
+        <div>{{ r.phone }}</div>
+
+        <div>
+          <span
+            class="gender-pill"
+            [ngClass]="{
+              male: r.gender === 'Male',
+              female: r.gender === 'Female'
+            }"
+          >
+            {{ r.gender }}
+          </span>
+        </div>
+
+        <div class="action">
           <button (click)="openActions($event, r)">
-            <ion-icon name="settings-outline"></ion-icon>
+            <ion-icon name="ellipsis-vertical"></ion-icon>
           </button>
         </div>
       </div>
-
-
-      
     </div>
 
-    <!-- PAGINATION -->
-    <div class="pagination" *ngIf="!isSearching && totalPages > 0">
+    <!-- ================= MOBILE CARD VIEW ================= -->
+    <div class="mobile-list">
+      <div class="patient-card" *ngFor="let r of rows">
+        <div class="card-top">
+          <div class="left">
+            <span class="pid-chip">{{ r.pid }}</span>
+            <span class="sr">#{{ r.srNo }}</span>
+          </div>
 
+          <button (click)="openActions($event, r)">
+            <ion-icon name="ellipsis-vertical"></ion-icon>
+          </button>
+        </div>
+
+        <div class="card-name">{{ r.name }}</div>
+
+        <div class="card-meta">
+          <div>
+            <div class="meta-label">Phone</div>
+            <div class="meta-value">{{ r.phone }}</div>
+          </div>
+
+          <div>
+            <div class="meta-label">Gender</div>
+            <span
+              class="gender-pill"
+              [ngClass]="{
+                male: r.gender === 'Male',
+                female: r.gender === 'Female'
+              }"
+            >
+              {{ r.gender }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ================= PAGINATION (Desktop/Tablet Only) ================= -->
+    <div class="pagination" *ngIf="!isSearching && totalPages > 0">
       <button
-        class="btn btn-outline"
+        class="page-btn"
         (click)="prevPage()"
-        [disabled]="page === 1 || loading">
+        [disabled]="page === 1 || loading"
+      >
         ← Prev
       </button>
 
-      <div class="page-info">
-        Page {{ page }} of {{ totalPages }}
-      </div>
+      <div class="page-info">Page {{ page }} of {{ totalPages }}</div>
 
       <button
-        class="btn btn-outline"
+        class="page-btn"
         (click)="nextPage()"
-        [disabled]="page === totalPages || loading">
+        [disabled]="page === totalPages || loading"
+      >
         Next →
       </button>
-
     </div>
-
   </div>
-
 </ion-content>

@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import {
   ModalController,
   ToastController,
-  PopoverController
+  PopoverController,
 } from '@ionic/angular';
 
 import {
@@ -13,7 +13,7 @@ import {
   distinctUntilChanged,
   switchMap,
   of,
-  catchError
+  catchError,
 } from 'rxjs';
 
 import { PatientService } from 'src/app/services/patient.service';
@@ -35,10 +35,9 @@ type Row = {
   selector: 'app-patient-listing',
   templateUrl: './patient-list.page.html',
   styleUrls: ['./patient-list.page.scss'],
-  standalone  : false
+  standalone: false,
 })
 export class PatientListPage implements OnInit, OnDestroy {
-
   loading = false;
 
   searchText = '';
@@ -62,7 +61,7 @@ export class PatientListPage implements OnInit, OnDestroy {
     private toastCtrl: ToastController,
     private router: Router,
     private modalCtrl: ModalController,
-    private popoverCtrl: PopoverController
+    private popoverCtrl: PopoverController,
   ) {}
 
   ngOnInit(): void {
@@ -77,13 +76,11 @@ export class PatientListPage implements OnInit, OnDestroy {
   // ================= SEARCH STREAM =================
 
   private setupSearchStream(): void {
-
     const sub = this.search$
       .pipe(
         debounceTime(350),
         distinctUntilChanged(),
         switchMap((query) => {
-
           const q = (query || '').trim();
 
           if (!q) {
@@ -102,12 +99,11 @@ export class PatientListPage implements OnInit, OnDestroy {
             catchError((err) => {
               this.handleError(err, 'Search failed');
               return of(null);
-            })
+            }),
           );
-        })
+        }),
       )
       .subscribe((res) => {
-
         if (!res) {
           this.loading = false;
           return;
@@ -167,21 +163,19 @@ export class PatientListPage implements OnInit, OnDestroy {
         this.rows = this.mapRows(list, this.page);
         this.updatePagination(res, list);
       },
-      complete: () => (this.loading = false)
+      complete: () => (this.loading = false),
     });
   }
 
   private fetchPatients() {
     this.loading = true;
 
-    return this.patientService
-      .getPatients(this.page, this.pageSize)
-      .pipe(
-        catchError((err) => {
-          this.handleError(err, 'Failed to load patients');
-          return of(null);
-        })
-      );
+    return this.patientService.getPatients(this.page, this.pageSize).pipe(
+      catchError((err) => {
+        this.handleError(err, 'Failed to load patients');
+        return of(null);
+      }),
+    );
   }
 
   // ================= PAGINATION =================
@@ -199,47 +193,46 @@ export class PatientListPage implements OnInit, OnDestroy {
   }
 
   // ================= ACTIONS =================
-async openActions(ev: Event, row: Row) {
+  async openActions(ev: Event, row: Row) {
+    ev.stopPropagation(); // important
 
-  ev.stopPropagation(); // important
+    const popover = await this.popoverCtrl.create({
+      component: PatientActionPopoverComponent,
+      event: ev,
+      translucent: true,
+      componentProps: { patient: row },
+    });
 
-  const popover = await this.popoverCtrl.create({
-    component: PatientActionPopoverComponent,
-    event: ev,
-    translucent: true,
-    componentProps: { patient: row }
-  });
+    await popover.present();
 
-  await popover.present();
+    const { data } = await popover.onDidDismiss();
 
-  const { data } = await popover.onDidDismiss();
+    if (!data?.action) return;
 
-  if (!data?.action) return;
+    switch (data.action) {
+      case 'edit':
+        this.router.navigate(['/patients'], {
+          queryParams: { patientId: row.id, tab: 'prelim' },
+        });
+        break;
 
-  switch (data.action) {
-    case 'edit':
-      this.router.navigate(['/patients'], {
-        queryParams: { patientId: row.id, tab: 'prelim' }
-      });
-      break;
+      case 'appointment':
+        this.openAppointmentModal(row);
+        break;
 
-    case 'appointment':
-      this.openAppointmentModal(row);
-      break;
-
-    case 'status':
-      console.log('Change status clicked');
-      break;
+      case 'status':
+        console.log('Change status clicked');
+        break;
+    }
   }
-}
 
 async openAppointmentModal(row: Row) {
-
   const modal = await this.modalCtrl.create({
     component: CreateAppointmentModalComponent,
     componentProps: {
-      patient: row
-    }
+      patient: row,
+      mode: row.hasActiveAppointment ? 'edit' : 'create'   // 👈 THIS LINE
+    },
   });
 
   await modal.present();
@@ -253,7 +246,7 @@ async openAppointmentModal(row: Row) {
 
   goToCreatePatient(): void {
     this.router.navigate(['/patients'], {
-      queryParams: { q: this.searchText.trim() }
+      queryParams: { q: this.searchText.trim() },
     });
   }
 
@@ -265,7 +258,6 @@ async openAppointmentModal(row: Row) {
   }
 
   private updatePagination(res: any, list: any[]): void {
-
     const count = Number(res?.totalCount ?? 0) || 0;
     const pages =
       Number(res?.totalPages ?? 0) ||
@@ -273,28 +265,50 @@ async openAppointmentModal(row: Row) {
 
     this.totalCount = count;
     this.totalPages = pages;
-    this.hasNext = pages > 0 ? this.page < pages : list.length === this.pageSize;
+    this.hasNext =
+      pages > 0 ? this.page < pages : list.length === this.pageSize;
   }
 
   private mapRows(list: any[], page: number): Row[] {
-    return list.map((p: any, idx: number) => ({
-      srNo: (page - 1) * this.pageSize + idx + 1,
-      id: p?.patientId ?? p?.id ?? 0,
-      pid: p?.patientIdFormatted ?? p?.pid ?? '-',
-      name: p?.fullName ?? 'NA',
-      phone: p?.phoneNumber ?? '-',
-      gender: p?.gender ?? 'NA',
-      hasActiveAppointment: !!p?.hasActiveAppointment,
-      raw: p
-    }));
+    return list.map((p: any, idx: number) => {
+      // ✅ DEBUG HERE
+      console.log('RAW PATIENT FROM API:', p);
+
+      const patientId = Number(
+        p?.patientId ??
+          p?.patientID ??
+          p?.patientsId ??
+          p?.id ??
+          p?.patient?.patientId ??
+          0,
+      );
+
+      if (!patientId) {
+        console.warn('❌ Invalid patientId detected:', p);
+      }
+
+      return {
+        srNo: (page - 1) * this.pageSize + idx + 1,
+        id: patientId,
+        pid: p?.patientIdFormatted ?? p?.pid ?? '-',
+        name: p?.fullName ?? p?.patient?.fullName ?? 'NA',
+        phone: p?.phoneNumber ?? p?.patient?.phoneNumber ?? '-',
+        gender: p?.gender ?? p?.patient?.gender ?? 'NA',
+        hasActiveAppointment: !!p?.hasActiveAppointment,
+        raw: p,
+      };
+    });
   }
 
   private async handleError(err: any, fallback: string) {
     const toast = await this.toastCtrl.create({
       message: err?.message || fallback,
       duration: 2500,
-      position: 'top'
+      position: 'top',
     });
     await toast.present();
   }
+
+  
+
 }

@@ -21,157 +21,163 @@
       </div>
 
       <!-- FORM -->
-      <form
-        *ngIf="!loading"
-        [formGroup]="form"
-        (ngSubmit)="save()"
-      >
+  <form
+  *ngIf="!loading"
+  [formGroup]="form"
+  (ngSubmit)="save()"
+>
 
-        <!-- ================= BASIC INFO ================= -->
+  <!-- ================= BASIC INFO ================= -->
 
-        <div class="section-title">Basic Information</div>
+  <div class="section-title">Basic Information</div>
 
-        <div class="form-group">
-          <label>Medicine Name *</label>
-          <input
-            type="text"
-            formControlName="name"
-            [readonly]="mode !== 'create'"
-          />
-        </div>
-
-        <div class="form-row">
-
-          <div class="form-group">
-            <label>Strength *</label>
-            <input
-              type="text"
-              formControlName="strength"
-              [readonly]="mode === 'view'"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Dosage Form *</label>
-            <select
-              formControlName="dosageForm"
-              [disabled]="mode === 'view'"
-            >
-              <option value="">Select form</option>
-              <option value="Tablet">Tablet</option>
-              <option value="Capsule">Capsule</option>
-              <option value="Syrup">Syrup</option>
-              <option value="Injection">Injection</option>
-            </select>
-          </div>
-
-        </div>
-
-        <div class="form-row">
-
-       <div class="form-group">
-  <label>Stock Quantity *</label>
-
-  <div class="quantity-control">
-
-    <button
-      type="button"
-      class="qty-btn"
-      (click)="changeQuantity(-1)"
-      [disabled]="mode === 'view' || form.get('stockQuantity')?.value <= 0"
-    >
-      −
-    </button>
-
+  <div class="form-group">
+    <label>Medicine Name *</label>
     <input
-      type="number"
-      formControlName="stockQuantity"
-      class="qty-input"
-      [readonly]="mode === 'view'"
+      type="text"
+      formControlName="name"
+      placeholder="Enter medicine name (e.g., Paracetamol)"
+      [readonly]="mode !== 'create'"
     />
+  </div>
 
-    <button
-      type="button"
-      class="qty-btn"
-      (click)="changeQuantity(1)"
-      [disabled]="mode === 'view'"
-    >
-      +
-    </button>
+  <div class="form-row">
+
+    <div class="form-group">
+      <label>Strength *</label>
+      <input
+        type="text"
+        formControlName="strength"
+        placeholder="Enter strength (e.g., 500 mg)"
+        [readonly]="mode === 'view'"
+      />
+    </div>
+
+    <div class="form-group">
+      <label>Dosage Form *</label>
+      <select
+        formControlName="dosageForm"
+        [disabled]="mode === 'view'"
+      >
+        <option value="">Select dosage form</option>
+        <option value="Tablet">Tablet</option>
+        <option value="Capsule">Capsule</option>
+        <option value="Syrup">Syrup</option>
+        <option value="Injection">Injection</option>
+      </select>
+    </div>
 
   </div>
-</div>
 
-          <div class="form-group">
-            <label>Unit *</label>
-            <input
-              type="text"
-              formControlName="unit"
-              [readonly]="mode === 'view'"
-            />
-          </div>
+  <div class="form-row">
 
-        </div>
+    <div class="form-group">
+      <label>Stock Quantity *</label>
 
-        <!-- ================= ADDITIONAL DETAILS ================= -->
+      <div class="quantity-control">
 
-        <div class="section-title">Additional Details</div>
-
-        <div class="form-row">
-
-          <div class="form-group">
-            <label>Batch Number</label>
-            <input
-              type="text"
-              formControlName="batchNumber"
-              [readonly]="mode === 'view'"
-            />
-          </div>
-
-          <div class="form-group">
-            <label>Expiry Date</label>
-            <input
-              type="date"
-              formControlName="expiryDate"
-              [readonly]="mode === 'view'"
-            />
-          </div>
-
-        </div>
-
-        <div class="form-group">
-          <label>Notes</label>
-          <textarea
-            rows="3"
-            formControlName="notes"
-            [readonly]="mode === 'view'"
-          ></textarea>
-        </div>
-
-        <!-- ================= ACTION BUTTONS ================= -->
-
-        <div
-          *ngIf="mode !== 'view'"
-          class="form-actions"
+        <button
+          type="button"
+          class="qty-btn"
+          (click)="changeQuantity(-1)"
+          [disabled]="mode === 'view' || form.get('stockQuantity')?.value <= 0"
         >
-          <button
-            type="button"
-            class="btn-cancel"
-            (click)="cancel()"
-          >
-            Cancel
-          </button>
+          −
+        </button>
 
-          <button
-            type="submit"
-            class="btn-save"
-            [disabled]="form.invalid"
-          >
-            {{ mode === 'edit' ? 'Update Medicine' : 'Create Medicine' }}
-          </button>
-        </div>
+        <input
+          type="number"
+          formControlName="stockQuantity"
+          class="qty-input"
+          placeholder="0"
+          [readonly]="mode === 'view'"
+        />
 
-      </form>
+        <button
+          type="button"
+          class="qty-btn"
+          (click)="changeQuantity(1)"
+          [disabled]="mode === 'view'"
+        >
+          +
+        </button>
+
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Unit *</label>
+      <input
+        type="text"
+        formControlName="unit"
+        placeholder="Enter unit (e.g., Strips, Bottles)"
+        [readonly]="mode === 'view'"
+      />
+    </div>
+
+  </div>
+
+  <!-- ================= ADDITIONAL DETAILS ================= -->
+
+  <div class="section-title">Additional Details</div>
+
+  <div class="form-row">
+
+    <div class="form-group">
+      <label>Batch Number</label>
+      <input
+        type="text"
+        formControlName="batchNumber"
+        placeholder="Enter batch number (optional)"
+        [readonly]="mode === 'view'"
+      />
+    </div>
+
+    <div class="form-group">
+      <label>Expiry Date</label>
+      <input
+        type="date"
+        formControlName="expiryDate"
+        [readonly]="mode === 'view'"
+      />
+    </div>
+
+  </div>
+
+  <div class="form-group">
+    <label>Notes</label>
+    <textarea
+      rows="3"
+      formControlName="notes"
+      placeholder="Add any additional notes about this medicine..."
+      [readonly]="mode === 'view'"
+    ></textarea>
+  </div>
+
+  <!-- ================= ACTION BUTTONS ================= -->
+
+  <div
+    *ngIf="mode !== 'view'"
+    class="form-actions"
+  >
+    <button
+      type="button"
+      class="btn-cancel"
+      (click)="cancel()"
+    >
+      Cancel
+    </button>
+
+    <button
+      type="submit"
+      class="btn-save"
+      [disabled]="form.invalid"
+    >
+      {{ mode === 'edit' ? 'Update Medicine' : 'Create Medicine' }}
+    </button>
+  </div>
+
+</form>
 
     </div>
 

@@ -169,35 +169,28 @@ export class PrelimPage implements OnInit, OnDestroy {
   // =====================
   // AGE AUTO CALC
   // =====================
-  private initAgeAutoCalculation() {
-    this.form.get('dateOfBirth')?.valueChanges.subscribe((dob) => {
-      if (!dob) {
-        this.form.patchValue({ age: '' }, { emitEvent: false });
-        return;
-      }
+private initAgeAutoCalculation() {
+  this.form.get('dateOfBirth')?.valueChanges.subscribe((dob) => {
+    if (!dob) {
+      this.form.patchValue({ age: '' }, { emitEvent: false });
+      return;
+    }
 
-      const birthDate = new Date(dob);
-      const today = new Date();
-      let years = today.getFullYear() - birthDate.getFullYear();
-      let months = today.getMonth() - birthDate.getMonth();
+    const birthDate = new Date(dob);
+    const today = new Date();
 
-      if (months < 0 || (months === 0 && today.getDate() < birthDate.getDate())) {
-        years--;
-        months += 12;
-      }
+    let years = today.getFullYear() - birthDate.getFullYear();
 
-      if (today.getDate() < birthDate.getDate()) {
-        months--;
-        if (months < 0) {
-          months += 12;
-          years--;
-        }
-      }
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      years--;
+    }
 
-      const ageStr = years > 0 ? `${years} Years ${months} Months` : `${months} Months`;
-      this.form.patchValue({ age: ageStr }, { emitEvent: false });
-    });
-  }
+    const ageStr = years >= 0 ? `${years} Years` : '';
+
+    this.form.patchValue({ age: ageStr }, { emitEvent: false });
+  });
+}
 
   // =====================
   // INPUT HELPERS

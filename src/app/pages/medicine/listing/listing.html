@@ -1,101 +1,169 @@
-<app-header title="Medicine Dashboard" actionLabel="Refresh" (action)="refresh()"></app-header>
+<app-header
+  title="Medicine Dashboard"
+  actionLabel="Refresh"
+  (action)="refresh()"
+></app-header>
 
-<ion-content class="medicine-page">
+<ion-content class="medicine-bg">
 
-  <div class="medicine-card">
+  <div class="medicine-container">
 
-    <!-- Header -->
-    <div class="card-header">
-      <h2>Medicine Search</h2>
-      <button class="btn-new" (click)="create()">+ New Medicine</button>
+    <!-- ================= HEADER ================= -->
+
+    <div class="page-header">
+
+      <div class="header-left">
+        <h1>Medicine Directory</h1>
+        <p>Manage and monitor medicine inventory</p>
+      </div>
+
+      <div class="header-right">
+
+        <div class="search-box">
+          <ion-icon name="search-outline"></ion-icon>
+          <input
+            type="text"
+            [(ngModel)]="search"
+            (ngModelChange)="onSearchChange()"
+            placeholder="Search medicine..."
+          />
+        </div>
+
+        <button class="btn-primary" (click)="create()">
+          Add Medicine
+        </button>
+
+      </div>
+
     </div>
 
-    <!-- Search -->
-    <div class="search-box">
-      <input
-        type="text"
-        [(ngModel)]="search"
-        (ngModelChange)="onSearchChange()"
-        placeholder="Search medicine by name..."
-      />
-    </div>
+    <!-- ================= STATES ================= -->
 
-    <!-- Loading -->
-    <div *ngIf="loading" class="loading-state">
+    <div *ngIf="loading" class="state-box">
       <ion-spinner name="crescent"></ion-spinner>
+      <span>Loading medicines...</span>
     </div>
 
-    <!-- Error -->
-    <div *ngIf="!loading && errorMessage" class="error-state">
+    <div *ngIf="!loading && errorMessage" class="state-box error">
       {{ errorMessage }}
     </div>
 
-    <!-- Empty -->
-    <div *ngIf="!loading && medicines.length === 0 && !errorMessage" class="empty-state">
-      <p>No medicine found.</p>
-      <button class="btn-new" (click)="create()">Create New Medicine</button>
+    <div *ngIf="!loading && medicines.length === 0 && !errorMessage" class="state-box">
+      No medicines found.
     </div>
 
-    <!-- Table -->
-    <table *ngIf="!loading && medicines.length > 0" class="medicine-table">
+    <!-- ================= TABLE (DESKTOP + TABLET) ================= -->
 
-      <thead>
-        <tr>
-          <th>Medicine Name</th>
-          <th>Strength</th>
-          <th>Dosage Form</th>
-          <th>Stock</th>
-          <th>Unit</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
+    <div class="table-wrapper desktop-view"
+         *ngIf="!loading && medicines.length > 0">
 
-      <tbody>
-        <tr *ngFor="let m of medicines">
-          <td>{{ m.name }}</td>
-          <td>{{ m.strength }}</td>
-          <td>{{ m.dosageForm }}</td>
-          <td>{{ m.stockQuantity }}</td>
-          <td>{{ m.unit }}</td>
-          <td>
-            <button (click)="view(m.medicineId)">View</button>
-            <button (click)="edit(m.medicineId)">Edit</button>
-            <button (click)="delete(m.medicineId)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+      <div class="table-head">
+        <div>Name</div>
+        <div>Strength</div>
+        <div>Form</div>
+        <div>Stock</div>
+        <div>Unit</div>
+        <div>Actions</div>
+      </div>
 
-    <!-- Pagination -->
-   <div *ngIf="!loading && totalPages > 1" class="pagination-container">
+      <div class="table-row"
+           *ngFor="let m of medicines">
 
-  <button (click)="prevPage()" [disabled]="page === 1">
-    Previous
-  </button>
+        <div class="cell name">
+          {{ m.name }}
+        </div>
 
-  <ng-container *ngFor="let p of pageNumbers">
+        <div class="cell">
+          {{ m.strength }}
+        </div>
 
-    <button
-      *ngIf="p > 0"
-      (click)="goToPage(p)"
-      [class.active]="p === page"
-    >
-      {{ p }}
-    </button>
+        <div class="cell">
+          {{ m.dosageForm }}
+        </div>
 
-    <span *ngIf="p < 0" class="ellipsis">...</span>
+        <div class="cell stock"
+             [class.low]="m.stockQuantity < 10">
+          {{ m.stockQuantity }} in stock
+        </div>
 
-  </ng-container>
+        <div class="cell">
+          {{ m.unit }}
+        </div>
 
-  <button (click)="nextPage()" [disabled]="page === totalPages">
-    Next
-  </button>
+        <div class="cell actions">
+          <button class="btn-view" (click)="view(m.medicineId)">View</button>
+          <button class="btn-edit" (click)="edit(m.medicineId)">Edit</button>
+          <button class="btn-delete" (click)="delete(m.medicineId)">Delete</button>
+        </div>
 
-</div>
+      </div>
 
-    <div *ngIf="!loading && totalCount > 0" class="total-count">
-      Total Records: {{ totalCount }}
     </div>
+
+    <!-- ================= MOBILE CARDS ================= -->
+
+    <div class="mobile-view"
+         *ngIf="!loading && medicines.length > 0">
+
+      <div class="medicine-card"
+           *ngFor="let m of medicines">
+
+        <div class="card-header">
+          <div class="card-title">
+            {{ m.name }}
+          </div>
+
+          <div class="stock-badge"
+               [class.low]="m.stockQuantity < 10">
+            {{ m.stockQuantity }} in stock
+          </div>
+        </div>
+
+        <div class="card-body">
+
+          <div class="info-row">
+            <span class="label">Strength</span>
+            <span class="value">{{ m.strength }}</span>
+          </div>
+
+          <div class="info-row">
+            <span class="label">Form</span>
+            <span class="value">{{ m.dosageForm }}</span>
+          </div>
+
+          <div class="info-row">
+            <span class="label">Unit</span>
+            <span class="value">{{ m.unit }}</span>
+          </div>
+
+        </div>
+
+        <div class="card-actions">
+          <button class="btn-view" (click)="view(m.medicineId)">View</button>
+          <button class="btn-edit" (click)="edit(m.medicineId)">Edit</button>
+          <button class="btn-delete" (click)="delete(m.medicineId)">Delete</button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ================= PAGINATION ================= -->
+
+    <div *ngIf="!loading && totalPages > 1" class="pagination">
+
+      <button (click)="prevPage()" [disabled]="page === 1">←</button>
+
+      <button *ngFor="let p of pageNumbers"
+              [class.active]="p === page"
+              (click)="goToPage(p)">
+        {{ p }}
+      </button>
+
+      <button (click)="nextPage()" [disabled]="page === totalPages">→</button>
+
+    </div>
+
 
   </div>
 
