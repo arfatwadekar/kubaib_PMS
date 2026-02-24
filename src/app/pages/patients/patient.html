@@ -1,60 +1,73 @@
 <app-header title="Patient"></app-header>
 
-<ion-content>
+<ion-content class="patient-page">
 
-  <!-- 🔹 Segment Navigation -->
-  <div class="segment-wrapper">
-    <ion-segment
-      [value]="activeTab"
-      (ionChange)="onSegmentChange($event)"
-      scrollable="true"
-    >
-      <ion-segment-button
-        value="prelim"
-        *ngIf="isTabAllowed('prelim')"
-        [disabled]="isTabDisabled('prelim')"
-      >
-        <ion-label>PRELIMINARY</ion-label>
-      </ion-segment-button>
+<!-- ============================= -->
+<!-- CUSTOM ENTERPRISE SEGMENT -->
+<!-- ============================= -->
 
-      <ion-segment-button
-        value="medical"
-        *ngIf="isTabAllowed('medical')"
-        [disabled]="isTabDisabled('medical')"
-      >
-        <ion-label>MEDICAL</ion-label>
-      </ion-segment-button>
+<div class="custom-segment-bar">
 
-      <ion-segment-button
-        value="followup"
-        *ngIf="isTabAllowed('followup')"
-        [disabled]="isTabDisabled('followup')"
-      >
-        <ion-label>FOLLOW UP</ion-label>
-      </ion-segment-button>
+  <div class="custom-segment">
 
-      <ion-segment-button
-        value="payment"
-        *ngIf="isTabAllowed('payment')"
-        [disabled]="isTabDisabled('payment')"
-      >
-        <ion-label>PAYMENT</ion-label>
-      </ion-segment-button>
+    <button
+      *ngIf="isTabAllowed('prelim')"
+      class="segment-tab"
+      [class.active]="activeTab === 'prelim'"
+      [class.disabled]="isTabDisabled('prelim')"
+      [disabled]="isTabDisabled('prelim')"
+      (click)="!isTabDisabled('prelim') && onSegmentChange({ detail: { value: 'prelim' } })">
+      Preliminary
+    </button>
 
-      <ion-segment-button
-        value="reports"
-        *ngIf="isTabAllowed('reports')"
-        [disabled]="isTabDisabled('reports')"
-      >
-        <ion-label>REPORTS</ion-label>
-      </ion-segment-button>
-    </ion-segment>
+    <button
+      *ngIf="isTabAllowed('medical')"
+      class="segment-tab"
+      [class.active]="activeTab === 'medical'"
+      [class.disabled]="isTabDisabled('medical')"
+      [disabled]="isTabDisabled('medical')"
+      (click)="!isTabDisabled('medical') && onSegmentChange({ detail: { value: 'medical' } })">
+      Medical
+    </button>
+
+    <button
+      *ngIf="isTabAllowed('followup')"
+      class="segment-tab"
+      [class.active]="activeTab === 'followup'"
+      [class.disabled]="isTabDisabled('followup')"
+      [disabled]="isTabDisabled('followup')"
+      (click)="!isTabDisabled('followup') && onSegmentChange({ detail: { value: 'followup' } })">
+      Follow Up
+    </button>
+
+    <button
+      *ngIf="isTabAllowed('payment')"
+      class="segment-tab"
+      [class.active]="activeTab === 'payment'"
+      [class.disabled]="isTabDisabled('payment')"
+      [disabled]="isTabDisabled('payment')"
+      (click)="!isTabDisabled('payment') && onSegmentChange({ detail: { value: 'payment' } })">
+      Payment
+    </button>
+
+    <button
+      *ngIf="isTabAllowed('reports')"
+      class="segment-tab"
+      [class.active]="activeTab === 'reports'"
+      [class.disabled]="isTabDisabled('reports')"
+      [disabled]="isTabDisabled('reports')"
+      (click)="!isTabDisabled('reports') && onSegmentChange({ detail: { value: 'reports' } })">
+      Reports
+    </button>
+
   </div>
 
+</div>
 
-    <ng-container *ngIf="activeTab">
-      <router-outlet></router-outlet>
-    </ng-container>
+  <!-- ============================= -->
+  <!-- CONTENT AREA -->
+  <!-- ============================= -->
 
+    <router-outlet></router-outlet>
 
 </ion-content>

@@ -1,45 +1,84 @@
-/* Add your styles for PrelimPage here *//* ======================================
-   PRELIM PAGE - CLEAN UI ONLY
-====================================== */
+/* =====================================================
+   PRELIM PAGE – DIRECTORY STYLE (FINAL CLEAN VERSION)
+===================================================== */
 
 :host {
-  --bg: #f6f8fc;
+  --bg: #f3f5f7;
   --card: #ffffff;
-  --border: #e4e9f2;
-  --primary: #2563eb;
+  --border: #e5e7eb;
+  --primary: #16a34a;
   --danger: #ef4444;
   --text: #111827;
   --muted: #6b7280;
 }
 
-html, body {
-  overflow: hidden !important;
-  height: 100%;
-}
-
 ion-content {
   --background: var(--bg);
-  height: 100vh;
-  overflow-y: auto;
 }
 
-/* ================= CARD ================= */
+/* =====================================================
+   PAGE HEADER
+===================================================== */
+
+.page-title {
+  max-width: 1100px;
+  margin: 0 auto 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.page-title .h1 {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.sub-text {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* =====================================================
+   CARD CONTAINER
+===================================================== */
 
 .card {
-  background: var(--card);
-  border-radius: 14px;
-  padding: 20px;
-  margin: 16px auto;
   max-width: 1100px;
+  margin: 0 auto 40px;
+  padding: 28px;
+  background: var(--card);
   border: 1px solid var(--border);
-  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
-  overflow: visible;
+  border-radius: 12px;
 }
 
-/* ================= FORM GRID ================= */
+/* =====================================================
+   SECTION STRUCTURE
+===================================================== */
+
+.section {
+  margin-bottom: 36px;
+}
+
+.section:last-child {
+  margin-bottom: 0;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 18px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* =====================================================
+   FORM LAYOUT
+===================================================== */
 
 ion-row {
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .f {
@@ -47,13 +86,17 @@ ion-row {
   flex-direction: column;
 }
 
-/* ================= LABEL ================= */
+/* =====================================================
+   LABEL
+===================================================== */
 
 .f label {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
+  color: var(--muted);
   margin-bottom: 6px;
-  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 .req {
@@ -61,70 +104,97 @@ ion-row {
   margin-left: 4px;
 }
 
-/* ================= INPUT ================= */
+/* =====================================================
+   INPUT FIELDS
+===================================================== */
 
 .inp {
   width: 100%;
   height: 44px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
   padding: 0 12px;
   font-size: 14px;
-  background: #fff;
-  color: var(--text);
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
   transition: all 0.2s ease;
 }
 
 .inp:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
 }
 
-/* ================= ERROR ================= */
+/* =====================================================
+   CUSTOM DROPDOWN FIX
+===================================================== */
+
+select.inp {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' fill='%236b7280' viewBox='0 0 24 24'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 18px;
+
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+/* =====================================================
+   ERROR MESSAGE
+===================================================== */
 
 .err {
-  margin-top: 6px;
   font-size: 12px;
-  font-weight: 600;
+  margin-top: 6px;
   color: var(--danger);
+  font-weight: 500;
 }
 
-/* ================= ACTIONS ================= */
-
+/* =====================================================
+   ACTION AREA
+===================================================== */
 
 .actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 32px;
-  width: 100%;
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
 }
 
 .btn {
   height: 42px;
-  border-radius: 10px;
-  padding: 0 20px;
-  font-weight: 600;
+  padding: 0 26px;
+  border-radius: 8px;
   border: none;
+  font-weight: 600;
+  font-size: 14px;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .btn.primary {
   background: var(--primary);
-  color: #fff;
+  color: #ffffff;
 }
 
 .btn.primary:hover {
-  background: #1e4fd8;
+  background: #15803d;
 }
 
 .btn:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
-/* ================= SUCCESS MODAL ================= */
+/* =====================================================
+   SUCCESS MODAL
+===================================================== */
 
 .success-backdrop {
   position: fixed;
@@ -137,23 +207,22 @@ ion-row {
 }
 
 .success-modal {
-  background: #fff;
   width: 420px;
   max-width: 95%;
-  border-radius: 16px;
   padding: 28px;
+  background: #ffffff;
+  border-radius: 12px;
   text-align: center;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
 }
 
 .success-icon {
-  width: 70px;
-  height: 70px;
+  width: 64px;
+  height: 64px;
   margin: 0 auto 16px;
   border-radius: 50%;
-  background: #e6f6ec;
-  color: #27ae60;
-  font-size: 32px;
+  background: #dcfce7;
+  color: var(--primary);
+  font-size: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -168,12 +237,12 @@ ion-row {
 .success-sub {
   font-size: 14px;
   color: var(--muted);
-  margin-bottom: 16px;
+  margin-bottom: 18px;
 }
 
 .success-details {
-  background: #f5f7fa;
-  border-radius: 10px;
+  background: #f9fafb;
+  border-radius: 8px;
   padding: 12px;
   margin-bottom: 18px;
 }
@@ -184,20 +253,36 @@ ion-row {
   padding: 6px 0;
 }
 
-/* ================= RESPONSIVE ================= */
+/* =====================================================
+   RESPONSIVE DESIGN
+===================================================== */
+
+@media (max-width: 992px) {
+  .card {
+    padding: 22px;
+  }
+}
 
 @media (max-width: 768px) {
   .card {
-    padding: 16px;
+    padding: 18px;
   }
 
   .actions {
     justify-content: center;
-    width: 100%;
-    margin-top: 24px;
   }
 
   .btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 16px;
+  }
+
+  .section {
+    margin-bottom: 28px;
   }
 }

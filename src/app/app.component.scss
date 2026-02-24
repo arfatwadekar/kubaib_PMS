@@ -1,0 +1,27 @@
+/* =========================================
+   REMOVE ALL IONIC SEGMENT UNDERLINES
+========================================= */
+
+/* Remove indicator part */
+.patient-segment::part(indicator) {
+  display: none !important;
+}
+
+/* Remove md pseudo underline */
+.patient-segment ion-segment-button::after {
+  display: none !important;
+  content: none !important;
+  border: none !important;
+}
+
+/* Remove bottom border if Ionic adds it */
+.patient-segment ion-segment-button.segment-button-checked {
+  border-bottom: none !important;
+  box-shadow: none !important;
+}
+
+/* Force no underline height */
+.patient-segment {
+  --indicator-height: 0px !important;
+  --indicator-color: transparent !important;
+}
