@@ -102,6 +102,190 @@
         </form>
       </div>
 
+      <!-- ====================== Step 2 : Date (optional) ====================== -->
+       <form class="card">
+
+  <!-- ================= HEADER ================= -->
+  <div class="card-header">
+    <h3>Follow Up Record</h3>
+    <span class="date-chip">01 Mar 2026</span>
+  </div>
+
+  <!-- ================= FOLLOW UP SECTION ================= -->
+  <div>
+
+    <div class="form-row">
+      <label>Follow Up Date</label>
+      <input type="date" class="inp" value="2026-03-01" />
+    </div>
+
+    <!-- Symptom Ratings -->
+    <div class="rating-section">
+      <h4>Symptom Progress <span class="hint-inline">(rate 1–10)</span></h4>
+
+      <div class="rating-grid">
+
+        <div class="rating-card">
+          <div class="rating-label">Headache</div>
+          <input type="number" min="1" max="10" class="rating-input" value="5" />
+        </div>
+
+        <div class="rating-card">
+          <div class="rating-label">Back Pain</div>
+          <input type="number" min="1" max="10" class="rating-input" value="6" />
+        </div>
+
+        <div class="rating-card">
+          <div class="rating-label">Fatigue</div>
+          <input type="number" min="1" max="10" class="rating-input" value="4" />
+        </div>
+
+      </div>
+    </div>
+
+    <div class="form-row">
+      <label>Interpretation</label>
+      <textarea rows="3" class="inp full">
+Patient condition improving gradually.
+      </textarea>
+    </div>
+
+    <div class="form-row">
+      <label>Temporary Problems</label>
+      <textarea rows="3" class="inp full">
+Mild nausea for 2 days.
+      </textarea>
+    </div>
+
+  </div>
+
+
+  <!-- ================= MEDICINES ================= -->
+  <div class="section">
+
+    <div class="section-header">
+      <h4>Prescribed Medicines</h4>
+      <span class="data-badge">2 loaded</span>
+    </div>
+
+    <div class="medicine-row">
+
+      <select class="inp med-select">
+        <option>Paracetamol</option>
+        <option>Ibuprofen</option>
+        <option>Vitamin D</option>
+      </select>
+
+      <input class="inp" placeholder="Dosage" value="500mg" />
+      <input class="inp" placeholder="Frequency" value="Twice daily" />
+      <input class="inp" placeholder="Duration" value="5 days" />
+      <input class="inp" placeholder="Instructions" value="After food" />
+
+      <button type="button" class="remove-btn">×</button>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================= PAYMENT ================= -->
+  <div class="section">
+
+    <div class="section-header">
+      <h4>Consultation & Payment</h4>
+      <span class="data-badge loaded">✅ Payment on record</span>
+    </div>
+
+    <div class="form-grid">
+
+      <div class="form-row">
+        <label>Consultation Charges (₹)</label>
+        <input type="number" class="inp" value="500" />
+      </div>
+
+      <div class="form-row">
+        <label>Apply Waive-Off?</label>
+        <div class="radio-group">
+          <label class="radio-option active">
+            <input type="radio" checked />
+            <span class="radio-label">No</span>
+          </label>
+
+          <label class="radio-option">
+            <input type="radio" />
+            <span class="radio-label">Yes</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>Waive-Off Amount (₹)</label>
+        <input type="number" class="inp waive-input" value="50" />
+      </div>
+
+    </div>
+
+    <!-- Summary -->
+    <div class="payment-summary">
+
+      <div class="sum-row">
+        <span>Consultation Charges</span>
+        <span>₹500.00</span>
+      </div>
+
+      <div class="sum-row waive">
+        <span>Waive-Off</span>
+        <span>− ₹50.00</span>
+      </div>
+
+      <div class="sum-divider"></div>
+
+      <div class="sum-row total">
+        <span>Net Payable</span>
+        <span>₹450.00</span>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================= NEXT APPOINTMENT ================= -->
+  <div class="section">
+
+    <div class="section-header">
+      <h4>Next Appointment</h4>
+      <span class="data-badge loaded">📅 Scheduled</span>
+    </div>
+
+    <div class="form-grid two-col">
+
+      <div class="form-row">
+        <label>Date</label>
+        <input type="date" class="inp" value="2026-03-15" />
+      </div>
+
+      <div class="form-row">
+        <label>Time</label>
+        <input type="time" class="inp" value="10:30" />
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================= SAVE ================= -->
+  <div class="save-wrap">
+
+    <button type="button" class="btn primary save-btn">
+      💾 Save Follow Up
+    </button>
+
+  </div>
+
+</form>
+
       <!-- Bottom nav -->
       <div class="bottom-actions">
         <button class="btn outline" type="button" (click)="goPrevMedical()">

@@ -1,6 +1,6 @@
-/* ============================================================
-   PATIENT FOLLOW UP TAB - SCSS
-============================================================ */
+/* =========================================================
+   FOLLOW UP PAGE - FINAL MATCHED SCSS
+========================================================= */
 
 :host {
   --fu-bg: #f6f8fc;
@@ -13,137 +13,127 @@
   --fu-shadow: 0 8px 26px rgba(16, 24, 40, 0.08);
 }
 
-// ===== WRAPPER =====
-.fu-wrap {
-  padding: 0 8px 16px;
+/* ================= PAGE WRAPPER ================= */
+
+.followup-page {
+  background: var(--fu-bg);
+  min-height: 100%;
 }
 
-.fu-page-title {
-  margin-bottom: 10px;
+/* ================= HEADER ================= */
 
-  .h1 {
-    font-size: 18px;
-    font-weight: 800;
+.page-header {
+  max-width: 1100px;
+  margin: 0 auto 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
     color: var(--fu-text);
+  }
+
+  .sub {
+    font-size: 14px;
+    color: var(--fu-muted);
+  }
+
+  .visit-badge {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+
+    &.first {
+      background: #fff7ed;
+      color: #9a3412;
+      border: 1px solid rgba(249, 115, 22, 0.3);
+    }
+
+    &.second {
+      background: #eaf2ff;
+      color: #24405d;
+      border: 1px solid rgba(47, 111, 237, 0.3);
+    }
   }
 }
 
-// ===== MAIN CARD =====
-.fu-card {
-  max-width: 980px;
-  margin: 0 auto 14px;
+/* ================= CARD ================= */
+
+.card {
+  max-width: 1100px;
+  margin: 0 auto 20px;
   background: var(--fu-card);
   border: 1px solid var(--fu-border);
   border-radius: 12px;
   box-shadow: var(--fu-shadow);
-  padding: 14px;
+  padding: 20px;
 }
 
-// ===== CARD TITLE =====
-.fu-title {
-  padding: 6px 8px 12px;
-  border-bottom: 1px solid var(--fu-border);
+/* ================= CARD HEADER ================= */
 
-  .h1 {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+
+  h3 {
+    font-size: 16px;
     font-weight: 800;
     color: var(--fu-text);
   }
 
-  .ic {
-    font-size: 18px;
-    opacity: 0.9;
-  }
-
-  .h2 {
-    margin-top: 4px;
-    color: var(--fu-muted);
+  .date {
     font-size: 13px;
+    color: var(--fu-muted);
   }
 }
 
-// ===== PANEL =====
-.panel {
-  margin-top: 12px;
-  border: 1px solid var(--fu-border);
-  border-radius: 10px;
-  overflow: hidden;
+/* ================= SYMPTOMS ================= */
 
-  .panel-h {
-    background: #f8fbff;
-    border-bottom: 1px solid var(--fu-border);
-    padding: 10px 12px;
-    font-size: 12px;
-    font-weight: 800;
-    color: #2a3c55;
-    letter-spacing: 0.4px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.symptom-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.symptom-row {
+  display: grid;
+  grid-template-columns: 50px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.sr {
+  font-weight: 700;
+  font-size: 12px;
+  color: #334155;
+}
+
+/* ================= FORM ROW ================= */
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    color: var(--fu-text);
   }
 
-  .panel-sub {
-    font-size: 11px;
-    font-weight: 900;
-    padding: 4px 8px;
-    border-radius: 999px;
-    background: #eaf2ff;
-    border: 1px solid rgba(47, 111, 237, 0.25);
-    color: #24405d;
-
-    &.warn {
-      background: #fff7ed;
-      border-color: rgba(249, 115, 22, 0.25);
-      color: #9a3412;
-    }
+  &.full {
+    width: 100%;
   }
 }
 
-// ===== SYMPTOMS TABLE =====
-.tbl {
-  .tbl-head,
-  .tbl-row {
-    display: grid;
-    grid-template-columns: 70px 1fr;
-    align-items: center;
-  }
+/* ================= INPUT ================= */
 
-  .tbl-head {
-    background: #f8fbff;
-    color: #2a3c55;
-    font-weight: 800;
-    font-size: 12px;
-    border-bottom: 1px solid var(--fu-border);
-
-    > div {
-      padding: 10px 12px;
-    }
-  }
-
-  .tbl-row {
-    border-bottom: 1px solid var(--fu-border);
-
-    &:last-child {
-      border-bottom: none;
-    }
-
-    .c-no {
-      padding: 10px 12px;
-      color: #334155;
-      font-weight: 700;
-      font-size: 12px;
-      border-right: 1px solid var(--fu-border);
-    }
-
-    .c-sym {
-      padding: 8px 10px;
-    }
-  }
-}
-
-// ===== INPUT =====
 .inp {
   width: 100%;
   height: 38px;
@@ -151,72 +141,111 @@
   border-radius: 8px;
   padding: 0 10px;
   outline: none;
-  background: #fff;
-  color: var(--fu-text);
   font-size: 13px;
+  background: #fff;
 
   &:focus {
-    border-color: rgba(47, 111, 237, 0.55);
+    border-color: var(--fu-primary);
     box-shadow: 0 0 0 3px rgba(47, 111, 237, 0.12);
   }
 
   &:disabled {
-    background: #f8fafc;
-    color: #475569;
+    background: #f1f5f9;
     cursor: not-allowed;
   }
 }
 
-// ===== HINT =====
-.hint {
-  padding: 10px 12px;
-  color: var(--fu-muted);
+/* ================= RATING ================= */
+
+.rating-section {
+  margin-bottom: 20px;
+}
+
+.rating-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.rating-card {
+  border: 1px solid var(--fu-border);
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  background: #f9fbff;
+}
+
+.rating-title {
   font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 6px;
 }
 
-// ===== ACTIONS (inside panel) =====
-.fu-actions {
-  display: flex;
-  justify-content: flex-end;
+.rating-input {
+  width: 100%;
+  border: 1px solid var(--fu-border);
+  border-radius: 6px;
+  padding: 4px;
+}
+
+/* ================= SECTION ================= */
+
+.section {
+  margin-top: 24px;
+}
+
+.section h4 {
+  font-size: 14px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: var(--fu-text);
+}
+
+/* ================= MEDICINES ================= */
+
+.medicine-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr) 40px;
   gap: 8px;
-  padding: 10px 12px;
-  border-top: 1px solid var(--fu-border);
+  margin-bottom: 10px;
+  align-items: center;
 }
 
-// ===== BOTTOM NAVIGATION =====
-.bottom-actions {
-  margin-top: 14px;
-  padding-top: 12px;
-  border-top: 1px solid var(--fu-border);
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
+.remove-btn {
+  background: #ef4444;
+  border: none;
+  color: white;
+  border-radius: 6px;
+  height: 36px;
+  cursor: pointer;
 }
 
-// ===== BUTTONS =====
+/* ================= FORM GRID ================= */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+/* ================= BUTTONS ================= */
+
 .btn {
   height: 38px;
   border-radius: 10px;
   padding: 0 14px;
-  border: 1px solid transparent;
-  font-weight: 900;
-  font-size: 13px;
+  font-weight: 700;
   cursor: pointer;
+  border: 1px solid transparent;
 
   &.primary {
     background: var(--fu-primary);
     color: #fff;
   }
 
-  &.success {
-    background: var(--fu-success);
-    color: #fff;
-  }
-
   &.outline {
     background: #fff;
-    border-color: rgba(47, 111, 237, 0.45);
+    border-color: var(--fu-primary);
     color: var(--fu-primary);
   }
 
@@ -226,32 +255,27 @@
   }
 }
 
-// ===== RESPONSIVE =====
-@media (max-width: 600px) {
-  .fu-card {
-    padding: 10px;
+/* ================= SAVE WRAP ================= */
+
+.save-wrap {
+  margin-top: 24px;
+  text-align: right;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+  .medicine-row {
+    grid-template-columns: 1fr;
   }
 
-  .tbl {
-    .tbl-head,
-    .tbl-row {
-      grid-template-columns: 50px 1fr;
-    }
+  .form-grid {
+    grid-template-columns: 1fr;
   }
 
-  .bottom-actions {
+  .page-header {
     flex-direction: column;
-
-    .btn {
-      width: 100%;
-    }
-  }
-
-  .fu-actions {
-    flex-direction: column;
-
-    .btn {
-      width: 100%;
-    }
+    align-items: flex-start;
+    gap: 10px;
   }
 }
