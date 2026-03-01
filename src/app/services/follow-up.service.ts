@@ -176,6 +176,8 @@ export class FollowUpService {
     return this.http.get(this.url(this.EP.FOLLOWUP_BY_PATIENT(patientId)));
   }
 
+  
+
   getFollowUpByEntry(entryId: number): Observable<any> {
     return this.http.get(this.url(this.EP.FOLLOWUP_BY_ENTRY(entryId)));
   }

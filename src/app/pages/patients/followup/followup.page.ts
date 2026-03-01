@@ -30,6 +30,7 @@ export class FollowupPage implements OnInit, OnDestroy {
   // =====================
   // STATE
   // =====================
+  currentAppointmentId: number | null = null;
   patientId: number | null = null;
   fuLoading = false;
   fuCriteriaSaved = false;
@@ -76,20 +77,24 @@ export class FollowupPage implements OnInit, OnDestroy {
   // =====================
   ngOnInit(): void {
     this.initFollowUpEmpty();
+    this.loadMedicines(); // 👈 MUST BE HERE
+    //  this.loadMedicines();   // 👈 ADD THIS
 
-    this.sub.add(
-      this.route.queryParams.subscribe((qp) => {
-        const id = safeNum(qp?.['patientId']);
+   this.sub.add(
+  this.route.queryParams.subscribe(async (qp) => {  // 👈 add async
+    const id = safeNum(qp?.['patientId']);
 
-        if (id > 0) {
-          this.patientId = id;
-          void this.loadFollowUpCriteria(false);
-        } else {
-          this.patientId = null;
-          this.resetFollowUpView();
-        }
-      }),
-    );
+    if (id > 0) {
+      this.patientId = id;
+      void this.loadFollowUpCriteria(false);
+      this.loadMedicines();
+      await this.loadCurrentAppointment(); // 👈 await karo
+    } else {
+      this.patientId = null;
+      this.resetFollowUpView();
+    }
+  }),
+);
   }
 
   ngOnDestroy(): void {
@@ -102,18 +107,25 @@ export class FollowupPage implements OnInit, OnDestroy {
   // INIT ROWS
   // =====================
   private initFollowUpEmpty() {
-    if (this.fuSymptomsArr.length === 0) this.addFuRows(this.FU_INIT_ROWS);
+    if (this.fuSymptomsArr.length === 0) {
+      this.addFuRows(this.FU_INIT_ROWS);
+    }
 
     this.sub.add(
       this.fuSymptomsArr.valueChanges
         .pipe(takeUntil(this.destroy$))
-        .subscribe(() => {
-          if (this.fuCriteriaSaved) return;
-          this.autoGrowFuCriteriaRows();
+        .subscribe((values: string[]) => {
+          if (this.fuCriteriaSaved || !this.fuCriteriaEditMode) return;
+
+          const lastIndex = this.fuSymptomsArr.length - 1;
+          const lastValue = (values[lastIndex] ?? '').toString().trim();
+
+          if (lastValue && this.fuSymptomsArr.length < this.FU_MAX_ROWS) {
+            this.addFuRows(this.FU_ADD_STEP);
+          }
         }),
     );
   }
-
   private resetFollowUpView() {
     this.fuLoading = false;
     this.fuCriteriaSaved = false;
@@ -130,26 +142,6 @@ export class FollowupPage implements OnInit, OnDestroy {
       if (this.fuSymptomsArr.length >= this.FU_MAX_ROWS) break;
       this.fuSymptomsArr.push(this.fb.control(''));
     }
-  }
-
-  onCriteriaInput(i: number) {
-    if (this.fuCriteriaSaved) return;
-
-    const isLast = i === this.fuSymptomsArr.length - 1;
-    if (!isLast) return;
-
-    const v = (this.fuSymptomsArr.at(i).value ?? '').toString().trim();
-    if (!v) return;
-
-    this.addFuRows(this.FU_ADD_STEP);
-  }
-
-  private autoGrowFuCriteriaRows() {
-    const len = this.fuSymptomsArr.length;
-    if (!len) return;
-    const last = (this.fuSymptomsArr.at(len - 1).value ?? '').toString().trim();
-    if (!last) return;
-    this.addFuRows(this.FU_ADD_STEP);
   }
 
   // =====================
@@ -183,7 +175,7 @@ export class FollowupPage implements OnInit, OnDestroy {
 
       this.fuCriteriaEditMode = false;
     } else {
-      this.fuCriteriaEditMode = false;
+      this.fuCriteriaEditMode = true; // 👈 ADD THIS
       for (let i = 0; i < this.fuSymptomsArr.length; i++) {
         this.fuSymptomsArr.at(i).enable({ emitEvent: false });
       }
@@ -342,4 +334,289 @@ export class FollowupPage implements OnInit, OnDestroy {
   trackByIndex(index: number) {
     return index;
   }
+
+  // ============================
+  waiveEnabled = false;
+  verifiedWaivePassword: string | null = null;
+
+  async onWaiveSelected() {
+    const confirm = this.followUpForm.value.applyWaiveOff === 'true';
+
+    if (!confirm) {
+      this.waiveEnabled = false;
+      this.verifiedWaivePassword = null;
+      this.followUpForm.get('waiveOffAmount')?.disable();
+      return;
+    }
+
+    const password = await this.openPasswordModal();
+
+    if (!password) {
+      this.followUpForm.patchValue({ applyWaiveOff: 'false' });
+      return;
+    }
+
+    try {
+      const res = await firstValueFrom(
+        this.fuApi.verifyAdminPassword({ password }),
+      );
+
+      console.log('VERIFY RESPONSE:', res);
+
+      // 🔥 Important: Accept ANY truthy response
+      if (res === true || res?.isValid === true || res?.message) {
+        this.verifiedWaivePassword = password;
+        this.waiveEnabled = true;
+        this.followUpForm.get('waiveOffAmount')?.enable();
+      } else {
+        throw new Error('Invalid');
+      }
+    } catch (error) {
+      await this.toast('Invalid password');
+      this.followUpForm.patchValue({ applyWaiveOff: 'false' });
+      this.waiveEnabled = false;
+      this.verifiedWaivePassword = null;
+      this.followUpForm.get('waiveOffAmount')?.disable();
+    }
+  }
+
+  addMedicine() {
+    this.medicines.push(
+      this.fb.group({
+        medicineId: [''],
+        dosage: [''],
+        frequency: [''],
+        duration: [''],
+        instructions: [''],
+      }),
+    );
+  }
+
+  removeMedicine(index: number) {
+    this.medicines.removeAt(index);
+  }
+
+  get ratings(): FormArray {
+    return this.followUpForm.get('ratings') as FormArray;
+  }
+
+  get medicines(): FormArray {
+    return this.followUpForm.get('medicines') as FormArray;
+  }
+
+  followUpForm = this.fb.group({
+    appointmentId: [null],
+
+    interpretation: [''],
+    temporaryProblems: [''],
+
+    ratings: this.fb.array([]),
+
+    medicines: this.fb.array([]),
+
+    consultationCharges: [0],
+    applyWaiveOff: ['false'],
+    waiveOffAmount: [{ value: 0, disabled: true }],
+
+    nextDate: [''],
+    nextTime: [''],
+  });
+
+  async openPasswordModal(): Promise<string | null> {
+    const alert = await this.alertCtrl.create({
+      header: 'Admin Verification',
+      message: 'Enter admin password to allow waive-off',
+      inputs: [
+        {
+          name: 'password',
+          type: 'password',
+          placeholder: 'Enter password',
+        },
+      ],
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+        },
+        {
+          text: 'Verify',
+          role: 'confirm',
+        },
+      ],
+    });
+
+    await alert.present();
+
+    const { role, data } = await alert.onDidDismiss();
+
+    if (role === 'confirm') {
+      return data?.values?.password || null;
+    }
+
+    return null;
+  }
+
+  today: Date = new Date();
+
+  medicineList: any[] = [];
+
+  async loadMedicines() {
+    try {
+      const res: any = await firstValueFrom(
+        this.fuApi.getAllMedicines(1, 100, ''),
+      );
+
+      console.log('RAW MEDICINE RESPONSE:', res);
+
+      // 🔥 CORRECT EXTRACTION
+      this.medicineList = res?.data?.items ?? [];
+
+      console.log('FINAL MEDICINE LIST:', this.medicineList);
+    } catch (error) {
+      console.error('Medicine load failed:', error);
+      this.medicineList = [];
+    }
+  }
+
+async saveFollowUp() {
+  console.log('SAVE CLICKED');
+
+  if (!this.patientId) {
+    await this.toast('Patient not found');
+    return;
+  }
+
+  // await this.loadCurrentAppointment();
+
+  if (!this.currentAppointmentId) {
+    await this.toast('Appointment missing');
+    return;
+  }
+
+  try {
+    this.fuLoading = true;
+
+    const formValue: any = this.followUpForm.getRawValue();
+    const appointmentId = this.currentAppointmentId;
+
+    // -------------------------
+    // 1️⃣ Save Medicines
+    // -------------------------
+    const medicines = (formValue.medicines || []) as any[];
+
+    for (const med of medicines) {
+      if (!med.medicineId) continue;
+
+      await firstValueFrom(
+        this.fuApi.addPrescription({
+          appointmentId: appointmentId,
+          medicineId: med.medicineId,
+          dosage: med.dosage,
+          frequency: med.frequency,
+          duration: med.duration,
+          instructions: med.instructions,
+        })
+      );
+    }
+
+    console.log('Medicines saved');
+
+    // -------------------------
+    // 2️⃣ Save Payment
+    // -------------------------
+    const consultationCharges = safeNum(formValue.consultationCharges);
+    const waiveOffAmount = safeNum(formValue.waiveOffAmount);
+
+    await firstValueFrom(
+      this.fuApi.createPayment({
+        patientId: this.patientId,
+        appointmentId: appointmentId,
+        consultationCharges,
+        waveOffAmount: waiveOffAmount,
+        amountPaid: consultationCharges - waiveOffAmount,
+        paymentMode: 'Cash',
+        paymentDate: new Date().toISOString(),
+        waveOffPassword:
+          waiveOffAmount > 0
+            ? this.verifiedWaivePassword ?? undefined
+            : undefined,
+      })
+    );
+
+    console.log('Payment saved');
+
+    // -------------------------
+    // 3️⃣ Update Appointment Status
+    // -------------------------
+    await firstValueFrom(
+      this.fuApi.updateAppointmentStatus(appointmentId, {
+        status: 3, // AwaitingPayment
+      })
+    );
+
+    console.log('Appointment updated');
+
+    // -------------------------
+    // 4️⃣ Create Next Appointment (Optional)
+    // -------------------------
+    if (formValue.nextDate && formValue.nextTime) {
+      await firstValueFrom(
+        this.fuApi.createAppointment({
+          patientId: this.patientId,
+          appointmentDate: formValue.nextDate,
+          appointmentTime: formValue.nextTime,
+          remark: 'Follow-up scheduled',
+        })
+      );
+
+      console.log('Next appointment created');
+    }
+
+    await this.toast('Follow Up Saved Successfully');
+
+  } catch (error: any) {
+    console.error('SAVE ERROR:', error);
+
+    await this.presentSimpleAlert(
+      'Save Failed',
+      error?.error?.message || error?.message || 'Something went wrong'
+    );
+
+  } finally {
+    this.fuLoading = false;
+  }
+}
+
+async loadCurrentAppointment() {
+  if (!this.patientId) return;
+
+  console.log('LOAD CURRENT APPOINTMENT');
+
+  const res: any = await firstValueFrom(
+    this.fuApi.getAppointmentsByPatient(this.patientId)
+  );
+
+  console.log('APPOINTMENT RESPONSE:', res);
+
+  // 🔥 Correct extraction (based on your real response)
+  const list = res?.appointments ?? [];
+
+  if (!Array.isArray(list) || list.length === 0) {
+    console.log('No appointments found');
+    return;
+  }
+
+  // Only InPatient
+  const current = list.find((a: any) => a.status === 2);
+
+  if (!current) {
+    console.log('No InPatient appointment found');
+    return;
+  }
+
+  this.currentAppointmentId = current.appointmentId;
+
+  console.log('CURRENT APPOINTMENT ID:', this.currentAppointmentId);
+}
+
 }

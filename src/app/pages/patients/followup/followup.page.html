@@ -1,5 +1,3 @@
-
-
 <ion-content class="ion-padding">
   <div class="fu-wrap">
     <div class="page-title fu-page-title">
@@ -13,7 +11,9 @@
           <ion-icon name="clipboard-outline" class="ic"></ion-icon>
           Follow Up
         </div>
-        <div class="h2">Criteria → Date (optional) → Payment → Next Payment</div>
+        <div class="h2">
+          Criteria → Date (optional) → Payment → Next Payment
+        </div>
       </div>
 
       <!-- ================== STEP 1: Symptoms (Criteria) ================== -->
@@ -21,9 +21,17 @@
         <div class="panel-h">
           PATIENT SYMPTOMS (REFERENCE)
 
-          <span class="panel-sub" *ngIf="fuCriteriaSaved && !fuCriteriaEditMode">Saved</span>
-          <span class="panel-sub warn" *ngIf="fuCriteriaSaved && fuCriteriaEditMode">Editing</span>
-          <span class="panel-sub warn" *ngIf="!fuCriteriaSaved">First visit</span>
+          <span class="panel-sub" *ngIf="fuCriteriaSaved && !fuCriteriaEditMode"
+            >Saved</span
+          >
+          <span
+            class="panel-sub warn"
+            *ngIf="fuCriteriaSaved && fuCriteriaEditMode"
+            >Editing</span
+          >
+          <span class="panel-sub warn" *ngIf="!fuCriteriaSaved"
+            >First visit</span
+          >
         </div>
 
         <form [formGroup]="fuCriteriaForm">
@@ -40,12 +48,7 @@
               >
                 <div class="c-no">{{ i + 1 }}</div>
                 <div class="c-sym">
-                  <input
-                    class="inp"
-                    [formControlName]="i"
-                    placeholder="Enter symptom..."
-                    (input)="onCriteriaInput(i)"
-                  />
+                  <input type="text" [formControlName]="i" />
                 </div>
               </div>
             </div>
@@ -103,188 +106,193 @@
       </div>
 
       <!-- ====================== Step 2 : Date (optional) ====================== -->
-       <form class="card">
-
-  <!-- ================= HEADER ================= -->
-  <div class="card-header">
-    <h3>Follow Up Record</h3>
-    <span class="date-chip">01 Mar 2026</span>
-  </div>
-
-  <!-- ================= FOLLOW UP SECTION ================= -->
-  <div>
-
-    <div class="form-row">
-      <label>Follow Up Date</label>
-      <input type="date" class="inp" value="2026-03-01" />
-    </div>
-
-    <!-- Symptom Ratings -->
-    <div class="rating-section">
-      <h4>Symptom Progress <span class="hint-inline">(rate 1–10)</span></h4>
-
-      <div class="rating-grid">
-
-        <div class="rating-card">
-          <div class="rating-label">Headache</div>
-          <input type="number" min="1" max="10" class="rating-input" value="5" />
+      <form class="card" [formGroup]="followUpForm">
+        <!-- ================= HEADER ================= -->
+        <div class="card-header">
+          <h3>Follow Up Record</h3>
+          <span class="date-chip">{{ today | date:'dd MMM yyyy' }}</span>
         </div>
 
-        <div class="rating-card">
-          <div class="rating-label">Back Pain</div>
-          <input type="number" min="1" max="10" class="rating-input" value="6" />
+        <!-- ================= SYMPTOMS ================= -->
+        <div class="rating-section">
+          <h4>Symptom Progress <span class="hint-inline">(rate 1–10)</span></h4>
+
+          <div class="rating-grid" formArrayName="ratings">
+            <div
+              class="rating-card"
+              *ngFor="let r of ratings.controls; let i = index"
+              [formGroupName]="i"
+            >
+              <div class="rating-label">{{ r.value.criteriaName }}</div>
+
+              <input
+                type="number"
+                min="1"
+                max="10"
+                class="rating-input"
+                formControlName="remarks"
+              />
+            </div>
+          </div>
         </div>
 
-        <div class="rating-card">
-          <div class="rating-label">Fatigue</div>
-          <input type="number" min="1" max="10" class="rating-input" value="4" />
+        <div class="form-row">
+          <label>Interpretation</label>
+          <textarea
+            rows="3"
+            class="inp full"
+            formControlName="interpretation"
+          ></textarea>
         </div>
 
-      </div>
-    </div>
-
-    <div class="form-row">
-      <label>Interpretation</label>
-      <textarea rows="3" class="inp full">
-Patient condition improving gradually.
-      </textarea>
-    </div>
-
-    <div class="form-row">
-      <label>Temporary Problems</label>
-      <textarea rows="3" class="inp full">
-Mild nausea for 2 days.
-      </textarea>
-    </div>
-
-  </div>
-
-
-  <!-- ================= MEDICINES ================= -->
-  <div class="section">
-
-    <div class="section-header">
-      <h4>Prescribed Medicines</h4>
-      <span class="data-badge">2 loaded</span>
-    </div>
-
-    <div class="medicine-row">
-
-      <select class="inp med-select">
-        <option>Paracetamol</option>
-        <option>Ibuprofen</option>
-        <option>Vitamin D</option>
-      </select>
-
-      <input class="inp" placeholder="Dosage" value="500mg" />
-      <input class="inp" placeholder="Frequency" value="Twice daily" />
-      <input class="inp" placeholder="Duration" value="5 days" />
-      <input class="inp" placeholder="Instructions" value="After food" />
-
-      <button type="button" class="remove-btn">×</button>
-
-    </div>
-
-  </div>
-
-
-  <!-- ================= PAYMENT ================= -->
-  <div class="section">
-
-    <div class="section-header">
-      <h4>Consultation & Payment</h4>
-      <span class="data-badge loaded">✅ Payment on record</span>
-    </div>
-
-    <div class="form-grid">
-
-      <div class="form-row">
-        <label>Consultation Charges (₹)</label>
-        <input type="number" class="inp" value="500" />
-      </div>
-
-      <div class="form-row">
-        <label>Apply Waive-Off?</label>
-        <div class="radio-group">
-          <label class="radio-option active">
-            <input type="radio" checked />
-            <span class="radio-label">No</span>
-          </label>
-
-          <label class="radio-option">
-            <input type="radio" />
-            <span class="radio-label">Yes</span>
-          </label>
+        <div class="form-row">
+          <label>Temporary Problems</label>
+          <textarea
+            rows="3"
+            class="inp full"
+            formControlName="temporaryProblems"
+          ></textarea>
         </div>
-      </div>
 
-      <div class="form-row">
-        <label>Waive-Off Amount (₹)</label>
-        <input type="number" class="inp waive-input" value="50" />
-      </div>
+        <!-- ================= MEDICINES ================= -->
+        <div class="section">
+          <div class="section-header">
+            <h4>Prescribed Medicines</h4>
+          </div>
 
-    </div>
+          <div formArrayName="medicines">
+            <div
+              class="medicine-row"
+              *ngFor="let med of medicines.controls; let i = index"
+              [formGroupName]="i"
+            >
+              <select class="inp med-select" formControlName="medicineId">
+                <option value="">Select Medicine</option>
+             <option *ngFor="let m of medicineList"
+        [value]="m.medicineId">
+  {{ m.name }}
+</option>
+              </select>
 
-    <!-- Summary -->
-    <div class="payment-summary">
+              <input
+                class="inp"
+                placeholder="Dosage"
+                formControlName="dosage"
+              />
+              <input
+                class="inp"
+                placeholder="Frequency"
+                formControlName="frequency"
+              />
+              <input
+                class="inp"
+                placeholder="Duration"
+                formControlName="duration"
+              />
+              <input
+                class="inp"
+                placeholder="Instructions"
+                formControlName="instructions"
+              />
 
-      <div class="sum-row">
-        <span>Consultation Charges</span>
-        <span>₹500.00</span>
-      </div>
+              <button
+                type="button"
+                class="remove-btn"
+                (click)="removeMedicine(i)"
+              >
+                ×
+              </button>
+            </div>
+          </div>
 
-      <div class="sum-row waive">
-        <span>Waive-Off</span>
-        <span>− ₹50.00</span>
-      </div>
+          <button type="button" class="btn secondary" (click)="addMedicine()">
+            + Add Medicine
+          </button>
+        </div>
 
-      <div class="sum-divider"></div>
+        <!-- ================= PAYMENT ================= -->
+        <div class="section">
+          <div class="section-header">
+            <h4>Consultation & Payment</h4>
+          </div>
 
-      <div class="sum-row total">
-        <span>Net Payable</span>
-        <span>₹450.00</span>
-      </div>
+          <div class="form-grid">
+            <div class="form-row">
+              <label>Consultation Charges (₹)</label>
+              <input
+                type="number"
+                class="inp"
+                formControlName="consultationCharges"
+              />
+            </div>
 
-    </div>
+            <div class="form-row">
+              <label>Apply Waive-Off?</label>
 
-  </div>
+              <div class="radio-group">
+                <label>
+                  <input
+                    type="radio"
+                    value="false"
+                    formControlName="applyWaiveOff"
+                  />
+                  No
+                </label>
 
+                <label>
+                  <input
+                    type="radio"
+                    value="true"
+                    formControlName="applyWaiveOff"
+                    (change)="onWaiveSelected()"
+                  />
+                  Yes
+                </label>
+              </div>
+            </div>
 
-  <!-- ================= NEXT APPOINTMENT ================= -->
-  <div class="section">
+            <div class="form-row">
+              <label>Waive-Off Amount (₹)</label>
+              <input
+                type="number"
+                class="inp"
+                formControlName="waiveOffAmount"
+              />
+            </div>
+          </div>
+        </div>
 
-    <div class="section-header">
-      <h4>Next Appointment</h4>
-      <span class="data-badge loaded">📅 Scheduled</span>
-    </div>
+        <!-- ================= NEXT APPOINTMENT ================= -->
+        <div class="section">
+          <div class="section-header">
+            <h4>Next Appointment</h4>
+          </div>
 
-    <div class="form-grid two-col">
+          <div class="form-grid two-col">
+            <div class="form-row">
+              <label>Date</label>
+              <input type="date" class="inp" formControlName="nextDate" />
+            </div>
 
-      <div class="form-row">
-        <label>Date</label>
-        <input type="date" class="inp" value="2026-03-15" />
-      </div>
+            <div class="form-row">
+              <label>Time</label>
+              <input type="time" class="inp" formControlName="nextTime" />
+            </div>
+          </div>
+        </div>
 
-      <div class="form-row">
-        <label>Time</label>
-        <input type="time" class="inp" value="10:30" />
-      </div>
-
-    </div>
-
-  </div>
-
-
-  <!-- ================= SAVE ================= -->
-  <div class="save-wrap">
-
-    <button type="button" class="btn primary save-btn">
-      💾 Save Follow Up
-    </button>
-
-  </div>
-
-</form>
+        <!-- ================= SAVE ================= -->
+        <div class="save-wrap">
+          <button
+            type="button"
+            class="btn primary"
+            (click)="saveFollowUp()"
+            [disabled]="fuLoading"
+          >
+            💾 Save Follow Up
+          </button>
+        </div>
+      </form>
 
       <!-- Bottom nav -->
       <div class="bottom-actions">
