@@ -286,3 +286,72 @@ select.inp {
     margin-bottom: 28px;
   }
 }
+
+.success-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.success-modal {
+  background: #ffffff;
+  width: 420px;
+  max-width: 95%;
+  border-radius: 14px;
+  padding: 30px;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.success-icon {
+  width: 70px;
+  height: 70px;
+  background: #d1f5df;
+  color: #16a34a;
+  font-size: 32px;
+  font-weight: bold;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px auto;
+}
+
+.success-info {
+  background: #f3f6fb;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.success-info .row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+.dashboard-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.dashboard-btn:hover {
+  background: #1d4ed8;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}

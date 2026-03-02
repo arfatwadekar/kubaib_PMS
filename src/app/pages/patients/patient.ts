@@ -11,6 +11,7 @@ type UserRole = 'Doctor' | 'Receptionist';
   standalone: false,
 })
 export class PatientPage implements OnInit {
+  isEditFromList = false
 
   activeTab: TabKey = 'prelim';
   role: UserRole = 'Receptionist';
@@ -28,10 +29,14 @@ export class PatientPage implements OnInit {
     this.role = raw === 'doctor' ? 'Doctor' : 'Receptionist';
 
     this.route.queryParams.subscribe(params => {
-      const id = Number(params['patientId']);
-      this.patientId = id > 0 ? id : null;
+    const id = Number(params['patientId']);
+this.patientId = id > 0 ? id : null;
 
-      const mode = (params['mode'] || '') as string;
+const mode = (params['mode'] || '').toString();
+
+// If coming from list (edit mode without create flag)
+this.isEditFromList = !!this.patientId && mode !== 'create';
+
       const isCreateMode = mode === 'create' || this.patientId === null;
 
       // Always force prelim when creating
@@ -86,16 +91,35 @@ export class PatientPage implements OnInit {
     );
   }
 
+  // isTabDisabled(tab: TabKey): boolean {
+  //   // When creating a patient (no patientId yet OR mode=create),
+  //   // only Preliminary tab should be enabled.
+  //   const mode = (this.route.snapshot.queryParamMap.get('mode') || '');
+  //   const isCreateMode = mode === 'create' || this.patientId === null;
+
+  //   if (isCreateMode) {
+  //     return tab !== 'prelim';
+  //   }
+
+  //   return !this.isTabAllowed(tab);
+  // }
+
   isTabDisabled(tab: TabKey): boolean {
-    // When creating a patient (no patientId yet OR mode=create),
-    // only Preliminary tab should be enabled.
-    const mode = (this.route.snapshot.queryParamMap.get('mode') || '');
-    const isCreateMode = mode === 'create' || this.patientId === null;
 
-    if (isCreateMode) {
-      return tab !== 'prelim';
-    }
+  const mode = (this.route.snapshot.queryParamMap.get('mode') || '');
+  const isCreateMode = mode === 'create' || this.patientId === null;
 
-    return !this.isTabAllowed(tab);
+  // 🔒 If creating → only prelim enabled
+  if (isCreateMode) {
+    return tab !== 'prelim';
   }
+
+  // 🔒 If editing from list → only prelim enabled
+  if (this.isEditFromList) {
+    return tab !== 'prelim';
+  }
+
+  // Role based control
+  return !this.isTabAllowed(tab);
+}
 }

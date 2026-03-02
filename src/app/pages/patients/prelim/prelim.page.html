@@ -1,6 +1,6 @@
 <div class="ion-padding">
 
-  <!-- PAGE HEADER -->
+  <!-- ================= PAGE HEADER ================= -->
   <div class="page-title">
     <div>
       <div class="h1">Preliminary Information</div>
@@ -10,9 +10,12 @@
     </div>
   </div>
 
+  <!-- ================= FORM ================= -->
   <form class="card" [formGroup]="form" (ngSubmit)="submit()">
 
-    <!-- ================= SECTION 1 ================= -->
+    <!-- ===================================================== -->
+    <!-- SECTION 1 : BASIC DETAILS -->
+    <!-- ===================================================== -->
     <div class="section">
       <div class="section-title">Basic Details</div>
 
@@ -22,9 +25,10 @@
           <ion-col size="12" sizeMd="6">
             <div class="f">
               <label>FIRST NAME <span class="req">*</span></label>
-              <input class="inp" formControlName="firstName" placeholder="First Name" />
-              <div class="err" *ngIf="form.controls.firstName.touched && form.controls.firstName.invalid">
-                Required
+              <input class="inp" formControlName="firstName" />
+              <div class="err"
+                   *ngIf="form.controls.firstName.touched && form.controls.firstName.invalid">
+                First name is required (min 2 characters).
               </div>
             </div>
           </ion-col>
@@ -32,9 +36,10 @@
           <ion-col size="12" sizeMd="6">
             <div class="f">
               <label>LAST NAME <span class="req">*</span></label>
-              <input class="inp" formControlName="lastName" placeholder="Last Name" />
-              <div class="err" *ngIf="form.controls.lastName.touched && form.controls.lastName.invalid">
-                Required
+              <input class="inp" formControlName="lastName" />
+              <div class="err"
+                   *ngIf="form.controls.lastName.touched && form.controls.lastName.invalid">
+                Last name is required (min 2 characters).
               </div>
             </div>
           </ion-col>
@@ -54,7 +59,7 @@
           <ion-col size="12" sizeMd="6">
             <div class="f">
               <label>DATE OF BIRTH <span class="req">*</span></label>
-              <input class="inp" type="date" formControlName="dateOfBirth" />
+              <input type="date" class="inp" formControlName="dateOfBirth" />
             </div>
           </ion-col>
         </ion-row>
@@ -71,7 +76,10 @@
       </ion-grid>
     </div>
 
-    <!-- ================= SECTION 2 ================= -->
+
+    <!-- ===================================================== -->
+    <!-- SECTION 2 : CONTACT INFORMATION -->
+    <!-- ===================================================== -->
     <div class="section">
       <div class="section-title">Contact Information</div>
 
@@ -81,14 +89,24 @@
           <ion-col size="12" sizeMd="6">
             <div class="f">
               <label>PHONE NUMBER <span class="req">*</span></label>
-              <input class="inp" formControlName="phoneNumber" placeholder="10 digits" />
+              <input class="inp"
+                     maxlength="10"
+                     formControlName="phoneNumber"
+                     (input)="onPhoneInput()" />
+              <div class="err"
+                   *ngIf="form.controls.phoneNumber.touched && form.controls.phoneNumber.invalid">
+                Enter valid 10 digit number.
+              </div>
             </div>
           </ion-col>
 
           <ion-col size="12" sizeMd="6">
             <div class="f">
               <label>ALTERNATE NUMBER</label>
-              <input class="inp" formControlName="alternateNumber" />
+              <input class="inp"
+                     maxlength="10"
+                     formControlName="alternateNumber"
+                     (input)="onAltPhoneInput()" />
             </div>
           </ion-col>
         </ion-row>
@@ -97,7 +115,47 @@
           <ion-col size="12">
             <div class="f">
               <label>EMAIL</label>
-              <input class="inp" formControlName="email" />
+              <input class="inp" type="email" formControlName="email" />
+            </div>
+          </ion-col>
+        </ion-row>
+
+        <!-- ADDRESS (MANDATORY) -->
+        <ion-row>
+          <ion-col size="12">
+            <div class="f">
+              <label>ADDRESS <span class="req">*</span></label>
+              <textarea class="inp"
+                        rows="3"
+                        formControlName="address"></textarea>
+
+              <div class="err"
+                   *ngIf="form.controls.address.touched && form.controls.address.invalid">
+                Address is required (min 5 characters).
+              </div>
+            </div>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col size="12" sizeMd="4">
+            <div class="f">
+              <label>CITY</label>
+              <input class="inp" formControlName="city" />
+            </div>
+          </ion-col>
+
+          <ion-col size="12" sizeMd="4">
+            <div class="f">
+              <label>STATE</label>
+              <input class="inp" formControlName="state" />
+            </div>
+          </ion-col>
+
+          <ion-col size="12" sizeMd="4">
+            <div class="f">
+              <label>PIN CODE</label>
+              <input class="inp" formControlName="pinCode" maxlength="6" />
             </div>
           </ion-col>
         </ion-row>
@@ -105,7 +163,10 @@
       </ion-grid>
     </div>
 
-    <!-- ================= SECTION 3 ================= -->
+
+    <!-- ===================================================== -->
+    <!-- SECTION 3 : PERSONAL DETAILS -->
+    <!-- ===================================================== -->
     <div class="section">
       <div class="section-title">Personal Details</div>
 
@@ -127,7 +188,58 @@
           <ion-col size="12" sizeMd="6">
             <div class="f">
               <label>MARITAL STATUS SINCE</label>
-              <input class="inp" type="date" formControlName="maritalStatusSince" />
+              <input type="date" class="inp" formControlName="maritalStatusSince" />
+            </div>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>RELIGION</label>
+              <input class="inp" formControlName="religion" />
+            </div>
+          </ion-col>
+
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>DIET</label>
+              <input class="inp" formControlName="diet" />
+            </div>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>EDUCATION</label>
+              <input class="inp" formControlName="education" />
+            </div>
+          </ion-col>
+
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>OCCUPATION</label>
+              <input class="inp" formControlName="occupation" />
+            </div>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>AADHAR NUMBER</label>
+              <input class="inp"
+                     maxlength="12"
+                     formControlName="aadharNumber"
+                     (input)="onAadharInput()" />
+            </div>
+          </ion-col>
+
+          <ion-col size="12" sizeMd="6">
+            <div class="f">
+              <label>PAN NUMBER</label>
+              <input class="inp" formControlName="panNumber" />
             </div>
           </ion-col>
         </ion-row>
@@ -135,12 +247,59 @@
       </ion-grid>
     </div>
 
-    <!-- Submit -->
+
+    <!-- ===================================================== -->
+    <!-- ACTION BUTTON -->
+    <!-- ===================================================== -->
     <div class="actions">
-      <button class="btn primary" type="submit" [disabled]="loading">
+      <button class="btn primary"
+              type="submit"
+              [disabled]="loading">
         {{ isEditMode ? 'Update Patient' : 'Create Patient' }}
       </button>
     </div>
 
   </form>
+
+  <!-- ================= SUCCESS MODAL ================= -->
+<div class="success-backdrop" *ngIf="showSuccessModal">
+  <div class="success-modal">
+
+    <div class="success-icon">✓</div>
+
+    <h2>
+      {{ successMode === 'create'
+        ? 'PID Successfully Created!'
+        : 'Patient Successfully Updated!' }}
+    </h2>
+
+    <p>
+      Patient profile has been registered in the system.
+    </p>
+
+    <div class="success-info">
+
+      <div class="row">
+        <span>PATIENT ID</span>
+        <strong>{{ successPatient?.patientsId || successPatient?.patientId }}</strong>
+      </div>
+
+      <div class="row">
+        <span>DATE OF REGISTRATION</span>
+        <strong>{{ today }}</strong>
+      </div>
+
+      <div class="row">
+        <span>REGISTERED BY</span>
+        <strong>{{ role }}</strong>
+      </div>
+
+    </div>
+
+    <button class="dashboard-btn" (click)="goToPatientList()">
+      Return to Patient List
+    </button>
+
+  </div>
+</div>
 </div>
