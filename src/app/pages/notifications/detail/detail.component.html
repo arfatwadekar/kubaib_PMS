@@ -1,16 +1,43 @@
-<div *ngIf="notification" class="detail-card">
+<app-header title="Notifications Deatil"></app-header>
+<div *ngIf="notification" class="detail-wrapper">
 
-  <h2>{{ notification.name }}</h2>
+  <div class="detail-card">
 
-  <p><strong>Email:</strong> {{ notification.email }}</p>
-  <p><strong>Phone:</strong> {{ notification.phoneNumber }}</p>
+    <!-- HEADER -->
+    <div class="detail-header">
+      <div class="avatar">
+        {{ notification.name?.charAt(0) }}
+      </div>
 
-  <hr>
+      <div class="header-info">
+        <h2>{{ notification.name }}</h2>
+        <span class="date">
+          {{ notification.createdOn | date:'medium' }}
+        </span>
+      </div>
+    </div>
 
-  <p>{{ notification.message }}</p>
+    <div class="divider"></div>
 
-  <small>
-    {{ notification.createdOn | date:'medium' }}
-  </small>
+    <!-- CONTACT INFO -->
+    <div class="info-grid">
+      <div class="info-item">
+        <label>Email</label>
+        <p>{{ notification.email }}</p>
+      </div>
+
+      <div class="info-item">
+        <label>Phone</label>
+        <p>{{ notification.phoneNumber }}</p>
+      </div>
+    </div>
+
+    <!-- MESSAGE -->
+    <div class="message-box">
+      <h4>Message</h4>
+      <p>{{ notification.message }}</p>
+    </div>
+
+  </div>
 
 </div>

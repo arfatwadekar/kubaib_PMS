@@ -51,6 +51,9 @@ export class ListingPage implements OnInit, OnDestroy {
     this.loadMedicines();
   }
 
+  ionViewWillEnter(): void {
+  this.loadMedicines();   // 👈 IMPORTANT FIX
+}
   // ================= SEARCH =================
 
   private initializeSearchListener(): void {

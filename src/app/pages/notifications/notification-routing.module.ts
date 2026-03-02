@@ -8,10 +8,10 @@ const routes: Routes = [
     path: '',
     component: ListingComponent
   },
-  {
-    path: ':id',
-    component: DetailComponent
-  }
+  // {
+  //   path: ':id',
+  //   component: DetailComponent
+  // }
 ];
 
 

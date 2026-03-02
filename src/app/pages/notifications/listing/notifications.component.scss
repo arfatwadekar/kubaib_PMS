@@ -1,186 +1,201 @@
-/* ==============================
-   FULL PAGE BACKGROUND FIX
-============================== */
-.notification-content {
-  --background: linear-gradient(135deg, #0f172a, #1e293b);
-  min-height: 100vh;
-  padding: 30px 20px;
+/* ======================
+   PAGE FIX
+====================== */
+.notification-page {
+  --background: #f4f7f6;
+  padding: clamp(12px, 3vw, 24px);
+  min-height: 100%;
 }
 
-/* Centered layout */
-.page-container {
+.container {
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
+  padding: 0 clamp(10px, 3vw, 20px);
 }
 
-/* ==============================
-   HEADER
-============================== */
-.page-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 30px;
-}
-
-.page-header h1 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #60a5fa;
-  margin: 0;
-}
-
-.badge {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: #fff;
-  padding: 5px 12px;
-  border-radius: 30px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-/* ==============================
+/* ======================
    LIST
-============================== */
+====================== */
 .notification-list {
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: clamp(12px, 2vw, 20px);
+  margin-top: 10px;
 }
 
-/* ==============================
-   CARD (REAL GLASS)
-============================== */
+/* ======================
+   CARD
+====================== */
 .notification-card {
   display: flex;
-  gap: 18px;
-  padding: 22px;
-  border-radius: 24px;
-  background: rgba(255, 255, 255, 0.07);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45);
-  transition: all 0.3s ease;
-  align-items: flex-start;
+  gap: clamp(12px, 2vw, 20px);
+  padding: clamp(16px, 2.5vw, 24px);
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid #e8f1ed;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.06);
+  transition: all 0.25s ease;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .notification-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 14px 45px rgba(59, 130, 246, 0.4);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(16, 185, 129, 0.15);
 }
 
+/* UNREAD STYLE */
 .notification-card.unread {
-  border: 1px solid rgba(59, 130, 246, 0.6);
+  border-left: 4px solid #10b981;
+  background: #f0fdf4;
 }
 
-/* LEFT */
-.left {
-  flex-shrink: 0;
-}
-
-.icon-circle {
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6, #06b6d4);
+/* ======================
+   ICON
+====================== */
+.icon-box {
+  width: clamp(40px, 6vw, 50px);
+  height: clamp(40px, 6vw, 50px);
+  min-width: clamp(40px, 6vw, 50px);
+  border-radius: 14px;
+  background: #ecfdf5;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
-  color: #fff;
-  box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  color: #10b981;
+  font-size: clamp(18px, 2vw, 22px);
+  transition: all 0.3s ease;
 }
 
-/* CENTER */
-.center {
+.notification-card:hover .icon-box {
+  background: #10b981;
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
+/* ======================
+   CONTENT
+====================== */
+.content {
+  flex: 1;
+  min-width: 0; /* prevents overflow */
+}
+
+.top-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.user-info {
   flex: 1;
   min-width: 0;
 }
 
-.top {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.top h3 {
+.name {
   margin: 0;
-  font-size: 16px;
+  font-size: clamp(14px, 2vw, 16px);
   font-weight: 600;
-  color: #ffffff;
+  color: #111827;
+  word-break: break-word;
 }
 
-.email {
-  margin: 3px 0 0 0;
-  font-size: 13px;
-  color: #cbd5e1;
+.sub-info {
+  margin: 3px 0;
+  font-size: clamp(12px, 1.8vw, 13px);
+  color: #6b7280;
+  word-break: break-word;
+}
+
+.message {
+  margin-top: 8px;
+  font-size: clamp(13px, 1.8vw, 14px);
+  color: #374151;
+  line-height: 1.6;
+  word-break: break-word;
+}
+
+/* ======================
+   RIGHT META
+====================== */
+.right-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: fit-content;
 }
 
 .date {
   font-size: 12px;
-  color: #94a3b8;
+  color: #9ca3af;
 }
 
-.message {
-  margin-top: 12px;
-  font-size: 14px;
-  color: #e2e8f0;
-  line-height: 1.6;
-}
-
-/* RIGHT */
-.right {
-  display: flex;
-  align-items: center;
-}
-
-.read-icon {
-  font-size: 22px;
-  color: #22c55e;
-}
-
-/* ==============================
-   EMPTY
-============================== */
-.empty {
+.read-badge {
+  background: #e6f9f1;
+  color: #059669;
+  font-size: 12px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-weight: 600;
+  border: 1px solid #a7f3d0;
   text-align: center;
-  margin-top: 100px;
-  color: #94a3b8;
 }
 
-.empty ion-icon {
-  font-size: 70px;
-  margin-bottom: 12px;
-  color: #38bdf8;
+.mark-btn {
+  background: #10b981;
+  color: #fff;
+  border: none;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-/* ==============================
-   RESPONSIVE FIX
-============================== */
-@media (max-width: 768px) {
+.mark-btn:hover {
+  background: #059669;
+}
 
-  .notification-content {
-    padding: 20px 15px;
-  }
+/* ======================
+   SMALL DEVICES (Mobile)
+====================== */
+@media (max-width: 576px) {
 
   .notification-card {
     flex-direction: column;
-    padding: 18px;
+    gap: 14px;
   }
 
-  .top {
+  .right-meta {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+  }
+
+  .top-row {
     flex-direction: column;
-    align-items: flex-start;
+    gap: 6px;
   }
 
-  .right {
-    align-self: flex-end;
-    margin-top: 12px;
+  .mark-btn {
+    padding: 6px 12px;
+    font-size: 11px;
   }
+}
 
-  .message {
-    font-size: 13px;
+/* ======================
+   TABLETS
+====================== */
+@media (min-width: 577px) and (max-width: 1024px) {
+  .notification-card {
+    padding: 20px;
   }
 }

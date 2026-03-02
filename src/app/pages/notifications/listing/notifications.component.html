@@ -1,100 +1,70 @@
 <app-header title="Notifications"></app-header>
 
-<ion-content class="notification-content" fullscreen>
+<ion-content class="notification-page">
 
-  <div class="page-container">
+  <div class="container">
 
-    <!-- ================= LOADING ================= -->
-    <div *ngIf="loading" class="loading">
+    <div *ngIf="loading" class="loading-state">
       <ion-spinner name="crescent"></ion-spinner>
     </div>
 
-    <!-- ================= NOTIFICATION LIST ================= -->
-    <div
-      *ngIf="!loading && notifications.length > 0"
-      class="notification-list"
-    >
+    <div *ngIf="!loading && notifications.length > 0"
+         class="notification-list">
 
-      <div
-        *ngFor="let n of notifications"
-        class="notification-card"
-        [class.unread]="!n.isRead"
-        (click)="openDetail(n)"
-      >
+      <div *ngFor="let n of notifications"
+           class="notification-card"
+           [class.unread]="!n.isRead"
+           [class.read]="n.isRead"
+         >
 
         <!-- LEFT ICON -->
-        <div class="left">
-          <div class="icon-circle">
-            <ion-icon name="mail-outline"></ion-icon>
-          </div>
+        <div class="icon-box">
+          <ion-icon name="notifications-outline"></ion-icon>
         </div>
 
-        <!-- CENTER CONTENT -->
-        <div class="center">
+        <!-- CONTENT -->
+        <div class="content">
 
-          <!-- TOP ROW -->
           <div class="top-row">
 
             <div class="user-info">
-              <h3 class="name" style="color: white;">{{ n.name }}</h3>
+              <h3 class="name">{{ n.name }}</h3>
 
-              <p class="email" *ngIf="n.email">
+              <p class="sub-info" *ngIf="n.email">
                 {{ n.email }}
               </p>
 
-              <p class="phone" *ngIf="n.phone || n.phoneNumber" style="color: white;">
+              <p class="sub-info" *ngIf="n.phone || n.phoneNumber">
                 {{ n.phone || n.phoneNumber }}
               </p>
             </div>
 
-            <div class="meta">
+            <div class="right-meta">
               <span class="date">
-                {{ n.createdOn | date:'short' }}
+                {{ n.createdOn | date:'dd MMM yyyy, hh:mm a' }}
               </span>
+
+              <span *ngIf="n.isRead" class="read-badge">
+                Read
+              </span>
+
+              <button *ngIf="!n.isRead"
+                      class="mark-btn"
+                      (click)="markAsRead(n, $event)">
+                Mark Read
+              </button>
             </div>
 
           </div>
 
-          <!-- MESSAGE -->
-          <p class="message" style="color: white;">
+          <p class="message">
             {{ n.message }}
           </p>
 
         </div>
 
-        <!-- RIGHT ACTION -->
-        <div class="right">
-
-          <!-- Already Read -->
-          <ion-icon
-            *ngIf="n.isRead"
-            name="checkmark-done-outline"
-            class="read-icon"
-          ></ion-icon>
-
-          <!-- Mark As Read Button -->
-          <ion-button
-            *ngIf="!n.isRead"
-            size="small"
-            fill="solid"
-            (click)="markAsRead(n, $event)"
-          >
-            <ion-icon name="checkmark-outline" slot="icon-only"></ion-icon>
-          </ion-button>
-
-        </div>
-
       </div>
 
-    </div>
-
-    <!-- ================= EMPTY STATE ================= -->
-    <div
-      *ngIf="!loading && notifications.length === 0"
-      class="empty"
-    >
-      <ion-icon name="notifications-off-outline"></ion-icon>
-      <p>No Notifications Yet</p>
     </div>
 
   </div>

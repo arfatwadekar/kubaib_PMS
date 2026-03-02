@@ -38,11 +38,56 @@ export class DetailPage implements OnInit, OnDestroy {
   // INIT
   // ============================================================
 
+  // ngOnInit(): void {
+
+  //   this.initializeForm();
+  //   this.resolveMode();
+  // }
+
   ngOnInit(): void {
 
-    this.initializeForm();
-    this.resolveMode();
-  }
+  this.initializeForm();
+
+  this.route.paramMap
+    .pipe(takeUntil(this.destroy$))
+    .subscribe(params => {
+
+      const idParam = params.get('id');
+      const currentUrl = this.router.url;
+
+      // 🧹 Always Reset Form First (IMPORTANT)
+      this.form.reset({
+        name: '',
+        strength: '',
+        dosageForm: '',
+        stockQuantity: 0,
+        unit: '',
+        batchNumber: '',
+        expiryDate: '',
+        notes: ''
+      });
+
+      this.form.enable();
+      this.loading = false;
+
+      // 🔍 Resolve Mode Properly
+      if (currentUrl.includes('/view/')) {
+        this.mode = 'view';
+        this.id = +idParam!;
+        this.loadMedicine();
+      }
+      else if (idParam) {
+        this.mode = 'edit';
+        this.id = +idParam;
+        this.loadMedicine();
+      }
+      else {
+        this.mode = 'create';
+        this.loadAllMedicines();
+      }
+
+    });
+}
 
   private resolveMode(): void {
 
