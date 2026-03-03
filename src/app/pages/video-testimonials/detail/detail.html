@@ -1,0 +1,188 @@
+<app-header [title]="pageTitle"></app-header>
+
+<ion-content class="detail-bg">
+  <div class="video-detail-wrapper">
+    <div class="video-detail-card">
+
+      <!-- BACK -->
+      <div class="card-top">
+        <a class="back-link" (click)="cancel()">
+          <ion-icon name="arrow-back-outline"></ion-icon> Back to Listing
+        </a>
+        <span class="mode-badge" [class]="mode">
+          {{ mode === 'create' ? 'New' : mode === 'edit' ? 'Editing' : 'Viewing' }}
+        </span>
+      </div>
+
+      <!-- LOADING OVERLAY -->
+      <div *ngIf="loading" class="loading-overlay">
+        <ion-spinner name="crescent"></ion-spinner>
+        <p>Loading...</p>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="save()" *ngIf="!loading">
+
+        <!-- ── TITLE ─────────────────────────────── -->
+        <div class="form-group">
+          <label>Title <span class="req">*</span></label>
+          <input
+            formControlName="title"
+            placeholder="Enter testimonial title" />
+          <span class="error" *ngIf="isInvalid('title')">Title is required.</span>
+        </div>
+
+        <!-- ── DESCRIPTION ──────────────────────── -->
+        <div class="form-group">
+          <label>Description <span class="req">*</span></label>
+          <textarea
+            rows="4"
+            formControlName="description"
+            placeholder="Enter description"></textarea>
+          <span class="error" *ngIf="isInvalid('description')">Description is required.</span>
+        </div>
+
+        <!-- ── YOUTUBE URL ───────────────────────── -->
+        <div class="form-group">
+          <label>YouTube Video URL <span class="req">*</span></label>
+          <input
+            formControlName="videoUrl"
+            placeholder="https://www.youtube.com/watch?v=..." />
+          <span class="error" *ngIf="isInvalid('videoUrl')">YouTube URL is required.</span>
+        </div>
+
+        <!-- ── YOUTUBE EMBED PREVIEW ─────────────── -->
+        <div class="form-group" *ngIf="safeEmbedUrl">
+          <label>Video Preview</label>
+          <div class="embed-wrapper">
+            <iframe
+              [src]="safeEmbedUrl"
+              frameborder="0"
+              allowfullscreen>
+            </iframe>
+          </div>
+        </div>
+
+        <!-- ── IMAGE UPLOAD (create / edit) ──────── -->
+        <div class="form-group" *ngIf="mode !== 'view'">
+          <label>
+            Images
+            <span class="hint">(Max {{ 4 }}, JPG / PNG / PDF, max 10 MB each)</span>
+          </label>
+
+          <label
+            class="file-label"
+            [class.disabled]="totalImageCount >= 4">
+            <ion-icon name="cloud-upload-outline"></ion-icon>
+            Choose Files
+            <input
+              type="file"
+              multiple
+              accept=".jpg,.jpeg,.png,.pdf"
+              (change)="onImagesSelected($event)"
+              [disabled]="totalImageCount >= 4"
+              hidden />
+          </label>
+
+          <span class="error" *ngIf="imageError">{{ imageError }}</span>
+          <span class="hint-count">{{ totalImageCount }} / 4 images</span>
+        </div>
+
+        <!-- ── EXISTING IMAGES (edit / view) ──────── -->
+        <div class="form-group" *ngIf="existingImages.length > 0">
+          <label>{{ mode === 'view' ? 'Images' : 'Existing Images' }}</label>
+          <div class="image-grid">
+            <div class="img-thumb" *ngFor="let img of existingImages">
+              <img [src]="img.src" alt="testimonial image"
+                (error)="img.src = 'assets/default-thumbnail.jpg'" />
+              <button
+                *ngIf="mode === 'edit'"
+                type="button"
+                class="img-remove"
+                (click)="removeExistingImage(img)"
+                title="Delete image">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── NEW IMAGE PREVIEWS ─────────────────── -->
+        <div class="form-group" *ngIf="newPreviews.length > 0">
+          <label>New Images ({{ newPreviews.length }})</label>
+          <div class="image-grid">
+            <div
+              class="img-thumb new"
+              *ngFor="let preview of newPreviews; let i = index">
+              <img [src]="preview" alt="preview" />
+              <button
+                type="button"
+                class="img-remove"
+                (click)="removeNewImage(i)"
+                title="Remove">
+                <ion-icon name="close-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── STATUS (create / edit) ────────────── -->
+        <div class="form-group" *ngIf="mode !== 'view'">
+          <label>Status</label>
+          <select formControlName="isActive">
+            <option [ngValue]="true">Active</option>
+            <option [ngValue]="false">Inactive</option>
+          </select>
+        </div>
+
+        <!-- ── VIEW MODE: STATS + LIKE ────────────── -->
+        <div *ngIf="mode === 'view'" class="view-stats">
+          <span class="stat-chip">
+            <ion-icon name="eye-outline"></ion-icon>
+            {{ viewCount }} Views
+          </span>
+          <button
+            type="button"
+            class="btn-like"
+            (click)="like()"
+            [disabled]="liking"
+            [class.liked]="liking">
+            <ion-icon [name]="liking ? 'heart' : 'heart-outline'"></ion-icon>
+            {{ likeCount }} {{ likeCount === 1 ? 'Like' : 'Likes' }}
+          </button>
+        </div>
+
+        <!-- ── ACTIONS ────────────────────────────── -->
+        <div class="form-actions" *ngIf="mode !== 'view'">
+          <button
+            type="button"
+            class="btn-cancel"
+            (click)="cancel()"
+            [disabled]="saving">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="btn-save"
+            [disabled]="saving">
+            <ion-spinner name="lines-small" *ngIf="saving"></ion-spinner>
+            {{ saving ? 'Saving...' : (mode === 'create' ? 'Create' : 'Save Changes') }}
+          </button>
+        </div>
+
+        <!-- ── VIEW MODE BACK BUTTON ──────────────── -->
+        <div class="form-actions" *ngIf="mode === 'view'">
+          <button type="button" class="btn-cancel" (click)="cancel()">
+            ← Back
+          </button>
+          <button
+            type="button"
+            class="btn-save"
+            (click)="edit(id)">
+            Edit This Testimonial
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</ion-content>

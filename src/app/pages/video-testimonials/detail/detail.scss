@@ -1,0 +1,88 @@
+.detail-bg {
+  padding: 40px 20px;
+  background: linear-gradient(180deg, #f8fafc, #eef2f7);
+}
+
+.video-detail-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.video-detail-card {
+  width: 100%;
+  max-width: 700px;
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+}
+
+/* BACK LINK */
+
+.card-top {
+  margin-bottom: 20px;
+}
+
+.back-link {
+  font-size: 14px;
+  color: #16a34a;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.back-link:hover {
+  text-decoration: underline;
+}
+
+/* FORM */
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  font-size: 13px;
+  margin-bottom: 8px;
+  color: #6b7280;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fafafa;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+  outline: none;
+}
+
+.form-actions {
+  margin-top: 30px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+}
+
+.btn-cancel {
+  background: #f3f4f6;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+}
+
+.btn-save {
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 12px;
+}

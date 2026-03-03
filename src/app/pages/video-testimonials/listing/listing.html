@@ -1,0 +1,162 @@
+<app-header title="Video Testimonials"></app-header>
+
+<ion-content class="video-bg">
+  <div class="video-container">
+
+    <!-- ══ PAGE HEADER ══════════════════════════════════════ -->
+    <div class="page-header">
+      <div class="header-left">
+        <h1>Patient Video Testimonials</h1>
+        <p>Manage testimonial videos displayed on website</p>
+      </div>
+      <div class="header-right">
+        <div class="search-box">
+          <ion-icon name="search-outline"></ion-icon>
+          <input
+            type="text"
+            [(ngModel)]="search"
+            (input)="onSearch()"
+            placeholder="Search testimonials..." />
+          <button
+            *ngIf="search"
+            class="clear-btn"
+            (click)="clearSearch()">
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+        <button class="btn-primary" (click)="create()">
+          <ion-icon name="add-outline"></ion-icon> Add Testimonial
+        </button>
+      </div>
+    </div>
+
+    <!-- ══ LOADING STATE ════════════════════════════════════ -->
+    <div *ngIf="loading" class="state-box">
+      <div class="spinner-wrap">
+        <ion-spinner name="crescent"></ion-spinner>
+      </div>
+      <p>Loading testimonials...</p>
+    </div>
+
+    <!-- ══ EMPTY STATE ══════════════════════════════════════ -->
+    <div *ngIf="!loading && blogs.length === 0" class="state-box empty">
+      <div class="empty-icon">
+        <ion-icon name="videocam-outline"></ion-icon>
+      </div>
+      <h3>No Testimonials Found</h3>
+      <p *ngIf="!search">Start by adding your first patient testimonial video.</p>
+      <p *ngIf="search">No results for "<strong>{{ search }}</strong>". Try a different keyword.</p>
+      <button class="btn-primary" (click)="create()" *ngIf="!search">
+        <ion-icon name="add-outline"></ion-icon> Add First Testimonial
+      </button>
+      <button class="btn-outline" (click)="clearSearch()" *ngIf="search">
+        Clear Search
+      </button>
+    </div>
+
+    <!-- ══ CARD GRID ════════════════════════════════════════ -->
+    <div class="video-grid" *ngIf="!loading && blogs.length > 0">
+      <div
+        class="video-card"
+        *ngFor="let b of blogs; trackBy: trackById"
+        [class.inactive-card]="!b.isActive">
+
+        <!-- THUMBNAIL -->
+        <div class="thumbnail" (click)="view(b.id)">
+          <img
+            [src]="b.thumbnailUrl"
+            (error)="b.thumbnailUrl = 'assets/default-thumbnail.jpg'"
+            [alt]="b.title" />
+          <div class="play-overlay">
+            <div class="play-btn">
+              <ion-icon name="play"></ion-icon>
+            </div>
+          </div>
+          <span class="status-badge-thumb" [class.inactive]="!b.isActive">
+            {{ b.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </div>
+
+        <!-- CARD BODY -->
+        <div class="card-body">
+
+          <!-- Title + Description -->
+          <h3 class="card-title" [title]="b.title">{{ b.title }}</h3>
+          <p class="card-desc">{{ b.description }}</p>
+
+          <!-- Action Buttons -->
+          <div class="actions">
+            <button class="btn-icon btn-view" (click)="view(b.id)" title="View">
+              <ion-icon name="eye-outline"></ion-icon>
+              View
+            </button>
+            <button class="btn-icon btn-edit" (click)="edit(b.id)" title="Edit">
+              <ion-icon name="create-outline"></ion-icon>
+              Edit
+            </button>
+            <button
+              class="btn-icon btn-delete"
+              (click)="delete(b.id)"
+              [disabled]="deletingId === b.id"
+              title="Delete">
+              <ion-spinner name="lines-small" *ngIf="deletingId === b.id"></ion-spinner>
+              <ion-icon name="trash-outline" *ngIf="deletingId !== b.id"></ion-icon>
+              {{ deletingId === b.id ? '' : 'Delete' }}
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PAGINATION ═══════════════════════════════════════ -->
+    <div class="pagination" *ngIf="!loading && totalPages > 1">
+      <button
+        class="page-btn nav-btn"
+        [disabled]="pageNumber === 1"
+        (click)="goToPage(1)">
+        «
+      </button>
+      <button
+        class="page-btn nav-btn"
+        [disabled]="pageNumber === 1"
+        (click)="goToPage(pageNumber - 1)">
+        ‹ Prev
+      </button>
+
+      <ng-container *ngFor="let p of pages">
+        <button
+          class="page-btn"
+          [class.active]="p === pageNumber"
+          (click)="goToPage(p)">
+          {{ p }}
+        </button>
+      </ng-container>
+
+      <button
+        class="page-btn nav-btn"
+        [disabled]="pageNumber === totalPages"
+        (click)="goToPage(pageNumber + 1)">
+        Next ›
+      </button>
+      <button
+        class="page-btn nav-btn"
+        [disabled]="pageNumber === totalPages"
+        (click)="goToPage(totalPages)">
+        »
+      </button>
+    </div>
+
+    <!-- ══ COUNT INFO ════════════════════════════════════════ -->
+    <div class="page-info" *ngIf="!loading && totalCount > 0">
+      Showing
+      <strong>{{ (pageNumber - 1) * pageSize + 1 }}</strong>
+      –
+      <strong>{{ Math.min(pageNumber * pageSize, totalCount) }}</strong>
+      of
+      <strong>{{ totalCount }}</strong>
+      testimonials
+    </div>
+
+  </div>
+</ion-content>
