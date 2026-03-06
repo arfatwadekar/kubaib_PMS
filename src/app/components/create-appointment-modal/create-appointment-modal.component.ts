@@ -26,11 +26,16 @@ function addMonthsYmd(months: number): string {
   return d.toISOString().substring(0, 10);
 }
 
+function getCurrentTime(): string {
+  const now = new Date();
+  return now.toTimeString().substring(0, 8); // HH:mm:ss
+}
+
 @Component({
   selector: 'app-create-appointment-modal',
   templateUrl: './create-appointment-modal.component.html',
   styleUrls: ['./create-appointment-modal.component.scss'],
-  standalone: false, // keep false if using module
+  standalone: false,
 })
 export class CreateAppointmentModalComponent implements OnInit {
 
@@ -57,11 +62,12 @@ export class CreateAppointmentModalComponent implements OnInit {
     { value: AppointmentStatus.Cancelled, label: 'Cancelled' },
   ];
 
-  // ✅ STRICT SAFE FORM (TIME OPTIONAL)
+  /* ================= FORM ================= */
+
   form = this.fb.group({
     appointmentDate: new FormControl<string | null>(
       todayYmd(),
-      { nonNullable: false, validators: [Validators.required] }
+      { validators: [Validators.required] }
     ),
     appointmentTime: new FormControl<string | null>(null),
     remark: new FormControl<string | null>(''),
@@ -74,11 +80,19 @@ export class CreateAppointmentModalComponent implements OnInit {
     private apptService: AppointmentService
   ) {}
 
+  /* =====================================================
+     INIT
+  ===================================================== */
+
   ngOnInit(): void {
     if (this.mode === 'edit') {
       this.loadActiveAppointment();
     }
   }
+
+  /* =====================================================
+     CLOSE
+  ===================================================== */
 
   close(): void {
     if (!this.creating) {
@@ -86,11 +100,20 @@ export class CreateAppointmentModalComponent implements OnInit {
     }
   }
 
+  /* =====================================================
+     STATUS CHANGE
+  ===================================================== */
+
   onStatusChange(value: AppointmentStatus): void {
     this.selectedStatus = Number(value);
   }
 
+  /* =====================================================
+     LOAD ACTIVE APPOINTMENT (EDIT MODE)
+  ===================================================== */
+
   private loadActiveAppointment(): void {
+
     const patientId = Number(this.patient?.id);
     if (!patientId) return;
 
@@ -105,6 +128,7 @@ export class CreateAppointmentModalComponent implements OnInit {
         })
       )
       .subscribe(appt => {
+
         this.loadingDetail = false;
 
         if (!appt) {
@@ -130,6 +154,10 @@ export class CreateAppointmentModalComponent implements OnInit {
       });
   }
 
+  /* =====================================================
+     SUBMIT
+  ===================================================== */
+
   async submit(): Promise<void> {
 
     if (this.creating) return;
@@ -141,26 +169,31 @@ export class CreateAppointmentModalComponent implements OnInit {
 
     const raw = this.form.getRawValue();
 
-    const appointmentDate = raw.appointmentDate as string; // safe because required
-    const appointmentTime = raw.appointmentTime;
-    const remark = raw.remark ?? '';
-
     const patientId = Number(this.patient?.id);
+    const appointmentDate = raw.appointmentDate as string;
 
-    const timeString = appointmentTime
-      ? this.apptService.hhmmToTimeString(appointmentTime)
-      : null;
+    // 🔥 Time logic: optional but auto current time
+    const timeString = raw.appointmentTime
+      ? this.apptService.hhmmToTimeString(raw.appointmentTime)
+      : getCurrentTime();
+
+    const remark =
+      raw.remark && raw.remark.trim()
+        ? raw.remark.trim()
+        : null;
 
     this.creating = true;
 
+    /* ================= CREATE ================= */
+
     if (this.mode === 'create') {
 
-      const payload = {
+      const payload = this.buildPayload({
         patientId,
         appointmentDate,
-        appointmentTime: timeString ?? '', // adjust if backend doesn't allow null
+        appointmentTime: timeString,
         remark,
-      };
+      });
 
       this.apptService.createAppointment(payload).subscribe({
         next: async res => {
@@ -177,16 +210,18 @@ export class CreateAppointmentModalComponent implements OnInit {
       return;
     }
 
+    /* ================= UPDATE ================= */
+
     if (!this.appointmentId) {
       this.creating = false;
       return this.showToast(null, 'Appointment ID missing.');
     }
 
-    const updatePayload = {
+    const updatePayload = this.buildPayload({
       appointmentDate,
-      appointmentTime: timeString ?? '',
+      appointmentTime: timeString,
       remark,
-    };
+    });
 
     const shouldUpdateStatus =
       this.selectedStatus !== this.currentStatus;
@@ -216,7 +251,37 @@ export class CreateAppointmentModalComponent implements OnInit {
       });
   }
 
+  /* =====================================================
+     CLEAN PAYLOAD (NO ES2019)
+  ===================================================== */
+
+  private buildPayload(obj: any): any {
+
+    const cleaned: any = {};
+
+    for (const key in obj) {
+      if (!obj.hasOwnProperty(key)) continue;
+
+      const value = obj[key];
+
+      if (
+        value !== null &&
+        value !== undefined &&
+        value !== ''
+      ) {
+        cleaned[key] = value;
+      }
+    }
+
+    return cleaned;
+  }
+
+  /* =====================================================
+     TOAST
+  ===================================================== */
+
   private async showToast(err: any, fallback: string): Promise<void> {
+
     const message =
       err?.error?.title ||
       err?.error?.detail ||

@@ -1,136 +1,195 @@
 <app-header title="Search Appointments"></app-header>
 
-<!-- SEGMENT BELOW HEADER -->
-<ion-toolbar class="segment-bar">
-  <ion-segment [value]="viewMode" (ionChange)="onSegmentChange($event)">
-    <ion-segment-button value="queue">
-      <ion-label>All Appoinments</ion-label>
-    </ion-segment-button>
+<ion-content class="page">
+  <div class="page-container">
+    <!-- ================= HEADER ================= -->
+    <div class="page-head">
+      <div class="title-block">
+        <h2>Appointment Directory</h2>
+        <p>Manage and monitor scheduled appointments</p>
+      </div>
 
-    <ion-segment-button value="today">
-      <ion-label>Today Appoinments</ion-label>
-    </ion-segment-button>
-  </ion-segment>
-</ion-toolbar>
-
-<ion-content class="page" style="--padding-bottom: 11rem !important">
-  <!-- REFRESH -->
-  <ion-refresher slot="fixed" (ionRefresh)="load($event)">
-    <ion-refresher-content></ion-refresher-content>
-  </ion-refresher>
-
-  <!-- FILTERS -->
-  <div class="card filters">
-    <div class="grid">
-      <div class="field">
-        <div class="label">Search</div>
-        <ion-input
-          placeholder="Patient / PID / Phone"
+      <div class="page-actions">
+        <!-- SEARCH -->
+        <input
+          type="text"
+          class="search-input"
+          style="
+            display: flex;
+            align-items: center;
+            background: white;
+            height: 44px;
+            padding: 0 16px;
+            border-radius: 999px;
+            border: 1px solid #e5e7eb;
+            width: 320px;
+            transition: 0.2s ease;
+          "
+          placeholder="Search by name, PID or phone..."
           [(ngModel)]="searchText"
-          (ionInput)="applyFilter()"
-        ></ion-input>
-      </div>
+          (input)="applyFilter()"
+        />
 
-      <div class="field">
-        <div class="label">Status</div>
-        <ion-select [(ngModel)]="statusFilter" (ionChange)="applyFilter()">
-          <ion-select-option *ngFor="let s of statusOptions" [value]="s.value">
-            {{ s.label }}
-          </ion-select-option>
-        </ion-select>
-      </div>
-    </div>
-  </div>
-
-  <!-- LOADING -->
-  <div *ngIf="loading" class="card empty">Loading appointments...</div>
-
-  <!-- EMPTY -->
-  <div *ngIf="!loading && filtered.length === 0" class="card empty">
-    No appointments found
-  </div>
-
-  <!-- LIST -->
-  <div class="card list" *ngFor="let r of filtered; trackBy: trackById">
-    <!-- TOP -->
-    <div class="row-top">
-      <div class="who">
-        <div class="name">{{ r.patient?.fullName || 'Unknown' }}</div>
-        <div class="sub">
-          {{ r.patient?.patientIdFormatted }} • {{ r.patient?.phoneNumber }}
-        </div>
-      </div>
-
-      <ion-chip class="status-chip" [color]="statusColor(r.status)">
-        {{ r.statusText }}
-      </ion-chip>
-    </div>
-
-    <!-- META -->
-    <div class="meta">
-      <div class="m">
-        <div class="k">Date</div>
-        <div class="v">{{ r.appointmentDate | date:'mediumDate' }}</div>
-      </div>
-
-      <div class="m">
-        <div class="k">Time</div>
-        <div class="v">{{ r.appointmentTimeFormatted }}</div>
-      </div>
-
-      <div class="m">
-        <div class="k">Remark</div>
-        <div class="v">{{ r.remark || '—' }}</div>
-      </div>
-    </div>
-
-    <!-- ACTIONS -->
-    <div class="actions">
-      <ion-button
-        size="small"
-        fill="outline"
-        (click)="r._editing ? closeEdit(r) : openEdit(r)"
-        [disabled]="r._saving"
-      >
-        {{ r._editing ? 'Cancel' : 'Edit' }}
-      </ion-button>
-
-      <ion-select
-        class="status-dd"
-        placeholder="Change Status"
-        (ionChange)="confirmStatus(r, $event.detail.value)"
-        [disabled]="r._saving"
-      >
-        <ion-select-option
-          *ngFor="let s of statusOptions"
-          [value]="s.value"
-          [disabled]="s.value === 0 || s.value === r.status"
+        <!-- STATUS FILTER -->
+        <select
+          class="status-filter"
+          [(ngModel)]="statusFilter"
+          (change)="applyFilter()"
+          style="
+            display: flex;
+            align-items: center;
+            background: white;
+            height: 44px;
+            padding: 0 16px;
+            border-radius: 999px;
+            border: 1px solid #e5e7eb;
+            width: 320px;
+            transition: 0.2s ease;
+          "
         >
-          {{ s.label }}
-        </ion-select-option>
-      </ion-select>
+          <option *ngFor="let s of statusOptions" [value]="s.value">
+            {{ s.label }}
+          </option>
+        </select>
+      </div>
     </div>
 
-    <!-- EDIT PANEL -->
-    <div *ngIf="r._editing" class="edit">
-      <div class="edit-grid">
-        <ion-input type="date" [(ngModel)]="r._dateDraft"></ion-input>
+    <!-- ================= SEGMENT ================= -->
+    <div class="segment">
+      <button [class.active]="viewMode==='today'" (click)="changeTab('today')">
+        Today
+      </button>
 
-        <ion-input type="time" [(ngModel)]="r._timeDraft"></ion-input>
+      <button
+        [class.active]="viewMode==='future'"
+        (click)="changeTab('future')"
+      >
+        Future
+      </button>
 
-        <ion-textarea
-          class="full"
-          autoGrow="true"
-          [(ngModel)]="r._remarkDraft"
-          placeholder="Optional remark"
-        ></ion-textarea>
+      <button [class.active]="viewMode==='past'" (click)="changeTab('past')">
+        Past
+      </button>
+    </div>
+
+    <!-- ================= TABLE CARD ================= -->
+    <div class="table-card">
+      <!-- LOADING -->
+      <div *ngIf="loading" class="empty">Loading appointments...</div>
+
+      <!-- EMPTY -->
+      <div *ngIf="!loading && filtered.length===0" class="empty">
+        No appointments found
       </div>
 
-      <div class="edit-actions">
-        <ion-button (click)="saveEdit(r)" [disabled]="r._saving">
-          {{ r._saving ? 'Saving...' : 'Save Changes' }}
-        </ion-button>
-      </div>
+      <!-- TABLE -->
+      <table *ngIf="!loading && filtered.length">
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>PID</th>
+            <th>Phone</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Status</th>
+            <th class="text-right">Actions</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let r of filtered; trackBy: trackById">
+            <td class="bold">{{ r.patient?.fullName || 'Unknown' }}</td>
+
+            <td>{{ r.patient?.patientIdFormatted }}</td>
+
+            <td>{{ r.patient?.phoneNumber }}</td>
+
+            <td>{{ r.appointmentDate | date:'mediumDate' }}</td>
+
+            <td>{{ r.appointmentTimeFormatted }}</td>
+
+            <td>
+              <span class="badge" [ngClass]="getStatusClass(r.status)">
+                {{ r.statusText }}
+              </span>
+            </td>
+
+            <td class="text-right">
+              <!-- Show Edit only if not Past -->
+              <ng-container *ngIf="viewMode !== 'past'; else noAction">
+                <button class="edit-btn" (click)="openEditModal(r)">
+                  Edit
+                </button>
+              </ng-container>
+
+              <!-- Past Tab -->
+              <ng-template #noAction> — </ng-template>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </ion-content>
+
+<!-- ================= EDIT MODAL ================= -->
+
+<ion-modal
+  [isOpen]="isEditOpen"
+  cssClass="appointment-modal"
+  (didDismiss)="closeEditModal()"
+>
+  <ng-template>
+    <div class="modal-wrapper">
+      <!-- HEADER -->
+      <div class="modal-header">
+        <h3>Edit Appointment</h3>
+        <button class="close-btn" (click)="closeEditModal()">✕</button>
+      </div>
+
+      <!-- BODY -->
+      <div class="modal-body" *ngIf="selectedAppointment">
+        <!-- DATE + TIME -->
+        <div class="row-2">
+          <div class="form-field">
+            <label>Date</label>
+            <input type="date" [(ngModel)]="selectedAppointment._dateDraft" />
+          </div>
+
+          <div class="form-field">
+            <label>Time</label>
+            <input type="time" [(ngModel)]="selectedAppointment._timeDraft" />
+          </div>
+        </div>
+
+        <!-- STATUS -->
+        <div class="form-field">
+          <label>Status</label>
+          <select [(ngModel)]="selectedAppointment.status">
+            <option
+              *ngFor="let s of statusOptions"
+              [value]="s.value"
+              [disabled]="s.value === 0"
+            >
+              {{ s.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- REMARK -->
+        <div class="form-field">
+          <label>Remark</label>
+          <textarea rows="3" [(ngModel)]="selectedAppointment._remarkDraft">
+          </textarea>
+        </div>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeEditModal()">Cancel</button>
+
+        <button class="save-btn" (click)="saveEdit()">Save</button>
+      </div>
+    </div>
+  </ng-template>
+</ion-modal>

@@ -104,22 +104,29 @@ this.isEditFromList = !!this.patientId && mode !== 'create';
   //   return !this.isTabAllowed(tab);
   // }
 
-  isTabDisabled(tab: TabKey): boolean {
+isTabDisabled(tab: TabKey): boolean {
 
-  const mode = (this.route.snapshot.queryParamMap.get('mode') || '');
-  const isCreateMode = mode === 'create' || this.patientId === null;
+  const mode = this.route.snapshot.queryParamMap.get('mode');
+  const from = this.route.snapshot.queryParamMap.get('from');
 
-  // 🔒 If creating → only prelim enabled
+  const isCreateMode = mode === 'create';
+
+  // 🔒 Create mode → only prelim enabled
   if (isCreateMode) {
     return tab !== 'prelim';
   }
 
-  // 🔒 If editing from list → only prelim enabled
-  if (this.isEditFromList) {
+  // 🔒 Patient List Edit → only prelim enabled
+  if (from === 'list') {
     return tab !== 'prelim';
   }
 
-  // Role based control
+  // 🔓 Dashboard → role based
+  if (from === 'dashboard') {
+    return !this.isTabAllowed(tab);
+  }
+
+  // 🔓 Default → role based
   return !this.isTabAllowed(tab);
 }
 }

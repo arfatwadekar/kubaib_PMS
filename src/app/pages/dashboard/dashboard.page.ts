@@ -308,15 +308,36 @@ export class DashboardPage {
 
   // ─── Navigation ──────────────────────────────────────────────
 
-  openPatient(row: AppointmentRow) {
-    if (!row?.patientId) return;
-    const role = (localStorage.getItem('mhc_role') || '').trim().toLowerCase();
-    const tab  = role === 'doctor'
-      ? (row.statusCode === AppointmentStatus.AwaitingPayment ? 'payment' : 'medical')
-      : 'prelim';
-    this.router.navigate(['/patients'], { queryParams: { patientId: row.patientId, tab } });
+  // openPatient(row: AppointmentRow) {
+  //   if (!row?.patientId) return;
+  //   const role = (localStorage.getItem('mhc_role') || '').trim().toLowerCase();
+  //   const tab  = role === 'doctor'
+  //     ? (row.statusCode === AppointmentStatus.AwaitingPayment ? 'payment' : 'medical')
+  //     : 'prelim';
+  //   this.router.navigate(['/patients'], { queryParams: { patientId: row.patientId, tab } });
+  // }
+
+openPatient(row: AppointmentRow) {
+  if (!row?.patientId) return;
+
+  const role = (localStorage.getItem('mhc_role') || '').trim().toLowerCase();
+
+  let tab: string;
+
+  if (role === 'doctor') {
+    tab = 'medical';   // ✅ Doctor → Medical
+  } else {
+    tab = 'payment';   // ✅ Receptionist → Payment
   }
 
+  this.router.navigate(['/patients'], {
+    queryParams: {
+      patientId: row.patientId,
+      tab,
+      from: 'dashboard'   // 🔥 important flag
+    }
+  });
+}
   // ─── Popover / actions ───────────────────────────────────────
 
   openActions(ev: any, row: AppointmentRow) {

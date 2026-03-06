@@ -210,12 +210,15 @@ export class PatientListPage implements OnInit, OnDestroy {
     if (!data?.action) return;
 
     switch (data.action) {
-      case 'edit':
-        this.router.navigate(['/patients'], {
-          queryParams: { patientId: row.id, tab: 'prelim' },
-        });
-        break;
-
+    case 'edit':
+  this.router.navigate(['/patients'], {
+    queryParams: {
+      patientId: row.id,
+      tab: 'prelim',
+      from: 'list'   // 👈 IMPORTANT
+    },
+  });
+  break;
       case 'appointment':
         this.openAppointmentModal(row);
         break;
@@ -244,11 +247,14 @@ async openAppointmentModal(row: Row) {
   }
 }
 
-  goToCreatePatient(): void {
-    this.router.navigate(['/patients'], {
-      queryParams: { q: this.searchText.trim() },
-    });
-  }
+ goToCreatePatient(): void {
+  this.router.navigate(['/patients'], {
+    queryParams: {
+      mode: 'create',     // 👈 IMPORTANT
+      from: 'list'        // 👈 optional but clean
+    }
+  });
+}
 
   // ================= HELPERS =================
 

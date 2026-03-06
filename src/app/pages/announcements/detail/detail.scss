@@ -1,0 +1,252 @@
+// ═══════════════════════════════════════════════════════════
+// detail.scss — Announcement Detail (Create / Edit / View)
+// ═══════════════════════════════════════════════════════════
+
+:host {
+  --c-bg:        #f7f8fc;
+  --c-surface:   #ffffff;
+  --c-border:    #e8eaf0;
+  --c-primary:   #3b5bdb;
+  --c-primary-h: #2f4ac7;
+  --c-danger:    #e03131;
+  --c-success:   #2f9e44;
+  --c-warning:   #e67700;
+  --c-text:      #1c1d2b;
+  --c-muted:     #6c7080;
+  --c-subtle:    #f1f3f9;
+  --radius:      10px;
+  --shadow:      0 4px 24px rgba(28,29,43,.09);
+}
+
+.detail-content { --background: var(--c-bg); }
+
+.detail-wrap {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 20px 56px;
+}
+
+// ─── BACK BUTTON ──────────────────────────────────────────
+.back-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: none; cursor: pointer;
+  font-size: 13.5px; font-weight: 600; color: var(--c-primary);
+  margin-bottom: 20px; padding: 0; transition: opacity .15s;
+  ion-icon { font-size: 18px; }
+  &:hover { opacity: .75; }
+}
+
+// ─── FORM CARD ────────────────────────────────────────────
+.form-card {
+  background: var(--c-surface);
+  border-radius: 16px;
+  border: 1px solid var(--c-border);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+// ─── CARD HEADER ──────────────────────────────────────────
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--c-border);
+  background: var(--c-subtle);
+
+  &__icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: #dbe4ff; color: var(--c-primary);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    ion-icon { font-size: 24px; }
+
+    &--edit  { background: #fff3bf; color: #e67700; }
+    &--view  { background: #d3f9d8; color: var(--c-success); }
+  }
+
+  &__title {
+    margin: 0 0 4px; font-size: 18px;
+    font-weight: 700; color: var(--c-text); letter-spacing: -.2px;
+  }
+
+  &__sub { margin: 0; font-size: 13px; color: var(--c-muted); }
+}
+
+// ─── LOADING ──────────────────────────────────────────────
+.loading-state {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 14px; padding: 56px 24px; color: var(--c-muted); font-size: 14px;
+}
+
+// ─── FORM BODY ────────────────────────────────────────────
+form { padding: 28px; }
+
+// ─── FIELD ────────────────────────────────────────────────
+.field {
+  margin-bottom: 22px;
+
+  &__label {
+    display: block; font-size: 13px; font-weight: 600;
+    color: var(--c-text); margin-bottom: 7px;
+  }
+
+  &__required { color: var(--c-danger); margin-left: 2px; }
+
+  &__control {
+    position: relative;
+
+    &--icon { display: flex; align-items: center; }
+  }
+
+  &__prefix-icon {
+    position: absolute; left: 12px; font-size: 16px;
+    color: var(--c-muted); pointer-events: none; z-index: 1;
+  }
+
+  &__input,
+  &__textarea {
+    width: 100%; box-sizing: border-box;
+    padding: 10px 14px;
+    border: 1.5px solid var(--c-border); border-radius: var(--radius);
+    font-size: 14px; color: var(--c-text); background: var(--c-surface);
+    outline: none; font-family: inherit;
+    transition: border-color .15s, box-shadow .15s;
+
+    &:focus {
+      border-color: var(--c-primary);
+      box-shadow: 0 0 0 3px rgba(59,91,219,.12);
+    }
+
+    &:disabled, &[readonly] {
+      background: var(--c-subtle); color: var(--c-muted); cursor: default;
+    }
+
+    &::placeholder { color: #b0b8cc; }
+  }
+
+  &__input--date { padding-left: 38px; }
+
+  &__textarea { resize: vertical; min-height: 100px; }
+
+  &__errors {
+    margin-top: 6px;
+    span {
+      display: block; font-size: 12px;
+      color: var(--c-danger); font-weight: 500;
+    }
+  }
+
+  // Error state
+  &--error {
+    .field__input,
+    .field__textarea {
+      border-color: var(--c-danger);
+      &:focus { box-shadow: 0 0 0 3px rgba(224,49,49,.12); }
+    }
+  }
+}
+
+// ─── DATE ROW ─────────────────────────────────────────────
+.field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+// ─── DATE ERROR BANNER ────────────────────────────────────
+.date-error-banner {
+  display: flex; align-items: center; gap: 8px;
+  background: #fff9db; border: 1px solid #ffe066;
+  border-radius: 8px; padding: 10px 14px;
+  font-size: 13px; font-weight: 600; color: var(--c-warning);
+  margin-bottom: 18px;
+  ion-icon { font-size: 16px; flex-shrink: 0; }
+}
+
+// ─── STATUS TOGGLE ────────────────────────────────────────
+.status-toggle {
+  display: flex; gap: 10px; flex-wrap: wrap;
+  &--disabled { pointer-events: none; opacity: .6; }
+}
+
+.status-option {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 20px; border: 1.5px solid var(--c-border);
+  border-radius: 8px; cursor: pointer;
+  font-size: 13.5px; font-weight: 500; color: var(--c-muted);
+  transition: all .15s; user-select: none;
+
+  input[type="radio"] { display: none; }
+
+  &--active {
+    border-color: var(--c-primary);
+    color: var(--c-primary);
+    background: #edf2ff;
+  }
+
+  &:hover:not(.status-option--active) {
+    border-color: #c5cff8;
+    background: #f5f7ff;
+  }
+
+  &__dot {
+    width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+    &--green { background: var(--c-success); }
+    &--red   { background: var(--c-danger); }
+  }
+}
+
+// ─── FORM ACTIONS ─────────────────────────────────────────
+.form-actions {
+  display: flex; justify-content: flex-end; gap: 12px;
+  margin-top: 32px; padding-top: 22px;
+  border-top: 1px solid var(--c-border);
+}
+
+.btn-cancel {
+  height: 42px; padding: 0 22px;
+  border: 1.5px solid var(--c-border); border-radius: var(--radius);
+  background: var(--c-surface); font-size: 14px; font-weight: 600;
+  color: var(--c-muted); cursor: pointer; transition: all .15s;
+
+  &:hover:not(:disabled) { border-color: var(--c-text); color: var(--c-text); }
+  &:disabled { opacity: .45; cursor: not-allowed; }
+}
+
+.btn-save {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 42px; padding: 0 26px; min-width: 180px; justify-content: center;
+  background: var(--c-primary); color: #fff;
+  border: none; border-radius: var(--radius);
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: background .15s, transform .1s;
+
+  ion-icon { font-size: 18px; }
+  &:hover:not(:disabled)  { background: var(--c-primary-h); }
+  &:active:not(:disabled) { transform: scale(.97); }
+  &:disabled { opacity: .55; cursor: not-allowed; }
+}
+
+// ─── SPINNER ──────────────────────────────────────────────
+.spinner-ring {
+  width: 36px; height: 36px;
+  border: 3px solid rgba(255,255,255,.3); border-top-color: #fff;
+  border-radius: 50%; animation: spin .7s linear infinite;
+
+  &--sm { width: 18px; height: 18px; border-width: 2px; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ─── RESPONSIVE ───────────────────────────────────────────
+@media (max-width: 520px) {
+  form         { padding: 20px 16px; }
+  .card-header { padding: 18px 16px; }
+
+  .field-row { grid-template-columns: 1fr; gap: 0; }
+
+  .form-actions {
+    flex-direction: column-reverse;
+    .btn-cancel, .btn-save { width: 100%; height: 46px; justify-content: center; }
+  }
+}

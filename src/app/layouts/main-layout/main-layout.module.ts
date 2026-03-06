@@ -112,16 +112,16 @@ const routes: Routes = [
       {
         path: 'announcements',
         loadChildren: () =>
-          import('../../pages/coming-soon/coming-soon.module')
-            .then(m => m.ComingSoonModule),
+          import('../../pages/announcements/announcements.module')
+            .then(m => m.AnnouncementModule),
         canActivate: [RoleGuard],
-        data: { roles: ['Doctor'] },
+             data: { roles: ['Doctor', 'Receptionist'] },
       },
       {
-        path: 'reviews',
+      path: 'video-testimonials',
         loadChildren: () =>
-          import('../../pages/coming-soon/coming-soon.module')
-            .then(m => m.ComingSoonModule),
+          import('../../pages/video-testimonials/video-testimonials.module')
+            .then(m => m.VideoTestimonialsModule),
         canActivate: [RoleGuard],
         data: { roles: ['Doctor'] },
       },

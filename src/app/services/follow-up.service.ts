@@ -3,20 +3,20 @@ import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { environment } from "src/environments/environment";
 
-// =======================
-// ✅ Appointment Status Enum
-// =======================
+// ══════════════════════════════════════════
+// Enums
+// ══════════════════════════════════════════
 export enum AppointmentStatus {
-  Pending        = 1,
-  InPatient      = 2,
+  Pending         = 1,
+  InPatient       = 2,
   AwaitingPayment = 3,
-  OutPatient     = 4,
-  Cancelled      = 5,
+  OutPatient      = 4,
+  Cancelled       = 5,
 }
 
-// =======================
-// ✅ FollowUpCriteria Types
-// =======================
+// ══════════════════════════════════════════
+// FollowUp Criteria Types
+// ══════════════════════════════════════════
 export type FollowUpCriteriaCreatePayload = {
   patientId:     number;
   criteriaNames: string[];
@@ -36,27 +36,30 @@ export type FollowUpCriteriaDto = {
   criteriaName?:              string;
 };
 
-// =======================
-// ✅ FollowUp Entry Types
-// =======================
+// ══════════════════════════════════════════
+// FollowUp Entry Types
+// ══════════════════════════════════════════
+export type FollowUpStatusRecord = {
+  patientFollowUpStatusId:   number;
+  patientFollowUpCriteriaId: number;
+  criteriaName:              string;
+  remarks:                   string;
+};
+
 export type FollowUpCreatePayload = {
   patientFollowUpEntryId: number;
   patientId:              number;
+  appointmentId:          number;
   followUpDate:           string;
   interpretation:         string;
   temporaryProblems?:     string;
   charge:                 number;
-  statusRecords: Array<{
-    patientFollowUpStatusId:   number;
-    patientFollowUpCriteriaId: number;
-    criteriaName:              string;
-    remarks:                   string;
-  }>;
+  statusRecords:          FollowUpStatusRecord[];
 };
 
-// =======================
-// ✅ Appointment Types
-// =======================
+// ══════════════════════════════════════════
+// Appointment Types
+// ══════════════════════════════════════════
 export type AppointmentCreatePayload = {
   patientId:       number;
   appointmentDate: string;
@@ -68,9 +71,9 @@ export type AppointmentStatusUpdatePayload = {
   status: AppointmentStatus | number;
 };
 
-// =======================
-// ✅ Payment Types
-// =======================
+// ══════════════════════════════════════════
+// Payment Types
+// ══════════════════════════════════════════
 export type PaymentCreatePayload = {
   patientId:           number;
   appointmentId:       number;
@@ -79,67 +82,71 @@ export type PaymentCreatePayload = {
   amountPaid:          number;
   paymentMode:         string;
   paymentDate:         string;
-  waveOffPassword?:    string;   // required by backend when waive-off > 0
+  discountCode?:       string;   // PRD: discount code (not admin password)
 };
 
-// =======================
-// ✅ Medicine Types
-// =======================
+// ══════════════════════════════════════════
+// Medicine / Prescription Types
+// ══════════════════════════════════════════
 export type PrescriptionPayload = {
   appointmentId: number;
   medicineId:    number;
   dosage:        string;
   frequency:     string;
   duration:      string;
+  type:          string;   // PRD: tablet / syrup / etc.
   instructions:  string;
 };
 
-// =======================
-// ✅ Waive-Off Verify Types
-// =======================
-export type WaveOffVerifyPayload = {
-  password: string;
+// ══════════════════════════════════════════
+// Discount Code Verify Type
+// ══════════════════════════════════════════
+export type DiscountCodeVerifyPayload = {
+  discountCode: string;
 };
 
+// ══════════════════════════════════════════
+// Service
+// ══════════════════════════════════════════
 @Injectable({ providedIn: "root" })
 export class FollowUpService {
+
   private base = environment.apiBaseUrl;
 
-  // ─── All endpoints taken directly from Swagger ────────────────────────────
   private EP = {
     // FollowUpCriteria
-    CRITERIA_BY_PATIENT: (pid: number)  => `api/FollowUpCriteria/patient/${pid}`,
-    CRITERIA_CREATE:                        `api/FollowUpCriteria`,
-    CRITERIA_UPDATE:                        `api/FollowUpCriteria`,
-    CRITERIA_DELETE: (id: number)       => `api/FollowUpCriteria/${id}`,
+    CRITERIA_BY_PATIENT: (pid: number) => `api/FollowUpCriteria/patient/${pid}`,
+    CRITERIA_CREATE:                      `api/FollowUpCriteria`,
+    CRITERIA_UPDATE:                      `api/FollowUpCriteria`,
+    CRITERIA_DELETE:     (id: number)  => `api/FollowUpCriteria/${id}`,
 
-    // FollowUp
-    FOLLOWUP_BY_PATIENT: (pid: number)  => `api/FollowUp/patient/${pid}`,
-    FOLLOWUP_BY_ENTRY:   (id: number)   => `api/FollowUp/${id}`,
-    FOLLOWUP_CREATE:                        `api/FollowUp`,
-    FOLLOWUP_UPDATE:                        `api/FollowUp`,
-    FOLLOWUP_DELETE:     (id: number)   => `api/FollowUp/${id}`,
+    // FollowUp Entry
+    FOLLOWUP_BY_PATIENT: (pid: number) => `api/FollowUp/patient/${pid}`,
+    FOLLOWUP_BY_ENTRY:   (id: number)  => `api/FollowUp/${id}`,
+    FOLLOWUP_CREATE:                      `api/FollowUp`,
+    FOLLOWUP_UPDATE:                      `api/FollowUp`,
+    FOLLOWUP_DELETE:     (id: number)  => `api/FollowUp/${id}`,
 
-    // Appointment  ← all verified in swagger
-    APPT_CREATE:                            `api/Appointment`,
-    APPT_BY_PATIENT:     (pid: number)  => `api/Appointment/patient/${pid}`,
-    APPT_STATUS_UPDATE:  (id: number)   => `api/Appointment/${id}/status`,
+    // Appointment
+    APPT_CREATE:                          `api/Appointment`,
+    APPT_BY_PATIENT:     (pid: number) => `api/Appointment/patient/${pid}`,
+    APPT_BY_ID:          (id: number)  => `api/Appointment/${id}`,
+    APPT_STATUS_UPDATE:  (id: number)  => `api/Appointment/${id}/status`,
+    APPT_SUMMARY:        (id: number)  => `api/Appointment/${id}/summary`,
 
-    // Medicine  ← verified in swagger
-    MEDICINES:                              `api/Medicine`,
-    PRESCRIPTIONS_BY_APPT: (id: number) => `api/Medicine/appointment/${id}/prescriptions`,
-    PRESCRIPTION_ADD:                       `api/Medicine/prescription`,
-    PRESCRIPTION_DELETE: (id: number)   => `api/Medicine/prescription/${id}`,
+    // Medicine
+    MEDICINES:                            `api/Medicine`,
+    PRESCRIPTIONS_BY_APPT: (id: number)=> `api/Medicine/appointment/${id}/prescriptions`,
+    PRESCRIPTION_ADD:                     `api/Medicine/prescription`,
+    PRESCRIPTION_DELETE: (id: number)  => `api/Medicine/prescription/${id}`,
 
-    // Payment  ← GET /api/Payment/{id} and GET /api/Payment/patient/{patientId}
-    //            NOTE: No GET /api/Payment/appointment/{id} in swagger!
-    //            We use GET /api/Payment/patient/{patientId} and filter by appointmentId client-side.
-    PAYMENT_CREATE:                         `api/Payment`,
-    PAYMENT_BY_ID:       (id: number)   => `api/Payment/${id}`,
-    PAYMENT_BY_PATIENT:  (pid: number)  => `api/Payment/patient/${pid}`,
+    // Payment
+    PAYMENT_CREATE:                       `api/Payment`,
+    PAYMENT_BY_ID:       (id: number)  => `api/Payment/${id}`,
+    PAYMENT_BY_PATIENT:  (pid: number) => `api/Payment/patient/${pid}`,
 
-    // Auth
-    VERIFY_ADMIN_PASSWORD:                  `api/Auth/verify-admin-password`,
+    // Discount code verify (replaces admin password for wave-off)
+VERIFY_ADMIN_PASSWORD: `api/Auth/verify-admin-password`,
   };
 
   constructor(private http: HttpClient) {}
@@ -148,9 +155,7 @@ export class FollowUpService {
     return `${this.base.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
   }
 
-  // =========================
-  // 🔹 FollowUp Criteria
-  // =========================
+  // ── FollowUp Criteria ─────────────────────────────────────────────────────
 
   getCriteriaByPatient(patientId: number): Observable<any> {
     return this.http.get(this.url(this.EP.CRITERIA_BY_PATIENT(patientId)));
@@ -168,15 +173,11 @@ export class FollowUpService {
     return this.http.delete(this.url(this.EP.CRITERIA_DELETE(criteriaId)));
   }
 
-  // =========================
-  // 🔹 FollowUp Entry
-  // =========================
+  // ── FollowUp Entry ────────────────────────────────────────────────────────
 
   getFollowUpsByPatient(patientId: number): Observable<any> {
     return this.http.get(this.url(this.EP.FOLLOWUP_BY_PATIENT(patientId)));
   }
-
-  
 
   getFollowUpByEntry(entryId: number): Observable<any> {
     return this.http.get(this.url(this.EP.FOLLOWUP_BY_ENTRY(entryId)));
@@ -194,12 +195,18 @@ export class FollowUpService {
     return this.http.delete(this.url(this.EP.FOLLOWUP_DELETE(entryId)));
   }
 
-  // =========================
-  // 🔹 Appointment
-  // =========================
+  // ── Appointment ───────────────────────────────────────────────────────────
 
   getAppointmentsByPatient(patientId: number): Observable<any> {
     return this.http.get(this.url(this.EP.APPT_BY_PATIENT(patientId)));
+  }
+
+  getAppointmentById(appointmentId: number): Observable<any> {
+    return this.http.get(this.url(this.EP.APPT_BY_ID(appointmentId)));
+  }
+
+  getAppointmentSummary(appointmentId: number): Observable<any> {
+    return this.http.get(this.url(this.EP.APPT_SUMMARY(appointmentId)));
   }
 
   createAppointment(payload: AppointmentCreatePayload): Observable<any> {
@@ -210,9 +217,7 @@ export class FollowUpService {
     return this.http.put(this.url(this.EP.APPT_STATUS_UPDATE(id)), payload);
   }
 
-  // =========================
-  // 🔹 Medicine
-  // =========================
+  // ── Medicine ──────────────────────────────────────────────────────────────
 
   getAllMedicines(page = 1, pageSize = 100, search = ""): Observable<any> {
     return this.http.get(
@@ -232,14 +237,7 @@ export class FollowUpService {
     return this.http.delete(this.url(this.EP.PRESCRIPTION_DELETE(prescriptionId)));
   }
 
-  // =========================
-  // 🔹 Payment
-  //
-  // ⚠️  Swagger has NO  GET /api/Payment/appointment/{id}
-  //     Real endpoints:
-  //       GET /api/Payment/{id}
-  //       GET /api/Payment/patient/{patientId}   ← returns array, filter by appointmentId
-  // =========================
+  // ── Payment ───────────────────────────────────────────────────────────────
 
   createPayment(payload: PaymentCreatePayload): Observable<any> {
     return this.http.post(this.url(this.EP.PAYMENT_CREATE), payload);
@@ -249,20 +247,16 @@ export class FollowUpService {
     return this.http.get(this.url(this.EP.PAYMENT_BY_ID(paymentId)));
   }
 
-  /**
-   * Returns all payment records for a patient.
-   * Filter by appointmentId client-side to get the one for the current visit.
-   * Swagger: GET /api/Payment/patient/{patientId}
-   */
   getPaymentsByPatient(patientId: number): Observable<any> {
     return this.http.get(this.url(this.EP.PAYMENT_BY_PATIENT(patientId)));
   }
 
-  // =========================
-  // 🔹 Auth
-  // =========================
+  // ── Discount Code Verify (PRD: wave-off uses discount code, not admin pwd) ─
 
-  verifyAdminPassword(payload: WaveOffVerifyPayload): Observable<any> {
-    return this.http.post(this.url(this.EP.VERIFY_ADMIN_PASSWORD), payload);
-  }
+verifyAdminPassword(payload: { password: string }): Observable<any> {
+  return this.http.post(
+    this.url(this.EP.VERIFY_ADMIN_PASSWORD),
+    payload
+  );
+}
 }

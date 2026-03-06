@@ -1,0 +1,209 @@
+<app-header title="Announcements"></app-header>
+
+<ion-content class="listing-content">
+  <div class="page-wrap">
+
+    <!-- ═══════════════ TOP BAR ═══════════════ -->
+    <div class="top-bar">
+      <div class="top-bar__left">
+        <h1 class="page-title">Announcements</h1>
+        <span class="page-subtitle">{{ totalCount }} total</span>
+      </div>
+
+      <div class="top-bar__right">
+        <!-- Search -->
+        <div class="search-field" [class.search-field--active]="search">
+          <ion-icon name="search-outline" class="search-field__icon"></ion-icon>
+          <input
+            class="search-field__input"
+            type="text"
+            placeholder="Search by title…"
+            [(ngModel)]="search"
+            (input)="onSearchInput()"
+          />
+          <button
+            *ngIf="search"
+            class="search-field__clear"
+            (click)="clearSearch()"
+            aria-label="Clear search"
+          >
+            <ion-icon name="close-outline"></ion-icon>
+          </button>
+        </div>
+
+        <!-- Status filter -->
+        <div class="filter-chip-group">
+          <button
+            class="filter-chip"
+            [class.filter-chip--active]="statusFilter === ''"
+            (click)="setStatus('')"
+          >All</button>
+          <button
+            class="filter-chip filter-chip--active-only"
+            [class.filter-chip--active]="statusFilter === '1'"
+            (click)="setStatus('1')"
+          >Active</button>
+          <button
+            class="filter-chip filter-chip--inactive-only"
+            [class.filter-chip--active]="statusFilter === '2'"
+            (click)="setStatus('2')"
+          >Inactive</button>
+        </div>
+
+        <!-- Create -->
+        <button class="btn-create" (click)="create()">
+          <ion-icon name="add-outline"></ion-icon>
+          New Announcement
+        </button>
+      </div>
+    </div>
+
+    <!-- ═══════════════ LOADING ═══════════════ -->
+    <div *ngIf="loading" class="state-view">
+      <div class="spinner-ring"></div>
+      <p>Loading announcements…</p>
+    </div>
+
+    <!-- ═══════════════ EMPTY ═══════════════ -->
+    <div *ngIf="!loading && announcements.length === 0" class="state-view state-view--empty">
+      <div class="empty-icon">
+        <ion-icon name="megaphone-outline"></ion-icon>
+      </div>
+      <p class="empty-title">No announcements found</p>
+      <p class="empty-sub" *ngIf="hasActiveFilters">
+        Try adjusting your filters.
+        <span class="link" (click)="clearSearch()">Clear all</span>
+      </p>
+      <button *ngIf="!hasActiveFilters" class="btn-create" (click)="create()">
+        <ion-icon name="add-outline"></ion-icon>
+        Create your first announcement
+      </button>
+    </div>
+
+    <!-- ═══════════════ TABLE (desktop) ═══════════════ -->
+    <div class="table-card" *ngIf="!loading && announcements.length > 0">
+      <table class="ann-table">
+        <thead>
+          <tr>
+            <th class="col-no">#</th>
+            <th class="col-title">Title</th>
+            <th class="col-desc">Description</th>
+            <th class="col-date">Start</th>
+            <th class="col-date">End</th>
+            <th class="col-status">Status</th>
+            <th class="col-created">Created</th>
+            <th class="col-actions">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr
+            *ngFor="let a of announcements; let i = index"
+            class="ann-row"
+            [class.ann-row--inactive]="a.status !== 1"
+          >
+            <td class="col-no cell-no">
+              {{ (pageNumber - 1) * pageSize + i + 1 }}
+            </td>
+
+            <td class="col-title cell-title">
+              <span class="title-text" [title]="a.title">{{ a.title }}</span>
+            </td>
+
+            <td class="col-desc cell-desc">
+              <span class="desc-text" [title]="a.description">{{ a.description }}</span>
+            </td>
+
+            <td class="col-date">{{ a.startDate | date:'dd MMM yyyy' }}</td>
+            <td class="col-date">{{ a.endDate   | date:'dd MMM yyyy' }}</td>
+
+            <td class="col-status">
+              <span class="status-pill" [class.status-pill--active]="a.status === 1">
+                <span class="status-dot"></span>
+                {{ statusLabel(a.status) }}
+              </span>
+            </td>
+
+            <td class="col-created">{{ (a.createdDate || a.createdOn) | date:'dd MMM yyyy' }}</td>
+
+            <td class="col-actions cell-actions">
+              <button
+                class="action-btn action-btn--toggle"
+                [class.action-btn--activate]="a.status !== 1"
+                (click)="toggleStatus(a)"
+                [title]="a.status === 1 ? 'Mark Inactive' : 'Mark Active'"
+              >
+                <ion-icon [name]="a.status === 1 ? 'pause-circle-outline' : 'play-circle-outline'"></ion-icon>
+              </button>
+              <button class="action-btn action-btn--edit" (click)="edit(a.id)" title="Edit">
+                <ion-icon name="pencil-outline"></ion-icon>
+              </button>
+              <button class="action-btn action-btn--delete" (click)="delete(a.id)" title="Delete">
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ═══════════════ CARDS (mobile) ═══════════════ -->
+    <div class="mobile-cards" *ngIf="!loading && announcements.length > 0">
+      <div
+        class="m-card"
+        *ngFor="let a of announcements"
+        [class.m-card--inactive]="a.status !== 1"
+      >
+        <div class="m-card__header">
+          <span class="m-card__title">{{ a.title }}</span>
+          <span class="status-pill" [class.status-pill--active]="a.status === 1">
+            <span class="status-dot"></span>
+            {{ statusLabel(a.status) }}
+          </span>
+        </div>
+        <p class="m-card__desc">{{ a.description }}</p>
+        <div class="m-card__meta">
+          <span><ion-icon name="calendar-outline"></ion-icon> {{ a.startDate | date:'dd MMM yyyy' }} → {{ a.endDate | date:'dd MMM yyyy' }}</span>
+        </div>
+        <div class="m-card__actions">
+          <button
+            class="action-btn action-btn--toggle"
+            [class.action-btn--activate]="a.status !== 1"
+            (click)="toggleStatus(a)"
+          >
+            <ion-icon [name]="a.status === 1 ? 'pause-circle-outline' : 'play-circle-outline'"></ion-icon>
+            {{ a.status === 1 ? 'Deactivate' : 'Activate' }}
+          </button>
+          <button class="action-btn action-btn--edit" (click)="edit(a.id)">
+            <ion-icon name="pencil-outline"></ion-icon> Edit
+          </button>
+          <button class="action-btn action-btn--delete" (click)="delete(a.id)">
+            <ion-icon name="trash-outline"></ion-icon> Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════ PAGINATION ═══════════════ -->
+    <div class="pagination" *ngIf="!loading && totalPages > 1">
+      <button class="page-btn" [disabled]="pageNumber === 1" (click)="prevPage()">
+        <ion-icon name="chevron-back-outline"></ion-icon>
+      </button>
+
+      <div class="page-numbers">
+        <button
+          *ngFor="let p of pageRange"
+          class="page-num"
+          [class.page-num--active]="p === pageNumber"
+          (click)="goToPage(p)"
+        >{{ p }}</button>
+      </div>
+
+      <button class="page-btn" [disabled]="pageNumber >= totalPages" (click)="nextPage()">
+        <ion-icon name="chevron-forward-outline"></ion-icon>
+      </button>
+
+      <span class="page-info">{{ pageNumber }} / {{ totalPages }}</span>
+    </div>
+
+  </div>
+</ion-content>

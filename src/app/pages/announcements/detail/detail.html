@@ -1,0 +1,181 @@
+<app-header
+  [title]="mode === 'create' ? 'New Announcement'
+         : mode === 'edit'   ? 'Edit Announcement'
+         :                     'Announcement Details'">
+</app-header>
+
+<ion-content class="detail-content">
+  <div class="detail-wrap">
+
+    <!-- ═══════════════ BACK ═══════════════ -->
+    <button class="back-btn" (click)="cancel()">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+      Back to listing
+    </button>
+
+    <!-- ═══════════════ CARD ═══════════════ -->
+    <div class="form-card">
+
+      <!-- Card header -->
+      <div class="card-header">
+        <div class="card-header__icon" [class.card-header__icon--edit]="mode === 'edit'" [class.card-header__icon--view]="mode === 'view'">
+          <ion-icon [name]="mode === 'create' ? 'megaphone-outline' : mode === 'edit' ? 'pencil-outline' : 'eye-outline'"></ion-icon>
+        </div>
+        <div>
+          <h2 class="card-header__title">
+            {{ mode === 'create' ? 'Create Announcement' : mode === 'edit' ? 'Edit Announcement' : 'View Announcement' }}
+          </h2>
+          <p class="card-header__sub">
+            {{ mode === 'create' ? 'Fill in the details below to publish a new announcement.' :
+               mode === 'edit'   ? 'Update the details and save your changes.' :
+                                   'Viewing announcement details (read-only).' }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="loading-state">
+        <div class="spinner-ring"></div>
+        <span>Loading…</span>
+      </div>
+
+      <!-- ═══════════════ FORM ═══════════════ -->
+      <form *ngIf="!loading" [formGroup]="form" (ngSubmit)="save()" novalidate>
+
+        <!-- Title -->
+        <div class="field" [class.field--error]="isError('title') || duplicateTitleError">
+          <label class="field__label">
+            Title <span class="field__required">*</span>
+          </label>
+          <div class="field__control">
+            <input
+              class="field__input"
+              type="text"
+              formControlName="title"
+              placeholder="e.g. Office Closure on Public Holiday"
+            />
+          </div>
+          <div class="field__errors" *ngIf="f['title'].touched || duplicateTitleError">
+            <span *ngIf="f['title'].hasError('required')">Title is required.</span>
+            <span *ngIf="f['title'].hasError('minlength')">At least 3 characters required.</span>
+            <span *ngIf="f['title'].hasError('maxlength')">Maximum 200 characters allowed.</span>
+            <span *ngIf="f['title'].hasError('duplicate') || duplicateTitleError">
+              This title already exists. Please use a unique title.
+            </span>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="field" [class.field--error]="isError('description')">
+          <label class="field__label">
+            Description <span class="field__required">*</span>
+          </label>
+          <div class="field__control">
+            <textarea
+              class="field__textarea"
+              formControlName="description"
+              rows="4"
+              placeholder="Write the announcement message…"
+            ></textarea>
+          </div>
+          <div class="field__errors" *ngIf="f['description'].touched">
+            <span *ngIf="f['description'].hasError('required')">Description is required.</span>
+            <span *ngIf="f['description'].hasError('minlength')">At least 5 characters required.</span>
+          </div>
+        </div>
+
+        <!-- Date range error banner -->
+        <div class="date-error-banner" *ngIf="hasDateRangeError">
+          <ion-icon name="warning-outline"></ion-icon>
+          End date must be on or after the start date.
+        </div>
+
+        <!-- Dates row -->
+        <div class="field-row">
+
+          <div class="field" [class.field--error]="isError('startDate')">
+            <label class="field__label">
+              Start Date <span class="field__required">*</span>
+            </label>
+            <div class="field__control field__control--icon">
+              <ion-icon name="calendar-outline" class="field__prefix-icon"></ion-icon>
+              <input
+                class="field__input field__input--date"
+                type="date"
+                formControlName="startDate"
+              />
+            </div>
+            <div class="field__errors" *ngIf="f['startDate'].touched && f['startDate'].hasError('required')">
+              <span>Start date is required.</span>
+            </div>
+          </div>
+
+          <div class="field" [class.field--error]="isError('endDate') || hasDateRangeError">
+            <label class="field__label">
+              End Date <span class="field__required">*</span>
+            </label>
+            <div class="field__control field__control--icon">
+              <ion-icon name="calendar-outline" class="field__prefix-icon"></ion-icon>
+              <input
+                class="field__input field__input--date"
+                type="date"
+                formControlName="endDate"
+              />
+            </div>
+            <div class="field__errors" *ngIf="f['endDate'].touched && f['endDate'].hasError('required')">
+              <span>End date is required.</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Status -->
+        <div class="field">
+          <label class="field__label">Status <span class="field__required">*</span></label>
+          <div class="status-toggle" [class.status-toggle--disabled]="mode === 'view'">
+
+            <label class="status-option" [class.status-option--active]="form.get('status')?.value === 1">
+              <input type="radio" formControlName="status" [value]="1" [attr.disabled]="mode === 'view' ? true : null" />
+              <span class="status-option__dot status-option__dot--green"></span>
+              <span>Active</span>
+            </label>
+
+            <label class="status-option" [class.status-option--active]="form.get('status')?.value === 2">
+              <input type="radio" formControlName="status" [value]="2" [attr.disabled]="mode === 'view' ? true : null" />
+              <span class="status-option__dot status-option__dot--red"></span>
+              <span>Inactive</span>
+            </label>
+
+          </div>
+        </div>
+
+        <!-- ═══════════════ ACTIONS ═══════════════ -->
+        <div class="form-actions" *ngIf="mode !== 'view'">
+
+          <button type="button" class="btn-cancel" (click)="cancel()" [disabled]="saving">
+            Cancel
+          </button>
+
+          <button type="submit" class="btn-save" [disabled]="saving">
+            <div *ngIf="saving" class="spinner-ring spinner-ring--sm"></div>
+            <ion-icon *ngIf="!saving" [name]="mode === 'edit' ? 'checkmark-outline' : 'cloud-upload-outline'"></ion-icon>
+            <span>{{ saving ? 'Saving…' : (mode === 'edit' ? 'Update Announcement' : 'Create Announcement') }}</span>
+          </button>
+
+        </div>
+
+        <!-- View mode back button -->
+        <div class="form-actions" *ngIf="mode === 'view'">
+          <button type="button" class="btn-cancel" (click)="cancel()">
+            ← Back to listing
+          </button>
+          <button type="button" class="btn-save" (click)="goToEdit()">
+            <ion-icon name="pencil-outline"></ion-icon>
+            Edit
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</ion-content>
