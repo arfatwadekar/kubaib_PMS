@@ -1,562 +1,437 @@
-<div class="ion-padding">
+<div class="ion-padding fu-container">
   <div class="fu-wrap">
     <div class="fu-card">
-      <!-- ========================================= -->
-      <!-- HEADER -->
-      <!-- ========================================= -->
-      <div class="fu-title">
-        <div class="h1">Follow Up Criteria</div>
-        <div class="h2">Add initial symptoms, then create follow-up record</div>
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- HEADER SECTION -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+
+      <div class="fu-header">
+        <div class="header-content">
+          <h1 class="fu-title">Follow-Up Criteria</h1>
+          <p class="fu-subtitle">
+            Add and manage patient symptoms for follow-up tracking
+          </p>
+        </div>
+
+        <div class="header-badge">
+          <span class="visit-badge first" *ngIf="isFirstVisit">
+            🆕 First Visit
+          </span>
+
+          <span class="visit-badge followup" *ngIf="!isFirstVisit">
+            🔁 Follow-Up Visit
+          </span>
+        </div>
       </div>
 
-      <!-- ========================================= -->
-      <!-- STEP 1: INITIAL SYMPTOMS -->
-      <!-- ========================================= -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- SYMPTOMS PANEL -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+
       <div class="panel">
-        <!-- Header -->
-        <div class="panel-h">
-          <div class="left-title">
-            <span class="title-text">Initial Symptoms</span>
+        <!-- PANEL HEADER -->
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <h2 class="panel-title">Initial Symptoms</h2>
 
-            <!-- Visit Type -->
-            <span class="visit-badge first" *ngIf="isFirstVisit">
-              🆕 First Visit
-            </span>
-
-            <span class="visit-badge follow" *ngIf="!isFirstVisit">
-              🔁 Follow-Up Visit
-            </span>
-          </div>
-
-          <!-- Save Status -->
-          <div class="right-status">
-            <span class="status-badge saved" *ngIf="isSaved && !isEditMode">
+            <!-- STATUS BADGE -->
+            <span *ngIf="isSaved && !isEditMode" class="status-badge saved">
               ✓ Saved
             </span>
 
-            <span class="status-badge editing" *ngIf="isSaved && isEditMode">
-              Editing...
+            <span *ngIf="isSaved && isEditMode" class="status-badge editing">
+              ✎ Editing
             </span>
 
-            <span class="status-badge new" *ngIf="!isSaved"> Not Saved </span>
+            <span *ngIf="!isSaved" class="status-badge new"> ● New </span>
           </div>
+
+          <div class="row-count">{{ fuSymptomsArr.length }} entries</div>
         </div>
 
-        <!-- Form -->
+        <!-- FORM -->
         <form [formGroup]="fuCriteriaForm">
-          <div class="tbl">
-            <!-- Table Header -->
-            <div class="tbl-head">
-              <div class="c-no">SR NO</div>
-              <div class="c-sym">DESCRIPTION</div>
+          <!-- SYMPTOMS TABLE -->
+          <div class="symptoms-table" formArrayName="symptoms">
+            <!-- TABLE HEADER -->
+            <div class="table-header">
+              <div class="col-no">SR</div>
+              <div class="col-desc">DESCRIPTION</div>
             </div>
 
-            <!-- Dynamic Rows -->
-            <div formArrayName="symptoms">
-              <div
-                class="tbl-row"
-                *ngFor="let control of fuSymptomsArr.controls; let i = index; trackBy: trackByIndex"
-              >
-                <div class="c-no">{{ i + 1 }}</div>
+            <!-- TABLE ROWS -->
+            <div
+              class="table-row"
+              *ngFor="
+                  let ctrl of fuSymptomsArr.controls;
+                  let i = index;
+                  trackBy: trackByIndex;
+                "
+              [class.has-value]="ctrl.value"
+            >
+              <!-- SR NO -->
+              <div class="col-no">
+                <span class="sr-text">{{ i + 1 }}</span>
+              </div>
 
-                <div class="c-sym">
-                  <!-- Read Only Mode -->
-                  <ng-container *ngIf="isSaved && !isEditMode; else editMode">
-                    <div class="readonly-text">{{ control.value || '-' }}</div>
-                  </ng-container>
+              <!-- DESCRIPTION -->
+              <div class="col-desc">
+                <!-- READONLY MODE -->
+                <span *ngIf="isSaved && !isEditMode" class="readonly-text">
+                  {{ ctrl.value || '–' }}
+                </span>
 
-                  <!-- Edit Mode -->
-                  <ng-template #editMode>
-                    <input
-                      type="text"
-                      [formControlName]="i"
-                      [placeholder]="'Enter symptom ' + (i + 1)"
-                    />
-                  </ng-template>
-                </div>
+                <!-- EDIT/NEW MODE -->
+                <input
+                  *ngIf="!isSaved || isEditMode"
+                  class="symptom-input"
+                  type="text"
+                  [formControlName]="i"
+                  [placeholder]="'Symptom ' + (i + 1)"
+                />
               </div>
             </div>
-
-            <!-- Hint -->
-            <div class="tbl-hint" *ngIf="!isSaved || isEditMode">
-              Fill last row → 2 new rows auto-add (max 30)
-            </div>
-          </div>
-
-          <!-- Buttons -->
-          <div class="center-btn">
-            <!-- First Time Save -->
-            <button
-              *ngIf="!isSaved"
-              type="button"
-              class="btn primary"
-              (click)="saveCriteria()"
-              [disabled]="loading"
-            >
-              {{ loading ? 'Saving...' : 'Save Symptoms' }}
-            </button>
-
-            <!-- Edit Button -->
-            <button
-              *ngIf="isSaved && !isEditMode"
-              type="button"
-              class="btn secondary"
-              (click)="enableEdit()"
-            >
-              Edit
-            </button>
-
-            <!-- Update Button -->
-            <button
-              *ngIf="isSaved && isEditMode"
-              type="button"
-              class="btn primary"
-              (click)="saveCriteria()"
-              [disabled]="loading"
-            >
-              {{ loading ? 'Updating...' : 'Update Symptoms' }}
-            </button>
           </div>
         </form>
-      </div>
 
-      <!-- ========================================================================================================================================================= -->
+        <!-- ACTION BUTTONS -->
+        <div class="criteria-actions">
+          <!-- SAVE BUTTON (First time) -->
+          <button
+            type="button"
+            class="btn btn-primary"
+            *ngIf="!isSaved"
+            (click)="saveCriteria()"
+            [disabled]="criteriaLoading"
+          >
+            <span *ngIf="!criteriaLoading">💾 Save Criteria</span>
+            <span *ngIf="criteriaLoading">
+              <span class="spinner"></span> Saving...
+            </span>
+          </button>
 
-    
-      <!-- PREVIOUS STATIC CARDS (REVISIT ONLY) -->
-      <div class="previous-followups" *ngIf="!isFirstVisit">
-        <!-- PREVIOUS VISIT CARD  1 [for first user] full card -->
+          <!-- EDIT BUTTON -->
+          <button
+            type="button"
+            class="btn btn-secondary"
+            *ngIf="isSaved && !isEditMode"
+            (click)="enableEdit()"
+          >
+            ✎ Edit
+          </button>
 
-        <div class="fu-form-card" style="margin-top: 20px; width: 95%">
-          <!-- ================= HEADER ================= -->
-          <div class="fu-followup-header">
-            <div class="fu-date">04 March 2026</div>
-
-            <div class="fu-heading">Follow Up</div>
-          </div>
-
-          <!-- ================================= -->
-          <!-- PRESCRIBE MEDICINES -->
-          <!-- ================================= -->
-          <div class="fu-section">
-            <div class="fu-section-title">Prescribed Medicines</div>
-
-            <table class="med-table">
-              <thead>
-                <tr>
-                  <th>Medicine Name</th>
-                  <th>Dosage</th>
-                  <th>Frequency</th>
-                  <th>Duration</th>
-                  <th>Type</th>
-                  <th>Instructions</th>
-                  <th></th>
-                </tr>
-              </thead>
-
-              <tbody>
-                <tr>
-                  <td><input class="inp" placeholder="Medicine Name" /></td>
-                  <td><input class="inp" placeholder="500mg" /></td>
-                  <td><input class="inp" placeholder="3x Daily" /></td>
-                  <td><input class="inp" placeholder="7 days" /></td>
-
-                  <td>
-                    <select class="inp">
-                      <option>Tablet</option>
-                      <option>Syrup</option>
-                      <option>Capsule</option>
-                      <option>Drops</option>
-                    </select>
-                  </td>
-
-                  <td><input class="inp" placeholder="After meals" /></td>
-
-                  <td>
-                    <button class="remove-btn">✕</button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-
-            <button class="btn secondary mt8">+ Add Medicine</button>
-          </div>
-
-          <!-- ================================= -->
-          <!-- CONSULTATION CHARGES -->
-          <!-- ================================= -->
-          <div class="fu-section">
-            <div class="fu-section-title">Consultation Charges</div>
-
-            <div class="pay-grid">
-              <div class="form-row">
-                <label>Consultation Charges</label>
-                <input type="number" class="inp" placeholder="100" />
-              </div>
-
-              <div class="form-row">
-                <label>Apply Waive-Off?</label>
-
-                <div class="radio-group">
-                  <label> <input type="radio" checked /> No </label>
-
-                  <label> <input type="radio" /> Yes </label>
-                </div>
-              </div>
-
-              <div class="form-row">
-                <label>Waive-Off Amount</label>
-                <input type="number" class="inp" placeholder="0" />
-              </div>
-            </div>
-
-            <div class="amount-preview">
-              <span>Final Amount:</span>
-              <strong>₹100</strong>
-            </div>
-          </div>
-
-          <!-- ================================= -->
-          <!-- NEXT APPOINTMENT -->
-          <!-- ================================= -->
-          <div class="fu-section">
-            <div class="fu-section-title">Next Appointment (Optional)</div>
-
-            <div class="two-col">
-              <div class="form-row">
-                <label>Date</label>
-                <input type="date" class="inp" />
-              </div>
-
-              <div class="form-row">
-                <label>Time</label>
-                <input type="time" class="inp" />
-              </div>
-            </div>
-          </div>
-
-          <!-- SAVE BUTTON -->
-          <div class="save-wrap">
-            <button class="btn primary large">💾 Save Follow Up</button>
-          </div>
+          <!-- UPDATE BUTTON (After edit) -->
+          <button
+            type="button"
+            class="btn btn-primary"
+            *ngIf="isSaved && isEditMode"
+            (click)="saveCriteria()"
+            [disabled]="criteriaLoading"
+          >
+            <span *ngIf="!criteriaLoading">💾 Update Criteria</span>
+            <span *ngIf="criteriaLoading">
+              <span class="spinner"></span> Updating...
+            </span>
+          </button>
         </div>
 
-        <!--  card 2  -->
-        <div class="fu-form-card">
-          <!-- ================= HEADER ================= -->
-          <div class="fu-followup-header">
-            <div class="fu-date">04 March 2026</div>
-
-            <div class="fu-heading">Follow Up</div>
-          </div>
-
-          <!-- ================================= -->
-          <!-- REVISIT ONLY SECTION -->
-          <!-- ================================= -->
-          <ng-container *ngIf="!isFirstVisit">
-            <!-- FOLLOW UP SYMPTOMS -->
-            <div class="fu-section">
-              <div class="fu-section-title">Follow Up Symptoms (1-10)</div>
-
-              <div class="rating-table-static">
-                <div class="rt-head">
-                  <div class="rt-label-cell">SR NO</div>
-                  <div
-                    class="rt-score-cell"
-                    *ngFor="let n of [].constructor(10); let i = index"
-                  >
-                    {{ i + 1 }}
-                  </div>
-                </div>
-
-                <div class="rt-row">
-                  <div class="rt-label-cell">Status</div>
-                  <div
-                    class="rt-score-cell"
-                    *ngFor="let n of [].constructor(10)"
-                  >
-                    <input type="text" class="score-inp" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Interpretation -->
-            <div class="form-row">
-              <label>Interpretation</label>
-              <textarea rows="3" class="inp full"></textarea>
-            </div>
-
-            <!-- Temporary Problems -->
-            <div class="form-row">
-              <label>Temporary Problems</label>
-              <textarea rows="3" class="inp full"></textarea>
-            </div>
-          </ng-container>
-
-          <!-- ================================= -->
-          <!-- PRESCRIBE MEDICINES (ALWAYS SHOW) -->
-          <!-- ================================= -->
-          <div class="fu-section">
-            <div class="fu-section-title">Prescribed Medicines</div>
-
-            <table class="med-table">
-              <thead>
-                <tr>
-                  <th>Medicine Name</th>
-                  <th>Dosage</th>
-                  <th>Frequency</th>
-                  <th>Duration</th>
-                  <th>Type</th>
-                  <th>Instructions</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><input class="inp" placeholder="Medicine Name" /></td>
-                  <td><input class="inp" placeholder="500mg" /></td>
-                  <td><input class="inp" placeholder="3x Daily" /></td>
-                  <td><input class="inp" placeholder="7 days" /></td>
-                  <td>
-                    <select class="inp">
-                      <option>Tablet</option>
-                      <option>Syrup</option>
-                      <option>Capsule</option>
-                      <option>Drops</option>
-                    </select>
-                  </td>
-                  <td><input class="inp" placeholder="After meals" /></td>
-                  <td><button class="remove-btn">✕</button></td>
-                </tr>
-              </tbody>
-            </table>
-
-            <button class="btn secondary mt8">+ Add Medicine</button>
-          </div>
-
-          <!-- ================================= -->
-          <!-- CONSULTATION (ALWAYS SHOW) -->
-          <!-- ================================= -->
-          <div class="fu-section">
-            <div class="fu-section-title">Consultation Charges</div>
-
-            <div class="pay-grid">
-              <div class="form-row">
-                <label>Consultation Charges</label>
-                <input type="number" class="inp" placeholder="100" />
-              </div>
-
-              <div class="form-row">
-                <label>Apply Waive-Off?</label>
-                <div class="radio-group">
-                  <label><input type="radio" checked /> No</label>
-                  <label><input type="radio" /> Yes</label>
-                </div>
-              </div>
-
-              <div class="form-row">
-                <label>Waive-Off Amount</label>
-                <input type="number" class="inp" placeholder="0" />
-              </div>
-            </div>
-
-            <div class="amount-preview">
-              <span>Final Amount:</span>
-              <strong>₹100</strong>
-            </div>
-          </div>
-
-          <!-- ================================= -->
-          <!-- NEXT APPOINTMENT (REVISIT ONLY) -->
-          <!-- ================================= -->
-          <div class="fu-section" *ngIf="!isFirstVisit">
-            <div class="fu-section-title">Next Appointment (Optional)</div>
-
-            <div class="two-col">
-              <div class="form-row">
-                <label>Date</label>
-                <input type="date" class="inp" />
-              </div>
-
-              <div class="form-row">
-                <label>Time</label>
-                <input type="time" class="inp" />
-              </div>
-            </div>
-          </div>
+        <!-- INFO TEXT -->
+        <div class="panel-footer">
+          <p class="info-text">
+            <span class="info-icon">ℹ</span>
+            Rows auto-expand as you fill them. Maximum of 10 entries allowed.
+          </p>
         </div>
       </div>
 
-     
-      <!-- STEP 2: FOLLOW UP RECORD -->
-      <div class="fu-form-card">
+      <!-- =============== previous ================== -->
+
+      <!-- =============== Follow Up card ===================== -->
+      <div class="container">
         <!-- HEADER -->
-        <div class="form-card-header">
-          <div class="card-badge">
-            {{ isFirstVisit ? 'First Visit' : 'New Follow-Up' }} - {{ today |
-            date:'hh:mm a' }}
-          </div>
-
-          <span class="date-chip"> {{ today | date:'dd/MM/yyyy' }} </span>
+        <div class="header">
+          <h1>Follow-Up Record - 08:10 PM</h1>
+          <span class="header-date">08/03/2026</span>
         </div>
 
-        <!-- ================================= -->
-        <!-- REVISIT ONLY PART -->
-        <!-- ================================= -->
-        <ng-container *ngIf="!isFirstVisit">
-          <!-- Date -->
-          <div class="form-row">
-            <label>Date</label>
-            <input type="date" class="inp" />
-          </div>
+        <!-- MAIN CARD -->
+        <div class="card">
+          <div class="card-body">
+            <!-- FOLLOW-UP SYMPTOMS -->
+            <div class="symptoms-section" *ngIf="!isFirstVisit">
+              <label class="form-label">Follow-Up Symptoms (1-10)</label>
 
-          <!-- FOLLOW UP SYMPTOMS -->
-          <div class="fu-section">
-            <div class="fu-section-title">Follow Up Symptoms (1-10)</div>
+              <div class="table-wrapper">
+                <table>
+                  <!-- HEADER -->
+                  <thead>
+                    <tr>
+                      <th>SR No</th>
 
-            <div class="rating-table-static">
-              <div class="rt-head">
-                <div class="rt-label-cell">SR NO</div>
+                      <th
+                        *ngFor="let ctrl of fuSymptomsArr.controls; let i = index"
+                      >
+                        {{ ctrl.value || ('Symptom ' + (i + 1)) }}
+                      </th>
+                    </tr>
+                  </thead>
 
-                <div
-                  class="rt-score-cell"
-                  *ngFor="let n of [].constructor(10); let i = index"
-                >
-                  {{ i + 1 }}
+                  <!-- BODY -->
+                  <tbody>
+                    <tr>
+                      <td><strong>Status</strong></td>
+
+                      <td
+                        *ngFor="let ctrl of fuSymptomsArr.controls; let i = index"
+                      >
+                        <input
+                          type="number"
+                          min="1"
+                          max="10"
+                          placeholder="1-10"
+                        />
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- INTERPRETATION -->
+            <div class="form-group" *ngIf="!isFirstVisit">
+              <label class="form-label">Interpretation</label>
+              <textarea placeholder="Enter interpretation..."></textarea>
+            </div>
+
+            <!-- TEMPORARY PROBLEMS -->
+            <div class="form-group" *ngIf="!isFirstVisit">
+              <label class="form-label">Temporary Problems</label>
+              <textarea placeholder="Enter temporary problems..."></textarea>
+            </div>
+
+            <!-- PRESCRIBED MEDICINES -->
+            <div class="medicines-section">
+              <label class="form-label">Prescribed Medicines</label>
+              <div
+                style="
+                  overflow-x: auto;
+                  border: 1px solid #e0e0e0;
+                  border-radius: 4px;
+                "
+              >
+                <table class="medicine-table">
+                  <thead>
+                    <tr>
+                      <th>Medicine Name</th>
+                      <th>Dosage</th>
+                      <th>Frequency</th>
+                      <th>Duration</th>
+                      <th>Type</th>
+                      <th>Instructions</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <!-- <td>
+                        <select>
+                          <option value="">Select Medicine</option>
+
+                          <option
+                            *ngFor="let med of medicines"
+                            [value]="med.id"
+                          >
+                            {{ med.name }}
+                          </option>
+                        </select>
+                      </td> -->
+                      <td class="medicine-cell">
+                        <div class="medicine-select-wrapper">
+                          <select class="medicine-select">
+                            <option value="">Select Medicine</option>
+
+                            <option
+                              *ngFor="let med of medicines"
+                              [value]="med.id"
+                            >
+                              {{ med.name }}
+                            </option>
+                          </select>
+
+                          <button
+                            type="button"
+                            class="btn-add-medicine-small"
+                            (click)="addNewMedicine()"
+                            [disabled]="creatingMedicine"
+                            title="Add new medicine"
+                            *ngIf="!creatingMedicine"
+                          >
+                            ➕
+                          </button>
+
+                          <span
+                            *ngIf="creatingMedicine"
+                            class="spinner-small"
+                          ></span>
+                        </div>
+                      </td>
+                      <td><input type="text" placeholder="e.g., 500mg" /></td>
+                      <td>
+                        <input type="text" placeholder="e.g., 3x daily" />
+                      </td>
+                      <td><input type="text" placeholder="e.g., 7 days" /></td>
+                      <td>
+                        <select>
+                          <option>Select Type</option>
+                          <option>Tablet</option>
+                          <option>Capsule</option>
+                          <option>Syrup</option>
+                          <option>Injection</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input type="text" placeholder="e.g., After meals" />
+                      </td>
+                      <td><button class="delete-btn">✕</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <button class="add-btn">+ Add Medicine</button>
+            </div>
+
+            <!-- CONSULTATION CHARGES & WAVE OFF -->
+            <!-- <div class="row">
+              <div class="form-group">
+                <label class="form-label">Consultation Charges</label>
+                <input type="text" placeholder="0.00" value="0.00" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Wave off charges?</label>
+                <div class="radio-group">
+                  <div class="radio-option">
+                    <input
+                      type="radio"
+                      id="waveoff-no"
+                      name="waveoff"
+                      checked
+                    />
+                    <label for="waveoff-no">No</label>
+                  </div>
+                  <div class="radio-option">
+                    <input type="radio" id="waveoff-yes" name="waveoff" />
+                    <label for="waveoff-yes">Yes</label>
+                  </div>
                 </div>
               </div>
+            </div> -->
 
-              <div class="rt-row">
-                <div class="rt-label-cell">Status</div>
+            <div class="row">
+  <div class="form-group">
+    <label class="form-label">Consultation Charges</label>
+    <input type="text" placeholder="0.00" value="0.00" />
+  </div>
 
-                <div class="rt-score-cell" *ngFor="let n of [].constructor(10)">
-                  <input type="text" class="score-inp" />
-                </div>
-              </div>
-            </div>
-          </div>
+  <div class="form-group">
+    <label class="form-label">Wave off charges?</label>
 
-          <!-- Interpretation -->
-          <div class="form-row">
-            <label>Interpretation</label>
-            <textarea rows="3" class="inp full"></textarea>
-          </div>
+    <div class="radio-group">
 
-          <!-- Temporary Problems -->
-          <div class="form-row">
-            <label>Temporary Problems</label>
-            <textarea rows="3" class="inp full"></textarea>
-          </div>
-        </ng-container>
-
-        <!-- ================================= -->
-        <!-- PRESCRIBE MEDICINES (ALWAYS SHOW) -->
-        <!-- ================================= -->
-        <div class="fu-section">
-          <div class="fu-section-title">Prescribed Medicines</div>
-
-          <table class="med-table">
-            <thead>
-              <tr>
-                <th>Medicine Name</th>
-                <th>Dosage</th>
-                <th>Frequency</th>
-                <th>Duration</th>
-                <th>Type</th>
-                <th>Instructions</th>
-                <th></th>
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr>
-                <td><input class="inp" placeholder="Medicine Name" /></td>
-                <td><input class="inp" placeholder="500mg" /></td>
-                <td><input class="inp" placeholder="3x Daily" /></td>
-                <td><input class="inp" placeholder="7 days" /></td>
-
-                <td>
-                  <select class="inp">
-                    <option>Tablet</option>
-                    <option>Syrup</option>
-                    <option>Capsule</option>
-                    <option>Drops</option>
-                  </select>
-                </td>
-
-                <td>
-                  <input class="inp" placeholder="After meals" />
-                </td>
-
-                <td>
-                  <button class="remove-btn">✕</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-
-          <button class="btn secondary mt8">+ Add Medicine</button>
-        </div>
-
-        <!-- ================================= -->
-        <!-- CONSULTATION CHARGES -->
-        <!-- ================================= -->
-        <div class="fu-section">
-          <div class="fu-section-title">Consultation Charges</div>
-
-          <div class="pay-grid">
-            <div class="form-row">
-              <label>Consultation Charges</label>
-              <input type="number" class="inp" placeholder="100" />
-            </div>
-
-            <div class="form-row">
-              <label>Apply Waive-Off?</label>
-
-              <div class="radio-group">
-                <label><input type="radio" checked /> No</label>
-                <label><input type="radio" /> Yes</label>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <label>Waive-Off Amount</label>
-              <input type="number" class="inp" placeholder="0" />
-            </div>
-          </div>
-
-          <div class="amount-preview">
-            <span>Final Amount:</span>
-            <strong>₹100</strong>
-          </div>
-        </div>
-
-        <!-- ================================= -->
-        <!-- NEXT APPOINTMENT (REVISIT ONLY) -->
-        <!-- ================================= -->
-        <div class="fu-section" *ngIf="!isFirstVisit">
-          <div class="fu-section-title">Next Appointment (Optional)</div>
-
-          <div class="two-col">
-            <div class="form-row">
-              <label>Date</label>
-              <input type="date" class="inp" />
-            </div>
-
-            <div class="form-row">
-              <label>Time</label>
-              <input type="time" class="inp" />
-            </div>
-          </div>
-        </div>
-
-        <!-- SAVE -->
-        <div class="save-wrap">
-          <button class="btn primary large">💾 Save Follow Up</button>
-        </div>
+      <div class="radio-option">
+        <input
+          type="radio"
+          name="waveoff"
+          value="no"
+          checked
+          (change)="onWaveOffChange('no')"
+        />
+        <label>No</label>
       </div>
 
+      <div class="radio-option">
+        <input
+          type="radio"
+          name="waveoff"
+          value="yes"
+          (change)="onWaveOffChange('yes')"
+        />
+        <label>Yes</label>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- WAVE OFF AMOUNT -->
+<div class="form-group">
+  <label class="form-label">Wave off Amount</label>
+
+  <input
+    type="text"
+    placeholder="0.00"
+    [disabled]="!waveOffVerified"
+  />
+</div>
+
+            <!-- WAVE OFF AMOUNT
+            <div class="form-group">
+              <label class="form-label">Wave off Amount</label>
+              <input type="text" placeholder="0.00" value="0.00" />
+            </div> -->
+
+            <!-- NEXT APPOINTMENT -->
+            <div class="row">
+              <div class="form-group">
+                <label class="form-label"
+                  >Next Appointment Date (Optional)</label
+                >
+                <input type="date" />
+              </div>
+              <div class="form-group">
+                <label class="form-label"
+                  >Next Appointment Time (Optional)</label
+                >
+                <input type="time" />
+              </div>
+            </div>
+          </div>
+
+          <!-- FOOTER -->
+          <div class="footer">
+            <button class="btn btn-secondary">Cancel</button>
+            <button class="btn btn-primary">💾 Save Follow-Up</button>
+          </div>
+        </div>
+
+        <!-- ADMIN PASSWORD VERIFY MODAL -->
+<div class="modal-backdrop" *ngIf="showPasswordModal">
+
+  <div class="password-modal">
+
+    <h3>Admin Verification</h3>
+
+    <input
+      type="password"
+      placeholder="Enter password"
+      [(ngModel)]="adminPassword"
+    />
+
+    <div class="modal-actions">
+
+      <button (click)="closePasswordModal()">
+        Cancel
+      </button>
+
+      <button (click)="verifyAdminPassword()">
+        Verify
+      </button>
+
+    </div>
+
+  </div>
+
+</div>
+      </div>
     </div>
   </div>
 </div>

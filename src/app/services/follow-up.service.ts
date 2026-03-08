@@ -67,6 +67,18 @@ export type AppointmentCreatePayload = {
   remark:          string;
 };
 
+
+export type MedicineCreatePayload = {
+  name: string;
+  strength: string;
+  dosageForm: string;
+  stockQuantity: number;
+  unit: string;
+  batchNumber: string;
+  expiryDate: string;
+  notes: string;
+};
+
 export type AppointmentStatusUpdatePayload = {
   status: AppointmentStatus | number;
 };
@@ -256,6 +268,14 @@ VERIFY_ADMIN_PASSWORD: `api/Auth/verify-admin-password`,
 verifyAdminPassword(payload: { password: string }): Observable<any> {
   return this.http.post(
     this.url(this.EP.VERIFY_ADMIN_PASSWORD),
+    payload
+  );
+}
+
+// =============== Create Medicine api =================
+createMedicine(payload: MedicineCreatePayload): Observable<any> {
+  return this.http.post(
+    this.url(this.EP.MEDICINES),
     payload
   );
 }

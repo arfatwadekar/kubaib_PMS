@@ -12,7 +12,7 @@ type UserRole = 'Doctor' | 'Receptionist';
 })
 export class PatientPage implements OnInit {
   isEditFromList = false
-
+appointmentId: number | null = null;
   activeTab: TabKey = 'prelim';
   role: UserRole = 'Receptionist';
   patientId: number | null = null;
@@ -28,33 +28,16 @@ export class PatientPage implements OnInit {
     const raw = (localStorage.getItem('mhc_role') || '').toLowerCase();
     this.role = raw === 'doctor' ? 'Doctor' : 'Receptionist';
 
-    this.route.queryParams.subscribe(params => {
-    const id = Number(params['patientId']);
-this.patientId = id > 0 ? id : null;
+  this.route.queryParams.subscribe(params => {
 
-const mode = (params['mode'] || '').toString();
+  const id = Number(params['patientId']);
+  this.patientId = id > 0 ? id : null;
 
-// If coming from list (edit mode without create flag)
-this.isEditFromList = !!this.patientId && mode !== 'create';
+  const appointment = Number(params['appointmentId']);
+  this.appointmentId = appointment > 0 ? appointment : null;
 
-      const isCreateMode = mode === 'create' || this.patientId === null;
+});
 
-      // Always force prelim when creating
-      const tab = (params['tab'] as TabKey) || 'prelim';
-
-      // For edit/view, keep requested tab (if allowed). For create, lock to prelim.
-      const desiredTab: TabKey = isCreateMode ? 'prelim' : tab;
-
-      if (desiredTab && this.isTabAllowed(desiredTab)) {
-        this.activeTab = desiredTab;
-      }
-
-      // Check current child route
-      const currentChild = this.route.snapshot.firstChild?.routeConfig?.path as TabKey;
-      if (desiredTab && this.isTabAllowed(desiredTab) && currentChild !== desiredTab) {
-        this.navigateToTab(desiredTab);
-      }
-    });
   }
 
   // ======================
@@ -69,13 +52,19 @@ this.isEditFromList = !!this.patientId && mode !== 'create';
     this.navigateToTab(tab);
   }
 
-  private navigateToTab(tab: TabKey) {
-    this.router.navigate([tab], {
-      relativeTo: this.route,
-      queryParams: { patientId: this.patientId, tab },
-      queryParamsHandling: 'merge'
-    });
-  }
+private navigateToTab(tab: TabKey) {
+
+  this.router.navigate([tab], {
+    relativeTo: this.route,
+    queryParams: {
+      patientId: this.patientId,
+      appointmentId: this.appointmentId,
+      tab
+    },
+    queryParamsHandling: 'merge'
+  });
+
+}
 
   // ======================
   // ROLE PERMISSION
