@@ -52,19 +52,28 @@ appointmentId: number | null = null;
     this.navigateToTab(tab);
   }
 
-private navigateToTab(tab: TabKey) {
+// private navigateToTab(tab: TabKey) {
 
-  this.router.navigate([tab], {
-    relativeTo: this.route,
-    queryParams: {
-      patientId: this.patientId,
-      appointmentId: this.appointmentId,
-      tab
-    },
-    queryParamsHandling: 'merge'
-  });
+//   this.router.navigate([tab], {
+//     relativeTo: this.route,
+//     queryParams: {
+//       patientId: this.patientId,
+//       appointmentId: this.appointmentId,
+//       tab
+//     },
+//     queryParamsHandling: 'merge'
+//   });
 
-}
+// }
+
+
+  private navigateToTab(tab: TabKey) {
+    this.router.navigate([tab], {
+      relativeTo: this.route,
+      queryParams: { patientId: this.patientId, tab },
+      queryParamsHandling: 'merge'
+    });
+  }
 
   // ======================
   // ROLE PERMISSION

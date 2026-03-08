@@ -324,7 +324,7 @@
 
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormArray, FormControl } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom, Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { ToastController } from '@ionic/angular';
@@ -394,6 +394,7 @@ export class FollowupPage implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private api: FollowUpService,
     private toastCtrl: ToastController,
+    private router: Router,
   ) {}
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -881,6 +882,8 @@ export class FollowupPage implements OnInit, OnDestroy {
     console.log('APPOINTMENT ID:', this.currentAppointmentId);
 
     try {
+
+
       /* -----------------------------------
        1️⃣ CREATE FOLLOWUP ENTRY
     ------------------------------------*/
@@ -903,32 +906,28 @@ export class FollowupPage implements OnInit, OnDestroy {
       /* -----------------------------------
        2️⃣ SAVE PRESCRIPTIONS
     ------------------------------------*/
- for (const med of this.prescriptions) {
+      for (const med of this.prescriptions) {
+        console.log('MED:', med);
 
-  console.log("MED:", med);
+        if (!med.medicineId) {
+          console.log('MEDICINE SKIPPED');
+          continue;
+        }
 
-  if (!med.medicineId) {
-    console.log("MEDICINE SKIPPED");
-    continue;
-  }
+        const payload = {
+          appointmentId: this.currentAppointmentId,
+          medicineId: Number(med.medicineId),
+          dosage: med.dosage,
+          frequency: med.frequency,
+          duration: med.duration,
+          type: med.type || 'Capsule',
+          instructions: med.instructions,
+        };
 
-  const payload = {
-    appointmentId: this.currentAppointmentId,
-    medicineId: Number(med.medicineId),
-    dosage: med.dosage,
-    frequency: med.frequency,
-    duration: med.duration,
-    type: med.type || "Capsule",
-    instructions: med.instructions
-  };
+        console.log('PRESCRIPTION PAYLOAD:', payload);
 
-  console.log("PRESCRIPTION PAYLOAD:", payload);
-
-  await firstValueFrom(
-    this.api.addPrescription(payload)
-  );
-
-}
+        await firstValueFrom(this.api.addPrescription(payload));
+      }
 
       /* -----------------------------------
        3️⃣ UPDATE APPOINTMENT STATUS
@@ -944,19 +943,42 @@ export class FollowupPage implements OnInit, OnDestroy {
        4️⃣ CREATE PAYMENT
     ------------------------------------*/
 
-      await firstValueFrom(
-        this.api.createPayment({
-          patientId: this.patientId,
-          appointmentId: this.currentAppointmentId,
-          consultationCharges: this.consultationCharge,
-          waveOffAmount: this.waveOffAmount,
-          amountPaid: this.consultationCharge - this.waveOffAmount,
-          paymentMode: 'Cash',
-          paymentDate: new Date().toISOString(),
-         waveOffPassword: this.adminPassword   // ✅ correct field
+      // await firstValueFrom(
+      //   this.api.createPayment({
+      //     patientId: this.patientId,
+      //     appointmentId: this.currentAppointmentId,
+      //     consultationCharges: this.consultationCharge,
+      //     waveOffAmount: this.waveOffAmount,
+      //     amountPaid: this.consultationCharge - this.waveOffAmount,
+      //     paymentMode: 'Cash',
+      //     paymentDate: new Date().toISOString(),
+      //    waveOffPassword: this.adminPassword   // ✅ correct field
 
-        }),
-      );
+      //   }),
+      // );
+
+      const consultation = Number(this.consultationCharge) || 0;
+      const waveOff = Number(this.waveOffAmount) || 0;
+
+      if (waveOff > consultation) {
+        this.showToast('Wave off cannot exceed consultation charges');
+        return;
+      }
+
+      const paymentPayload: any = {
+        patientId: this.patientId,
+        appointmentId: this.currentAppointmentId,
+        consultationCharges: consultation,
+        waveOffAmount: waveOff,
+        amountPaid: consultation - waveOff,
+        paymentMode: 'Cash',
+        paymentDate: new Date().toISOString(),
+        waveOffPassword: this.adminPassword,
+      };
+
+      console.log('PAYMENT PAYLOAD:', paymentPayload);
+
+      await firstValueFrom(this.api.createPayment(paymentPayload));
 
       /* -----------------------------------
        5️⃣ CREATE NEXT APPOINTMENT
@@ -978,5 +1000,34 @@ export class FollowupPage implements OnInit, OnDestroy {
       console.error(err);
       this.showToast('Save failed');
     }
+
+    this.showToast('Follow-Up saved successfully');
+
+    this.router.navigate(['/patients/payment'], {
+      queryParams: {
+        patientId: this.patientId,
+        appointmentId: this.currentAppointmentId,
+      },
+    });
+  }
+
+  validateSymptom(event: any, index: number) {
+    let value = event.target.value;
+
+    // remove non numbers
+    value = value.replace(/[^0-9]/g, '');
+
+    let num = Number(value);
+
+    if (num > 10) {
+      num = 10;
+      this.showToast('Max value is 10');
+    }
+
+    if (num < 1 && value !== '') {
+      num = 1;
+    }
+
+    this.symptomStatus[index] = num;
   }
 }

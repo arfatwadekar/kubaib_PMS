@@ -93,10 +93,10 @@
             </div>
           </div>
         </form>
-
-        <!-- ACTION BUTTONS -->
+<!-- 
+        ACTION BUTTONS
         <div class="criteria-actions">
-          <!-- SAVE BUTTON (First time) -->
+          SAVE BUTTON (First time)
           <button
             type="button"
             class="btn btn-primary"
@@ -110,7 +110,7 @@
             </span>
           </button>
 
-          <!-- EDIT BUTTON -->
+          EDIT BUTTON
           <button
             type="button"
             class="btn btn-secondary"
@@ -120,7 +120,7 @@
             ✎ Edit
           </button>
 
-          <!-- UPDATE BUTTON (After edit) -->
+          UPDATE BUTTON (After edit)
           <button
             type="button"
             class="btn btn-primary"
@@ -133,7 +133,7 @@
               <span class="spinner"></span> Updating...
             </span>
           </button>
-        </div>
+        </div> -->
 
         <!-- INFO TEXT -->
         <div class="panel-footer">
@@ -188,8 +188,10 @@
                           type="number"
                           min="1"
                           max="10"
+                          step="1"
                           placeholder="1-10"
                           [(ngModel)]="symptomStatus[i]"
+                          (input)="validateSymptom($event,i)"
                         />
                       </td>
                     </tr>
@@ -247,7 +249,10 @@
                         >
                           <option value="">Select Medicine</option>
 
-                        <option *ngFor="let m of medicines" [ngValue]="m.medicineId">
+                          <option
+                            *ngFor="let m of medicines"
+                            [ngValue]="m.medicineId"
+                          >
                             {{m.name}}
                           </option>
                         </select>
