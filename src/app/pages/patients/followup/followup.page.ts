@@ -883,6 +883,71 @@ export class FollowupPage implements OnInit, OnDestroy {
 
     try {
 
+      /* -----------------------------------
+0️⃣ CREATE / UPDATE CRITERIA
+------------------------------------*/
+
+const createList: string[] = [];
+const updateList: any[] = [];
+
+this.fuSymptomsArr.controls.forEach((ctrl: any) => {
+
+  const value = ctrl.getRawValue().trim();
+  if (!value) return;
+
+  const criteriaId = ctrl.criteriaId;
+
+  if (criteriaId) {
+
+    const existing = this.existingCriteria.find(
+      (x: any) => x.patientFollowUpCriteriaId === criteriaId
+    );
+
+    if (existing && existing.criteriaName !== value) {
+
+      updateList.push({
+        patientFollowUpCriteriaId: criteriaId,
+        patientId: this.patientId,
+        criteriaName: value
+      });
+
+    }
+
+  } else {
+
+    createList.push(value);
+
+  }
+
+});
+
+
+/* -----------------------------------
+SAVE CRITERIA
+------------------------------------*/
+
+// update first
+for (const updatePayload of updateList) {
+
+  await firstValueFrom(
+    this.api.updateCriteria(updatePayload)
+  );
+
+}
+
+// create new
+if (createList.length) {
+
+  const uniqueList = [...new Set(createList)];
+
+  await firstValueFrom(
+    this.api.createCriteria({
+      patientId: this.patientId,
+      criteriaNames: uniqueList
+    })
+  );
+
+}
 
       /* -----------------------------------
        1️⃣ CREATE FOLLOWUP ENTRY
