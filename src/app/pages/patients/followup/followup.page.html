@@ -189,6 +189,7 @@
                           min="1"
                           max="10"
                           placeholder="1-10"
+                          [(ngModel)]="symptomStatus[i]"
                         />
                       </td>
                     </tr>
@@ -200,13 +201,19 @@
             <!-- INTERPRETATION -->
             <div class="form-group" *ngIf="!isFirstVisit">
               <label class="form-label">Interpretation</label>
-              <textarea placeholder="Enter interpretation..."></textarea>
+              <textarea
+                [(ngModel)]="interpretation"
+                placeholder="Enter interpretation..."
+              ></textarea>
             </div>
 
             <!-- TEMPORARY PROBLEMS -->
             <div class="form-group" *ngIf="!isFirstVisit">
               <label class="form-label">Temporary Problems</label>
-              <textarea placeholder="Enter temporary problems..."></textarea>
+              <textarea
+                [(ngModel)]="temporaryProblems"
+                placeholder="Enter temporary problems..."
+              ></textarea>
             </div>
 
             <!-- PRESCRIBED MEDICINES -->
@@ -232,72 +239,60 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <!-- <td>
-                        <select>
+                    <tr *ngFor="let med of prescriptions; let i=index">
+                      <td>
+                        <select
+                          [(ngModel)]="med.medicineId"
+                          name="medicine{{i}}"
+                        >
                           <option value="">Select Medicine</option>
 
-                          <option
-                            *ngFor="let med of medicines"
-                            [value]="med.id"
-                          >
-                            {{ med.name }}
+                        <option *ngFor="let m of medicines" [ngValue]="m.medicineId">
+                            {{m.name}}
                           </option>
                         </select>
-                      </td> -->
-                      <td class="medicine-cell">
-                        <div class="medicine-select-wrapper">
-                          <select class="medicine-select">
-                            <option value="">Select Medicine</option>
-
-                            <option
-                              *ngFor="let med of medicines"
-                              [value]="med.id"
-                            >
-                              {{ med.name }}
-                            </option>
-                          </select>
-
-                          <button
-                            type="button"
-                            class="btn-add-medicine-small"
-                            (click)="addNewMedicine()"
-                            [disabled]="creatingMedicine"
-                            title="Add new medicine"
-                            *ngIf="!creatingMedicine"
-                          >
-                            ➕
-                          </button>
-
-                          <span
-                            *ngIf="creatingMedicine"
-                            class="spinner-small"
-                          ></span>
-                        </div>
                       </td>
-                      <td><input type="text" placeholder="e.g., 500mg" /></td>
+
                       <td>
-                        <input type="text" placeholder="e.g., 3x daily" />
+                        <input type="text" [(ngModel)]="med.dosage" />
                       </td>
-                      <td><input type="text" placeholder="e.g., 7 days" /></td>
+
                       <td>
-                        <select>
-                          <option>Select Type</option>
+                        <input type="text" [(ngModel)]="med.frequency" />
+                      </td>
+
+                      <td>
+                        <input type="text" [(ngModel)]="med.duration" />
+                      </td>
+
+                      <td>
+                        <select [(ngModel)]="med.type">
                           <option>Tablet</option>
                           <option>Capsule</option>
                           <option>Syrup</option>
                           <option>Injection</option>
                         </select>
                       </td>
+
                       <td>
-                        <input type="text" placeholder="e.g., After meals" />
+                        <input type="text" [(ngModel)]="med.instructions" />
                       </td>
-                      <td><button class="delete-btn">✕</button></td>
+
+                      <td>
+                        <button
+                          class="delete-btn"
+                          (click)="removeMedicineRow(i)"
+                        >
+                          ✕
+                        </button>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
               </div>
-              <button class="add-btn">+ Add Medicine</button>
+              <button class="add-btn" (click)="addMedicineRow()">
+                + Add Medicine
+              </button>
             </div>
 
             <!-- CONSULTATION CHARGES & WAVE OFF -->
@@ -327,51 +322,53 @@
             </div> -->
 
             <div class="row">
-  <div class="form-group">
-    <label class="form-label">Consultation Charges</label>
-    <input type="text" placeholder="0.00" value="0.00" />
-  </div>
+              <div class="form-group">
+                <label class="form-label">Consultation Charges</label>
+                <input
+                  type="number"
+                  [(ngModel)]="consultationCharge"
+                  placeholder="0.00"
+                />
+              </div>
 
-  <div class="form-group">
-    <label class="form-label">Wave off charges?</label>
+              <div class="form-group">
+                <label class="form-label">Wave off charges?</label>
 
-    <div class="radio-group">
+                <div class="radio-group">
+                  <div class="radio-option">
+                    <input
+                      type="radio"
+                      name="waveoff"
+                      value="no"
+                      checked
+                      (change)="onWaveOffChange('no')"
+                    />
+                    <label>No</label>
+                  </div>
 
-      <div class="radio-option">
-        <input
-          type="radio"
-          name="waveoff"
-          value="no"
-          checked
-          (change)="onWaveOffChange('no')"
-        />
-        <label>No</label>
-      </div>
+                  <div class="radio-option">
+                    <input
+                      type="radio"
+                      name="waveoff"
+                      value="yes"
+                      (change)="onWaveOffChange('yes')"
+                    />
+                    <label>Yes</label>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-      <div class="radio-option">
-        <input
-          type="radio"
-          name="waveoff"
-          value="yes"
-          (change)="onWaveOffChange('yes')"
-        />
-        <label>Yes</label>
-      </div>
-
-    </div>
-  </div>
-</div>
-
-<!-- WAVE OFF AMOUNT -->
-<div class="form-group">
-  <label class="form-label">Wave off Amount</label>
-
-  <input
-    type="text"
-    placeholder="0.00"
-    [disabled]="!waveOffVerified"
-  />
-</div>
+            <!-- WAVE OFF AMOUNT -->
+            <div class="form-group">
+              <label class="form-label">Wave off Amount</label>
+              <input
+                type="number"
+                [(ngModel)]="waveOffAmount"
+                placeholder="0.00"
+                [disabled]="!waveOffVerified"
+              />
+            </div>
 
             <!-- WAVE OFF AMOUNT
             <div class="form-group">
@@ -385,13 +382,13 @@
                 <label class="form-label"
                   >Next Appointment Date (Optional)</label
                 >
-                <input type="date" />
+                <input type="date" [(ngModel)]="nextAppointmentDate" />
               </div>
               <div class="form-group">
                 <label class="form-label"
                   >Next Appointment Time (Optional)</label
                 >
-                <input type="time" />
+                <input type="time" [(ngModel)]="nextAppointmentTime" />
               </div>
             </div>
           </div>
@@ -399,38 +396,30 @@
           <!-- FOOTER -->
           <div class="footer">
             <button class="btn btn-secondary">Cancel</button>
-            <button class="btn btn-primary">💾 Save Follow-Up</button>
+            <button class="btn btn-primary" (click)="saveFollowUp()">
+              💾 Save Follow-Up
+            </button>
           </div>
         </div>
 
         <!-- ADMIN PASSWORD VERIFY MODAL -->
-<div class="modal-backdrop" *ngIf="showPasswordModal">
+        <div class="modal-backdrop" *ngIf="showPasswordModal">
+          <div class="password-modal">
+            <h3>Admin Verification</h3>
 
-  <div class="password-modal">
+            <input
+              type="password"
+              placeholder="Enter password"
+              [(ngModel)]="adminPassword"
+            />
 
-    <h3>Admin Verification</h3>
+            <div class="modal-actions">
+              <button (click)="closePasswordModal()">Cancel</button>
 
-    <input
-      type="password"
-      placeholder="Enter password"
-      [(ngModel)]="adminPassword"
-    />
-
-    <div class="modal-actions">
-
-      <button (click)="closePasswordModal()">
-        Cancel
-      </button>
-
-      <button (click)="verifyAdminPassword()">
-        Verify
-      </button>
-
-    </div>
-
-  </div>
-
-</div>
+              <button (click)="verifyAdminPassword()">Verify</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

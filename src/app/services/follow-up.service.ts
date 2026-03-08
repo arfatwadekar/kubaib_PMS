@@ -95,6 +95,7 @@ export type PaymentCreatePayload = {
   paymentMode:         string;
   paymentDate:         string;
   discountCode?:       string;   // PRD: discount code (not admin password)
+    waveOffPassword?: string; // ✅ add this
 };
 
 // ══════════════════════════════════════════

@@ -18,7 +18,8 @@ const routes: Routes = [
     ReactiveFormsModule,
     RouterModule.forChild(routes),
     FormsModule,
-    NgSelectModule
+    NgSelectModule,
+    
   ]
 })
 export class FollowupPageModule {}

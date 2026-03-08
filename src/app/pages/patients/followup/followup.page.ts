@@ -322,35 +322,47 @@
 // }
 // }
 
-
-
-import { Component, OnInit, OnDestroy } from "@angular/core";
-import { FormBuilder, FormArray, FormControl } from "@angular/forms";
-import { ActivatedRoute } from "@angular/router";
-import { firstValueFrom, Subject } from "rxjs";
-import { takeUntil } from "rxjs/operators";
-import { ToastController } from "@ionic/angular";
-import { FollowUpService } from "src/app/services/follow-up.service";
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormBuilder, FormArray, FormControl } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
+import { firstValueFrom, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { ToastController } from '@ionic/angular';
+import { FollowUpService } from 'src/app/services/follow-up.service';
 
 const INIT_ROWS = 10;
 const MAX_ROWS = 30;
 const AUTO_ADD_ROWS = 2;
 
 @Component({
-  selector: "app-followup",
-  templateUrl: "./followup.page.html",
-  styleUrls: ["./followup.page.scss"],
+  selector: 'app-followup',
+  templateUrl: './followup.page.html',
+  styleUrls: ['./followup.page.scss'],
   standalone: false,
 })
 export class FollowupPage implements OnInit, OnDestroy {
   // ─────────────────────────────────────────────────────────────────────────
   // LIFECYCLE PROPERTIES
   // ─────────────────────────────────────────────────────────────────────────
-showPasswordModal = false;
+  showPasswordModal = false;
+  interpretation = '';
+  temporaryProblems = '';
+  waveOffSelected = false;
+  symptomStatus: number[] = [];
 
-adminPassword = "";
+  consultationCharge = 0;
+  waveOffAmount = 0;
 
-waveOffVerified = false;
+  nextAppointmentDate: string | null = null;
+  nextAppointmentTime: string | null = null;
+
+  currentAppointmentId!: number;
+
+  prescriptions: any[] = [];
+
+  adminPassword = '';
+
+  waveOffVerified = false;
 
   medicines: any[] = [];
   patientId!: number;
@@ -381,7 +393,7 @@ waveOffVerified = false;
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private api: FollowUpService,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
   ) {}
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -389,34 +401,62 @@ waveOffVerified = false;
   // ─────────────────────────────────────────────────────────────────────────
 
   get fuSymptomsArr(): FormArray<FormControl<string>> {
-    return this.fuCriteriaForm.get("symptoms") as FormArray<FormControl<string>>;
+    return this.fuCriteriaForm.get('symptoms') as FormArray<
+      FormControl<string>
+    >;
   }
 
   // Get only non-empty symptoms for Follow-Up rating table
   get symptomsArray(): any[] {
     return this.fuSymptomsArr.controls
-      .map((ctrl, i) => ({ index: i, value: ctrl.value }))
-      .filter(item => item.value && item.value.trim() !== "");
+      .map((ctrl: any, i) => ({
+        index: i,
+        value: ctrl.value,
+        criteriaId: ctrl.criteriaId,
+      }))
+      .filter((item) => item.value && item.value.trim() !== '');
   }
 
   // ─────────────────────────────────────────────────────────────────────────
   // LIFECYCLE HOOKS
   // ─────────────────────────────────────────────────────────────────────────
 
-  ngOnInit() {
-    this.patientId = Number(
-      this.route.snapshot.queryParamMap.get("patientId")
-    );
+  // ngOnInit() {
+  //   this.patientId = Number(
+  //     this.route.snapshot.queryParamMap.get("patientId")
+  //   );
+
+  //   if (!this.patientId || isNaN(this.patientId)) {
+  //     this.showToast("Invalid patient ID");
+  //     return;
+  //   }
+
+  //   this.initRows();
+  //   this.listenExpansion();
+  //   this.loadCriteria();
+  //   this.loadMedicines();
+  // }
+
+  async ngOnInit() {
+    const patientParam = this.route.snapshot.queryParamMap.get('patientId');
+
+    this.patientId = patientParam ? Number(patientParam) : 0;
+
+    console.log('PATIENT ID:', this.patientId);
 
     if (!this.patientId || isNaN(this.patientId)) {
-      this.showToast("Invalid patient ID");
+      this.showToast('Invalid patient ID');
       return;
     }
+
+    // 🔹 get latest appointment
+    await this.loadCurrentAppointment();
 
     this.initRows();
     this.listenExpansion();
     this.loadCriteria();
     this.loadMedicines();
+    this.addMedicineRow();
   }
 
   ngOnDestroy() {
@@ -424,13 +464,39 @@ waveOffVerified = false;
     this.destroy$.complete();
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
+  async loadCurrentAppointment() {
+    try {
+      const res: any = await firstValueFrom(
+        this.api.getAppointmentsByPatient(this.patientId),
+      );
+
+      console.log('APPOINTMENT RESPONSE:', res);
+
+      const list = res?.appointments || [];
+
+      if (!list.length) {
+        this.showToast('No appointment found');
+        return;
+      }
+
+      // 🔹 latest appointment
+      this.currentAppointmentId = list[0].appointmentId;
+
+      console.log('CURRENT APPOINTMENT ID:', this.currentAppointmentId);
+    } catch (err) {
+      console.error('Appointment load error:', err);
+      this.showToast('Failed to load appointment');
+    }
+  }
+
+  // ───────
+  // ──────────────────────────────────────────────────────────────────
   // INITIALIZE FORM ROWS
   // ─────────────────────────────────────────────────────────────────────────
 
   private initRows() {
     for (let i = 0; i < INIT_ROWS; i++) {
-      this.fuSymptomsArr.push(this.fb.control("", { nonNullable: true }));
+      this.fuSymptomsArr.push(this.fb.control('', { nonNullable: true }));
     }
   }
 
@@ -465,7 +531,7 @@ waveOffVerified = false;
     for (let i = 0; i < count; i++) {
       if (this.fuSymptomsArr.length >= MAX_ROWS) return;
 
-      this.fuSymptomsArr.push(this.fb.control("", { nonNullable: true }));
+      this.fuSymptomsArr.push(this.fb.control('', { nonNullable: true }));
     }
   }
 
@@ -484,7 +550,7 @@ waveOffVerified = false;
   private async loadCriteria() {
     try {
       const res: any = await firstValueFrom(
-        this.api.getCriteriaByPatient(this.patientId)
+        this.api.getCriteriaByPatient(this.patientId),
       );
 
       // Handle various response formats
@@ -510,7 +576,7 @@ waveOffVerified = false;
       list.forEach((criteria: any) => {
         const ctrl = this.fb.control(
           { value: criteria.criteriaName, disabled: true },
-          { nonNullable: true }
+          { nonNullable: true },
         );
 
         // Store criteria ID on control for later identification
@@ -519,8 +585,8 @@ waveOffVerified = false;
         this.fuSymptomsArr.push(ctrl);
       });
     } catch (err) {
-      console.error("Load criteria error:", err);
-      this.showToast("Failed to load symptoms");
+      console.error('Load criteria error:', err);
+      this.showToast('Failed to load symptoms');
     }
   }
 
@@ -545,7 +611,7 @@ waveOffVerified = false;
       if (criteriaId) {
         // Existing criteria - check if changed
         const existing = this.existingCriteria.find(
-          (x: any) => x.patientFollowUpCriteriaId === criteriaId
+          (x: any) => x.patientFollowUpCriteriaId === criteriaId,
         );
 
         if (existing && existing.criteriaName !== value) {
@@ -563,7 +629,7 @@ waveOffVerified = false;
 
     // If nothing changed, notify user
     if (!createList.length && !updateList.length) {
-      this.showToast("No changes to save");
+      this.showToast('No changes to save');
       return;
     }
 
@@ -584,11 +650,11 @@ waveOffVerified = false;
           this.api.createCriteria({
             patientId: this.patientId,
             criteriaNames: uniqueList,
-          })
+          }),
         );
       }
 
-      this.showToast("Symptoms saved successfully");
+      this.showToast('Symptoms saved successfully');
 
       // Reset state and reload
       this.isSaved = true;
@@ -596,8 +662,8 @@ waveOffVerified = false;
 
       await this.loadCriteria();
     } catch (err) {
-      console.error("Save criteria error:", err);
-      this.showToast("Save failed. Please try again.");
+      console.error('Save criteria error:', err);
+      this.showToast('Save failed. Please try again.');
     } finally {
       this.criteriaLoading = false;
     }
@@ -624,16 +690,16 @@ waveOffVerified = false;
   async loadMedicines() {
     try {
       const res: any = await firstValueFrom(
-        this.api.getAllMedicines(1, 100, "")
+        this.api.getAllMedicines(1, 100, ''),
       );
 
-      console.log("MED API RESPONSE:", res);
+      console.log('MED API RESPONSE:', res);
 
       this.medicines = res?.data?.items || [];
 
-      console.log("MED LIST:", this.medicines);
+      console.log('MED LIST:', this.medicines);
     } catch (err) {
-      console.error("Medicine load error", err);
+      console.error('Medicine load error', err);
     }
   }
 
@@ -643,10 +709,10 @@ waveOffVerified = false;
 
   async addNewMedicine() {
     // Prompt user for medicine name
-    const medicineName = prompt("Enter medicine name:");
+    const medicineName = prompt('Enter medicine name:');
 
     if (!medicineName || !medicineName.trim()) {
-      this.showToast("Medicine name cannot be empty");
+      this.showToast('Medicine name cannot be empty');
       return;
     }
 
@@ -655,33 +721,33 @@ waveOffVerified = false;
     try {
       const payload = {
         name: medicineName.trim(),
-        strength: "",
-        dosageForm: "Tablet",
+        strength: '',
+        dosageForm: 'Tablet',
         stockQuantity: 0,
-        unit: "Piece",
-        batchNumber: "",
+        unit: 'Piece',
+        batchNumber: '',
         expiryDate: new Date().toISOString(),
-        notes: "Added from prescription",
+        notes: 'Added from prescription',
       };
 
-      console.log("Creating medicine:", payload);
+      console.log('Creating medicine:', payload);
 
       const res: any = await firstValueFrom(this.api.createMedicine(payload));
 
-      console.log("Medicine created:", res);
+      console.log('Medicine created:', res);
 
       const newMedicine = res?.data || res;
 
       // Add to medicines list
       this.medicines.unshift(newMedicine);
 
-      this.showToast("Medicine created successfully!");
+      this.showToast('Medicine created successfully!');
 
       // Reload medicines to be sure
       await this.loadMedicines();
     } catch (err) {
-      console.error("Create medicine error:", err);
-      this.showToast("Failed to create medicine. Please try again.");
+      console.error('Create medicine error:', err);
+      this.showToast('Failed to create medicine. Please try again.');
     } finally {
       this.creatingMedicine = false;
     }
@@ -695,64 +761,222 @@ waveOffVerified = false;
     const toast = await this.toastCtrl.create({
       message,
       duration: 2500,
-      position: "top",
-      color: "dark",
+      position: 'top',
+      color: 'dark',
     });
 
     await toast.present();
   }
 
+  // onWaveOffChange(value: string) {
+  //   if (value === 'yes') {
+  //     if (!this.waveOffVerified) {
+  //       this.showPasswordModal = true;
+  //     }
+  //   } else {
+  //     this.waveOffVerified = false;
+  //   }
+  // }
+
   onWaveOffChange(value: string) {
+    if (value === 'yes') {
+      this.waveOffSelected = true;
 
-  if(value === "yes"){
+      if (!this.waveOffVerified) {
+        this.showPasswordModal = true;
+      }
+    } else {
+      this.waveOffSelected = false;
+      this.waveOffVerified = false;
+      this.waveOffAmount = 0;
+    }
+  }
 
-    if(!this.waveOffVerified){
-      this.showPasswordModal = true;
+  closePasswordModal() {
+    this.showPasswordModal = false;
+    this.adminPassword = '';
+  }
+
+  async verifyAdminPassword() {
+    if (!this.adminPassword) {
+      this.showToast('Password required');
+      return;
     }
 
-  }else{
+    try {
+      await firstValueFrom(
+        this.api.verifyAdminPassword({
+          password: this.adminPassword,
+        }),
+      );
 
-    this.waveOffVerified = false;
+      this.waveOffVerified = true;
 
+      this.showPasswordModal = false;
+
+      this.showToast('Password verified');
+    } catch (err) {
+      console.error(err);
+
+      this.showToast('Invalid password');
+    }
   }
+
+  addMedicineRow() {
+    this.prescriptions.push({
+      medicineId: null,
+      dosage: '',
+      frequency: '',
+      duration: '',
+      type: '',
+      instructions: '',
+    });
+  }
+
+  removeMedicineRow(index: number) {
+    this.prescriptions.splice(index, 1);
+  }
+
+  // buildStatusRecords(){
+
+  //   const records:any[] = [];
+
+  //   this.symptomsArray.forEach(sym=>{
+
+  //     records.push({
+  //       patientFollowUpStatusId: 0,
+  //       patientFollowUpCriteriaId: sym.criteriaId,
+  //       criteriaName: sym.value,
+  //       remarks: sym.status || ""
+  //     });
+
+  //   });
+
+  //   return records;
+
+  // }
+
+  buildStatusRecords() {
+    console.log('SYMPTOMS ARRAY:', this.symptomsArray);
+    console.log('SYMPTOM STATUS:', this.symptomStatus);
+
+    const records: any[] = [];
+
+    this.symptomsArray.forEach((sym) => {
+      if (!sym.criteriaId) return;
+
+      records.push({
+        patientFollowUpStatusId: 0,
+        patientFollowUpCriteriaId: sym.criteriaId,
+        criteriaName: sym.value,
+        remarks: String(this.symptomStatus[sym.index] || ''),
+      });
+    });
+
+    return records;
+  }
+
+  async saveFollowUp() {
+    console.log('PATIENT ID:', this.patientId);
+    console.log('APPOINTMENT ID:', this.currentAppointmentId);
+
+    try {
+      /* -----------------------------------
+       1️⃣ CREATE FOLLOWUP ENTRY
+    ------------------------------------*/
+
+      const followUpPayload = {
+        patientFollowUpEntryId: 0,
+        patientId: this.patientId,
+        appointmentId: this.currentAppointmentId,
+        followUpDate: new Date().toISOString(),
+        interpretation: this.interpretation,
+        temporaryProblems: this.temporaryProblems,
+        charge: this.consultationCharge,
+        statusRecords: this.buildStatusRecords(),
+      };
+
+      console.log('FOLLOWUP PAYLOAD:', followUpPayload);
+      console.log('STATUS RECORDS:', followUpPayload.statusRecords);
+
+      await firstValueFrom(this.api.createFollowUp(followUpPayload));
+      /* -----------------------------------
+       2️⃣ SAVE PRESCRIPTIONS
+    ------------------------------------*/
+ for (const med of this.prescriptions) {
+
+  console.log("MED:", med);
+
+  if (!med.medicineId) {
+    console.log("MEDICINE SKIPPED");
+    continue;
+  }
+
+  const payload = {
+    appointmentId: this.currentAppointmentId,
+    medicineId: Number(med.medicineId),
+    dosage: med.dosage,
+    frequency: med.frequency,
+    duration: med.duration,
+    type: med.type || "Capsule",
+    instructions: med.instructions
+  };
+
+  console.log("PRESCRIPTION PAYLOAD:", payload);
+
+  await firstValueFrom(
+    this.api.addPrescription(payload)
+  );
 
 }
 
-closePasswordModal(){
+      /* -----------------------------------
+       3️⃣ UPDATE APPOINTMENT STATUS
+    ------------------------------------*/
 
-  this.showPasswordModal = false;
-  this.adminPassword = "";
+      await firstValueFrom(
+        this.api.updateAppointmentStatus(this.currentAppointmentId, {
+          status: 3,
+        }),
+      );
 
-}
+      /* -----------------------------------
+       4️⃣ CREATE PAYMENT
+    ------------------------------------*/
 
-async verifyAdminPassword(){
+      await firstValueFrom(
+        this.api.createPayment({
+          patientId: this.patientId,
+          appointmentId: this.currentAppointmentId,
+          consultationCharges: this.consultationCharge,
+          waveOffAmount: this.waveOffAmount,
+          amountPaid: this.consultationCharge - this.waveOffAmount,
+          paymentMode: 'Cash',
+          paymentDate: new Date().toISOString(),
+         waveOffPassword: this.adminPassword   // ✅ correct field
 
-  if(!this.adminPassword){
-    this.showToast("Password required");
-    return;
+        }),
+      );
+
+      /* -----------------------------------
+       5️⃣ CREATE NEXT APPOINTMENT
+    ------------------------------------*/
+
+      if (this.nextAppointmentDate && this.nextAppointmentTime) {
+        await firstValueFrom(
+          this.api.createAppointment({
+            patientId: this.patientId,
+            appointmentDate: this.nextAppointmentDate,
+            appointmentTime: this.nextAppointmentTime,
+            remark: 'Follow up',
+          }),
+        );
+      }
+
+      this.showToast('Follow-Up saved successfully');
+    } catch (err) {
+      console.error(err);
+      this.showToast('Save failed');
+    }
   }
-
-  try{
-
-    await firstValueFrom(
-      this.api.verifyAdminPassword({
-        password: this.adminPassword
-      })
-    );
-
-    this.waveOffVerified = true;
-
-    this.showPasswordModal = false;
-
-    this.showToast("Password verified");
-
-  }catch(err){
-
-    console.error(err);
-
-    this.showToast("Invalid password");
-
-  }
-
-}
 }
