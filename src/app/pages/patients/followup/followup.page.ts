@@ -375,6 +375,8 @@ export class FollowupPage implements OnInit, OnDestroy {
 
   existingCriteria: any[] = [];
 
+  summaryList: any[] = [];
+
   private destroy$ = new Subject<void>();
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -452,6 +454,11 @@ export class FollowupPage implements OnInit, OnDestroy {
 
     // 🔹 get latest appointment
     await this.loadCurrentAppointment();
+
+
+  // 2️⃣ summary load
+  await this.loadSummary();
+
 
     this.initRows();
     this.listenExpansion();
@@ -1061,19 +1068,22 @@ if (createList.length) {
       }
 
       this.showToast('Follow-Up saved successfully');
-    } catch (err) {
-      console.error(err);
-      this.showToast('Save failed');
-    }
+    }catch (err) {
 
-    this.showToast('Follow-Up saved successfully');
+  console.error(err);
+  this.showToast('Save failed');
+  return;
 
-    this.router.navigate(['/patients/payment'], {
-      queryParams: {
-        patientId: this.patientId,
-        appointmentId: this.currentAppointmentId,
-      },
-    });
+}
+
+await this.showToast('Follow-Up saved successfully');
+
+this.router.navigate(['/patients/payment'], {
+  queryParams: {
+    patientId: this.patientId,
+    appointmentId: this.currentAppointmentId
+  }
+});
   }
 
   validateSymptom(event: any, index: number) {
@@ -1095,4 +1105,110 @@ if (createList.length) {
 
     this.symptomStatus[index] = num;
   }
+
+  // ===============================
+  // summary function 
+    // ===============================
+
+//     async loadSummary() {
+//   try {
+
+//     const res: any = await firstValueFrom(
+//       this.api.getAppointmentSummary(this.currentAppointmentId)
+//     );
+
+//     console.log("SUMMARY RAW RESPONSE:", res);
+
+//     const list = res?.data || res || [];
+
+//     if (!Array.isArray(list)) {
+//       console.log("SUMMARY:", list);
+//       return;
+//     }
+
+//     // date wise sort
+//     const sorted = list.sort(
+//       (a: any, b: any) =>
+//         new Date(a.followUpDate).getTime() -
+//         new Date(b.followUpDate).getTime()
+//     );
+
+//     console.log("SUMMARY DATE WISE:");
+
+//     sorted.forEach((item: any) => {
+//       console.log(
+//         "DATE:",
+//         new Date(item.followUpDate).toLocaleDateString(),
+//         item
+//       );
+//     });
+
+//   } catch (err) {
+//     console.error("Summary load error:", err);
+//   }
+// }
+
+summary:any = null;
+
+async loadSummary(){
+
+ const res:any = await firstValueFrom(
+   this.api.getAppointmentSummary(this.currentAppointmentId)
+ );
+
+ console.log("SUMMARY API:",res);
+
+ this.summary = res;
+
+}
+
+
+async onMedicineChange(event: any, index: number) {
+
+  const value = event.target.value;
+
+  if (value !== "add_new") return;
+
+  const name = prompt("Enter medicine name");
+
+  if (!name || !name.trim()) {
+    return;
+  }
+
+  try {
+
+    const payload = {
+      name: name.trim(),
+      strength: "",
+      dosageForm: "Tablet",
+      stockQuantity: 0,
+      unit: "Piece",
+      batchNumber: "",
+      expiryDate: new Date().toISOString(),
+      notes: "Added from prescription"
+    };
+
+    const res: any = await firstValueFrom(
+      this.api.createMedicine(payload)
+    );
+
+    const newMed = res?.data || res;
+
+    // add to list
+    this.medicines.push(newMed);
+
+    // auto select
+    this.prescriptions[index].medicineId = newMed.medicineId;
+
+    this.showToast("Medicine added successfully");
+
+  } catch (err) {
+
+    console.error(err);
+    this.showToast("Failed to add medicine");
+
+  }
+
+}
+
 }

@@ -28,7 +28,17 @@ appointmentId: number | null = null;
     const raw = (localStorage.getItem('mhc_role') || '').toLowerCase();
     this.role = raw === 'doctor' ? 'Doctor' : 'Receptionist';
 
-  this.route.queryParams.subscribe(params => {
+//   this.route.queryParams.subscribe(params => {
+
+//   const id = Number(params['patientId']);
+//   this.patientId = id > 0 ? id : null;
+
+//   const appointment = Number(params['appointmentId']);
+//   this.appointmentId = appointment > 0 ? appointment : null;
+
+// });
+
+this.route.queryParams.subscribe(params => {
 
   const id = Number(params['patientId']);
   this.patientId = id > 0 ? id : null;
@@ -36,8 +46,22 @@ appointmentId: number | null = null;
   const appointment = Number(params['appointmentId']);
   this.appointmentId = appointment > 0 ? appointment : null;
 
-});
+ const tab = params['tab'] as TabKey;
 
+if (tab && this.isTabAllowed(tab)) {
+
+  this.activeTab = tab;
+
+  // ⭐ component route change
+  this.router.navigate([tab], {
+    relativeTo: this.route,
+    queryParamsHandling: 'merge',
+    replaceUrl: true
+  });
+
+}
+
+});
   }
 
   // ======================
@@ -68,11 +92,18 @@ appointmentId: number | null = null;
 
 
   private navigateToTab(tab: TabKey) {
+    // this.router.navigate([tab], {
+    //   relativeTo: this.route,
+    //   queryParams: { patientId: this.patientId, tab },
+    //   queryParamsHandling: 'merge'
+    // });
+
     this.router.navigate([tab], {
-      relativeTo: this.route,
-      queryParams: { patientId: this.patientId, tab },
-      queryParamsHandling: 'merge'
-    });
+  relativeTo: this.route,
+  queryParams: { patientId: this.patientId, tab },
+  queryParamsHandling: 'merge',
+  replaceUrl: true
+});
   }
 
   // ======================

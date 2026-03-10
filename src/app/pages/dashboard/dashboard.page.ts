@@ -322,19 +322,20 @@ openPatient(row: AppointmentRow) {
 
   const role = (localStorage.getItem('mhc_role') || '').trim().toLowerCase();
 
-  let tab: string;
+  let route = '/patients/prelim';
 
   if (role === 'doctor') {
-    tab = 'medical';   // ✅ Doctor → Medical
-  } else {
-    tab = 'payment';   // ✅ Receptionist → Payment
+    route = '/patients/medical';   // Doctor → Medical
+  } 
+  else if (role === 'receptionist') {
+    route = '/patients/payment';   // Receptionist → Payment
   }
 
-  this.router.navigate(['/patients'], {
+  this.router.navigate([route], {
     queryParams: {
       patientId: row.patientId,
-      tab,
-      from: 'dashboard'   // 🔥 important flag
+      appointmentId: row.appointmentId,
+      from: 'dashboard'
     }
   });
 }

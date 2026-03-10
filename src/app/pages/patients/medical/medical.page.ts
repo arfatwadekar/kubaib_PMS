@@ -211,17 +211,38 @@ export class MedicalPage implements OnInit, OnDestroy{
     this.initMedicalBmiAutoCalc();
 
     this.sub.add(
-      this.route.queryParams.subscribe((qp) => {
-        const id = safeNum(qp?.['patientId']);
+      // this.route.queryParams.subscribe((qp) => {
+      //   const id = safeNum(qp?.['patientId']);
 
-        if (id > 0) {
-          this.patientId = id;
-          void this.loadClinicalCaseIfExists();
-        } else {
-          this.patientId = null;
-          this.resetMedicalForm();
-        }
-      })
+      //   if (id > 0) {
+      //     this.patientId = id;
+      //     void this.loadClinicalCaseIfExists();
+      //   } else {
+      //     this.patientId = null;
+      //     this.resetMedicalForm();
+      //   }
+      // })
+
+      this.route.queryParams.subscribe((qp) => {
+
+  const id = safeNum(qp?.['patientId']);
+
+  if (id > 0) {
+
+    this.patientId = id;
+
+    // important fix
+    this.medicalExists = false;
+
+    void this.loadClinicalCaseIfExists();
+
+  } else {
+
+    this.patientId = null;
+    this.resetMedicalForm();
+  }
+
+})
     );
   }
 
@@ -295,38 +316,52 @@ export class MedicalPage implements OnInit, OnDestroy{
   // AUTOFILL (demo data)
   // ============================================================
   autofill() {
-    if (!this.patientId) return;
 
-    this.medicalForm.patchValue({
-      complaints: {
-        chief: {
-          location: 'Head',
-          sensation: 'Pain',
-          modality: 'Worse at night',
-          concomitant: 'Nausea',
-        },
-        associated: {
-          location: 'Stomach',
-          sensation: 'Burning',
-          modality: 'After spicy',
-          concomitant: '',
-        },
-        past: { location: '', sensation: '', modality: '', concomitant: '' },
-      },
-      physicalExamination: {
-        heightMeters: '1.70',
-        weightKg: '75',
-        temperature: '98.6',
-        pulse: '78',
-        bp: '120/80',
-        spo2: '99',
-      },
-      behavioralEvaluation: {
-        childhood_Scholastic: 'Average',
-        action_Speech: 'Normal',
-      },
+  if (!this.patientId) return;
+
+  const fillControls = (group: any) => {
+
+    Object.keys(group.controls).forEach(key => {
+
+      const control = group.get(key);
+
+      if (control instanceof FormGroup) {
+
+        fillControls(control);
+
+      } else {
+
+        const value = control.value;
+
+        if (value === null || value === '' || value === undefined) {
+
+          if (typeof value === 'boolean') {
+
+            control.setValue(false);
+
+          } else if (typeof value === 'number') {
+
+            control.setValue(50);
+
+          } else {
+
+            control.setValue('Normal');
+
+          }
+
+        }
+
+      }
+
     });
-  }
+
+  };
+
+  fillControls(this.medicalForm);
+
+  this.medicalForm.markAsDirty();
+
+}
 
   // ============================================================
   // SAVE RECORD
@@ -471,6 +506,8 @@ export class MedicalPage implements OnInit, OnDestroy{
         this.medicalExists = true;
         await this.toast('Clinical case saved');
       }
+      // ⭐ redirect after save/update
+this.goNextFollowUp();
     } catch (e: any) {
       await this.presentSimpleAlert(
         'Save Failed',
@@ -484,34 +521,95 @@ export class MedicalPage implements OnInit, OnDestroy{
   // ============================================================
   // LOAD FROM API
   // ============================================================
-  async loadClinicalCaseIfExists() {
-    if (!this.patientId) return;
+//   async loadClinicalCaseIfExists() {
+//     if (!this.patientId) return;
 
-    try {
-      const res: any = await firstValueFrom(
-        this.medicalExamApi.getByPatientId(this.patientId),
-      );
-      const data = res?.data ?? res;
+//     try {
+//       const res: any = await firstValueFrom(
+//         this.medicalExamApi.getByPatientId(this.patientId),
+//       );
+//       // const data = res?.data ?? res;
 
-      if (!data) {
-        this.medicalExists = false;
-        return;
-      }
+//       // if (!data) {
+//       //   this.medicalExists = false;
+//       //   return;
+//       // }
 
-      this.patchMedicalFormFromApi(data);
-      this.medicalForm.markAsPristine();
-      this.medicalExists = true;
-    } catch (e: any) {
-      if (e?.status === 404) {
-        this.medicalExists = false;
-        return;
-      }
-      console.error(e);
-      await this.toast(
-        e?.error?.message || e?.message || 'Failed to load clinical case',
-      );
+//       const data = res?.data ?? res;
+
+// // agar empty object aaye to bhi new record treat karo
+// if (!data || Object.keys(data).length === 0) {
+//   this.medicalExists = false;
+//   return;
+// }
+
+//       this.patchMedicalFormFromApi(data);
+//       this.medicalForm.markAsPristine();
+//       this.medicalExists = true;
+//     } catch (e: any) {
+//       if (e?.status === 404) {
+//         this.medicalExists = false;
+//         return;
+//       }
+//       console.error(e);
+//       await this.toast(
+//         e?.error?.message || e?.message || 'Failed to load clinical case',
+//       );
+//     }
+//   }
+
+async loadClinicalCaseIfExists() {
+
+  if (!this.patientId) return;
+
+  try {
+
+    const res: any = await firstValueFrom(
+      this.medicalExamApi.getByPatientId(this.patientId)
+    );
+
+    const data = res?.data ?? res;
+
+    // ⭐ check if medical record actually exists
+    if (
+      !data ||
+      (
+        (!data.complaints || data.complaints.length === 0) &&
+        !data.familyHistory &&
+        !data.personalStatus &&
+        !data.menstrualHistory &&
+        !data.maleSexualFunction &&
+        !data.physicalReaction &&
+        !data.physicalExamination &&
+        !data.mentalState &&
+        !data.behavioralEvaluation
+      )
+    ) {
+
+      this.medicalExists = false;
+      return;
+
     }
+
+    this.patchMedicalFormFromApi(data);
+
+    this.medicalForm.markAsPristine();
+
+    this.medicalExists = true;
+
+  } catch (e: any) {
+
+    if (e?.status === 404) {
+
+      this.medicalExists = false;
+      return;
+
+    }
+
+    this.medicalExists = false;
+
   }
+}
 
   private patchMedicalFormFromApi(api: ClinicalCasePayload) {
     const complaints: Complaint[] = Array.isArray(api?.complaints)
@@ -619,12 +717,22 @@ export class MedicalPage implements OnInit, OnDestroy{
     });
   }
 
-  goNextFollowUp() {
-    this.router.navigate([], {
-      queryParams: { tab: 'followup', patientId: this.patientId },
-      queryParamsHandling: 'merge',
-    });
-  }
+  // goNextFollowUp() {
+  //   this.router.navigate([], {
+  //     queryParams: { tab: 'followup', patientId: this.patientId },
+  //     queryParamsHandling: 'merge',
+  //   });
+  // }
+
+goNextFollowUp() {
+  this.router.navigate([], {
+    queryParams: {
+      tab: 'followup',
+      patientId: this.patientId
+    },
+    queryParamsHandling: 'merge'
+  });
+}
 
   // ============================================================
   // UTIL

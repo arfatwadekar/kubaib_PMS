@@ -3,86 +3,108 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
-/* ============================================================
-   INTERFACES (Aligned With Swagger)
-============================================================ */
-
-export interface CreatePaymentPayload {
-  patientId: number;
-  appointmentId?: number;
-  consultationCharges: number;
-  waveOffAmount?: number;
-  amountPaid: number;
-  paymentMode: string;       // Cash | Online
-  paymentDate: string;       // ISO string
-  waveOffPassword?: string;
-}
-
-export interface UpdatePaymentPayload {
-  amountPaid: number;
-  paymentMode: string;
-  paymentDate: string;
-  notes?: string;
-}
-
-/* ============================================================
-   SERVICE
-============================================================ */
-
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class PaymentService {
 
-  private baseUrl = `${environment.apiBaseUrl}/api/Payment`;
+  private paymentUrl = `${environment.apiBaseUrl}/api/Payment`;
+  private medicineUrl = `${environment.apiBaseUrl}/api/Medicine`;
+  private appointmentUrl = `${environment.apiBaseUrl}/api/Appointment`;
 
   constructor(private http: HttpClient) {}
 
-  /* ============================================================
-     CREATE PAYMENT
-     POST /api/Payment
-  ============================================================ */
-  createPayment(payload: CreatePaymentPayload): Observable<any> {
-    return this.http.post(`${this.baseUrl}`, payload);
+  /* ===================================================
+      APPOINTMENT SUMMARY
+      Fetches:
+      - consultation charges
+      - wave off
+      - payment
+      - followup
+      - medicines
+  =================================================== */
+
+  getAppointmentSummary(appointmentId: number): Observable<any> {
+    return this.http.get(
+      `${this.appointmentUrl}/${appointmentId}/summary`
+    );
   }
 
-  /* ============================================================
-     UPDATE PAYMENT
-     PUT /api/Payment/{id}
-  ============================================================ */
-  updatePayment(id: number, payload: UpdatePaymentPayload): Observable<any> {
-    return this.http.put(`${this.baseUrl}/${id}`, payload);
+  /* ===================================================
+      CREATE PAYMENT
+  =================================================== */
+
+  createPayment(payload: any): Observable<any> {
+    return this.http.post(
+      `${this.paymentUrl}`,
+      payload
+    );
   }
 
-  /* ============================================================
-     GET PAYMENT BY ID
-     GET /api/Payment/{id}
-  ============================================================ */
-  getById(id: number): Observable<any> {
-    return this.http.get(`${this.baseUrl}/${id}`);
+  /* ===================================================
+      UPDATE PAYMENT
+  =================================================== */
+
+  updatePayment(paymentId: number, payload: any): Observable<any> {
+    return this.http.put(
+      `${this.paymentUrl}/${paymentId}`,
+      payload
+    );
   }
 
-  /* ============================================================
-     DELETE PAYMENT
-     DELETE /api/Payment/{id}
-  ============================================================ */
-  deletePayment(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/${id}`);
+  /* ===================================================
+      GET PAYMENT BY ID
+  =================================================== */
+
+  getPaymentById(paymentId: number): Observable<any> {
+    return this.http.get(
+      `${this.paymentUrl}/${paymentId}`
+    );
   }
 
-  /* ============================================================
-     GET PAYMENT HISTORY
-     GET /api/Payment/patient/{patientId}
-  ============================================================ */
+  /* ===================================================
+      PAYMENT HISTORY (PATIENT LEVEL)
+  =================================================== */
+
   getByPatient(patientId: number): Observable<any> {
-    return this.http.get(`${this.baseUrl}/patient/${patientId}`);
+    return this.http.get(
+      `${this.paymentUrl}/patient/${patientId}`
+    );
   }
 
-  /* ============================================================
-     GET BALANCE
-     GET /api/Payment/patient/{patientId}/balance
-  ============================================================ */
+  /* ===================================================
+      GET PENDING BALANCE
+  =================================================== */
+
   getBalance(patientId: number): Observable<any> {
-    return this.http.get(`${this.baseUrl}/patient/${patientId}/balance`);
+    return this.http.get(
+      `${this.paymentUrl}/patient/${patientId}/balance`
+    );
   }
+
+  /* ===================================================
+      PRESCRIPTIONS BY APPOINTMENT
+  =================================================== */
+
+  getPrescriptionsByAppointment(appointmentId: number): Observable<any> {
+    return this.http.get(
+      `${this.medicineUrl}/appointment/${appointmentId}/prescriptions`
+    );
+  }
+
+  /* ===================================================
+      UPDATE APPOINTMENT STATUS
+      Used after payment complete
+  =================================================== */
+
+  updateAppointmentStatus(
+    appointmentId: number,
+    status: string
+  ): Observable<any> {
+    return this.http.put(
+      `${this.appointmentUrl}/${appointmentId}/status`,
+      { status }
+    );
+  }
+
 }

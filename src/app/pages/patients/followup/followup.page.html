@@ -93,7 +93,7 @@
             </div>
           </div>
         </form>
-<!-- 
+        <!-- 
         ACTION BUTTONS
         <div class="criteria-actions">
           SAVE BUTTON (First time)
@@ -145,6 +145,214 @@
       </div>
 
       <!-- =============== previous ================== -->
+    <!-- <div class="container" style="margin-bottom:3rem" *ngIf="summary">
+
+  HEADER
+  <div class="header" style="background:red">
+    <h1>
+      Follow-Up Record -
+      {{ summary.followUpEntry?.followUpDate | date:'hh:mm a' }}
+    </h1>
+
+    <span class="header-date">
+      {{ summary.followUpEntry?.followUpDate | date:'dd/MM/yyyy' }}
+    </span>
+  </div>
+
+  CARD
+  <div class="card">
+    <div class="card-body">
+
+      SYMPTOMS
+      <div class="symptoms-section">
+        <label class="form-label">Follow-Up Symptoms (1-10)</label>
+
+        <div class="table-wrapper">
+          <table>
+
+            <thead>
+              <tr>
+                <th>SR No</th>
+
+                <th *ngFor="let ctrl of fuSymptomsArr.controls; let i=index">
+                  {{ ctrl.value || ('Symptom ' + (i+1)) }}
+                </th>
+
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr>
+
+                <td><strong>Status</strong></td>
+
+                <td *ngFor="let ctrl of fuSymptomsArr.controls; let i=index">
+
+                  <input
+                    type="number"
+                    min="1"
+                    max="10"
+                    [value]="summary.followUpEntry?.statusRecords[i]?.remarks"
+                    readonly
+                  />
+
+                </td>
+
+              </tr>
+            </tbody>
+
+          </table>
+        </div>
+      </div>
+
+
+      INTERPRETATION
+      <div class="form-group">
+        <label class="form-label">Interpretation</label>
+
+        <textarea
+          [value]="summary.followUpEntry?.interpretation"
+          readonly
+        ></textarea>
+
+      </div>
+
+
+      TEMPORARY PROBLEMS
+      <div class="form-group">
+        <label class="form-label">Temporary Problems</label>
+
+        <textarea
+          [value]="summary.followUpEntry?.temporaryProblems"
+          readonly
+        ></textarea>
+
+      </div>
+
+
+      MEDICINES
+      <div class="medicines-section">
+
+        <label class="form-label">Prescribed Medicines</label>
+
+        <div style="overflow-x:auto;border:1px solid #e0e0e0;border-radius:4px">
+
+          <table class="medicine-table">
+
+            <thead>
+              <tr>
+                <th>Medicine Name</th>
+                <th>Dosage</th>
+                <th>Frequency</th>
+                <th>Duration</th>
+                <th>Instructions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              <tr *ngFor="let med of summary.prescribedMedicines">
+
+                <td>{{med.medicineName}}</td>
+
+                <td>{{med.dosage}}</td>
+
+                <td>{{med.frequency}}</td>
+
+                <td>{{med.duration}}</td>
+
+                <td>{{med.instructions}}</td>
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+
+
+      CHARGES
+      <div class="row">
+
+        <div class="form-group">
+
+          <label class="form-label">Consultation Charges</label>
+
+          <input
+            type="number"
+            [value]="summary.payment?.consultationCharges"
+            readonly
+          />
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label class="form-label">Wave off charges?</label>
+
+          <input
+            type="text"
+            [value]="summary.payment?.waveOffAmount > 0 ? 'Yes' : 'No'"
+            readonly
+          />
+
+        </div>
+
+      </div>
+
+
+      WAVE OFF AMOUNT
+      <div class="form-group">
+
+        <label class="form-label">Wave off Amount</label>
+
+        <input
+          type="number"
+          [value]="summary.payment?.waveOffAmount"
+          readonly
+        />
+
+      </div>
+
+
+      NEXT APPOINTMENT
+      <div class="row">
+
+        <div class="form-group">
+
+          <label class="form-label">Next Appointment Date</label>
+
+          <input
+            type="date"
+            [value]="summary.appointmentDate | date:'yyyy-MM-dd'"
+            readonly
+          />
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label class="form-label">Next Appointment Time</label>
+
+          <input
+            type="time"
+            [value]="summary.appointmentTime"
+            readonly
+          />
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</div> -->
 
       <!-- =============== Follow Up card ===================== -->
       <div class="container">
@@ -243,7 +451,7 @@
                   <tbody>
                     <tr *ngFor="let med of prescriptions; let i=index">
                       <td>
-                        <select
+                        <!-- <select
                           [(ngModel)]="med.medicineId"
                           name="medicine{{i}}"
                         >
@@ -255,7 +463,20 @@
                           >
                             {{m.name}}
                           </option>
-                        </select>
+                        </select> -->
+                        <select
+  [(ngModel)]="med.medicineId"
+  (change)="onMedicineChange($event, i)"
+  name="medicine{{i}}"
+>
+  <option value="">Select Medicine</option>
+
+  <option *ngFor="let m of medicines" [value]="m.medicineId">
+    {{ m.name }}
+  </option>
+
+  <option value="add_new">➕ Add New Medicine</option>
+</select>
                       </td>
 
                       <td>

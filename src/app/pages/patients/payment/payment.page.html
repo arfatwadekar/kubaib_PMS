@@ -1,91 +1,190 @@
-<ion-content class="ion-padding">
+<div class="billing-container" *ngIf="!loading">
 
-<div class="billing-wrap">
+  <!-- ================= SUMMARY ================= -->
 
-  <!-- SUMMARY CARDS -->
-  <div class="billing-summary">
-
-    <div class="summary-card">
-      <div class="label">Consultation Charges (This Visit)</div>
-      <div class="value">₹ {{ consultationCharges }}</div>
-    </div>
+  <div class="summary-grid">
 
     <div class="summary-card">
-      <div class="label">Pending Balance (Previous)</div>
-      <div class="value">₹ {{ pendingBalance }}</div>
+      <div class="summary-label">
+        Consultation Charges (This Visit)
+      </div>
+
+      <div class="summary-value">
+        ₹ {{ consultationCharges }}
+      </div>
     </div>
+
+
+    <div class="summary-card">
+      <div class="summary-label">
+        Wave Off Amount
+      </div>
+
+      <div class="summary-value">
+        ₹ {{ waveOffAmount }}
+      </div>
+    </div>
+
 
     <div class="summary-card highlight">
-      <div class="label">Total Amount</div>
-      <div class="value">₹ {{ totalAmount }}</div>
+      <div class="summary-label">
+        Total Payable
+      </div>
+
+      <div class="summary-value">
+        ₹ {{ totalPayable }}
+      </div>
     </div>
 
   </div>
 
-  <!-- ADD PAYMENT -->
-  <div class="add-payment-row">
-    <button class="btn-primary" (click)="addPaymentSection()">
-      + Add Payment
+
+  <!-- ================= PRESCRIBED MEDICINES ================= -->
+
+  <div class="billing-card">
+
+    <div class="card-title">
+      Prescribed Medicines
+    </div>
+
+    <table class="medicine-table">
+
+      <thead>
+        <tr>
+          <th>Medicine</th>
+          <th>Dosage</th>
+          <th>Frequency</th>
+          <th>Duration</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+        <tr *ngFor="let med of prescriptions">
+
+          <td>{{ med.medicineName }}</td>
+          <td>{{ med.dosage }}</td>
+          <td>{{ med.frequency }}</td>
+          <td>{{ med.duration }}</td>
+
+        </tr>
+
+        <tr *ngIf="prescriptions.length === 0">
+          <td colspan="4" class="empty">
+            No medicines prescribed
+          </td>
+        </tr>
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+
+  <!-- ================= PAYMENT FORM ================= -->
+
+  <div class="billing-card">
+
+    <div class="card-title">
+      Payment Details
+    </div>
+
+    <div class="form-grid">
+
+      <div class="form-group">
+
+        <label>Date</label>
+
+        <input
+          type="date"
+          [(ngModel)]="paymentDate"
+        />
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>Amount Paid</label>
+
+        <input
+          type="number"
+          [(ngModel)]="amountPaid"
+          (input)="recalculateBalance()"
+          placeholder="Enter amount"
+        />
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label>Payment Mode</label>
+
+        <select [(ngModel)]="paymentMode">
+
+          <option value="Cash">
+            Cash
+          </option>
+
+          <option value="Online">
+            Online
+          </option>
+
+        </select>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ================= BALANCE ================= -->
+
+  <div class="balance-preview">
+
+    <span>
+      New Pending Balance
+    </span>
+
+    <span class="balance-value">
+      ₹ {{ newPendingBalance }}
+    </span>
+
+  </div>
+
+
+  <!-- ================= FOOTER ================= -->
+
+  <div class="billing-footer">
+
+    <button
+      class="btn-outline"
+      (click)="goBack()"
+    >
+      Previous: Follow Up
     </button>
-  </div>
 
-  <!-- PAYMENT ENTRY STACK -->
-  <div *ngFor="let entry of paymentEntries" class="payment-entry">
 
-    <div class="form-row">
-      <label>Date</label>
-      <input type="date" [(ngModel)]="entry.date" />
-    </div>
-
-    <div class="form-row">
-      <label>Amount Paid</label>
-      <input type="number" [(ngModel)]="entry.amountPaid" />
-    </div>
-
-    <div class="form-row">
-      <label>Payment Mode</label>
-      <select [(ngModel)]="entry.paymentMode">
-        <option value="Cash">Cash</option>
-        <option value="Online">Online</option>
-      </select>
-    </div>
-
-  </div>
-
-  <!-- PREVIEW -->
-  <div class="preview-section">
-    <div>New Pending Balance:</div>
-    <div class="preview-value">₹ {{ previewPendingBalance }}</div>
-  </div>
-
-  <!-- HISTORY -->
-  <div class="history-section" *ngIf="paymentHistory.length > 0">
-
-    <div class="history-row"
-         *ngFor="let h of paymentHistory">
-      <div>{{ h.paymentDate | date:'dd/MM/yyyy' }}</div>
-      <div>{{ h.paymentMode }}</div>
-      <div>₹ {{ h.amountPaid }}</div>
-    </div>
-
-  </div>
-
-  <!-- ACTION BUTTONS -->
-  <div class="footer-actions">
-
-    <button class="btn-success"
-            (click)="finalizePayments()"
-            [disabled]="paymentEntries.length === 0">
-      Save Payments
-    </button>
-
-    <button class="btn-outline"
-            (click)="markOutPatient()">
-      Mark as Out Patient
+    <button
+      class="btn-success"
+      [disabled]="!amountPaid || amountPaid <= 0"
+      (click)="finalizePayment()"
+    >
+      Finalize & Save Patient Record
     </button>
 
   </div>
 
 </div>
 
-</ion-content>
+
+<!-- ================= LOADER ================= -->
+
+<div class="loading" *ngIf="loading">
+
+  Loading payment data...
+
+</div>
