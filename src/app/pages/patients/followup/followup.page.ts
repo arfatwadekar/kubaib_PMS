@@ -1043,8 +1043,6 @@ if (createList.length) {
         consultationCharges: consultation,
         waveOffAmount: waveOff,
         amountPaid: consultation - waveOff,
-        paymentMode: 'Cash',
-        paymentDate: new Date().toISOString(),
         waveOffPassword: this.adminPassword,
       };
 

@@ -97,14 +97,24 @@ export class PaymentService {
       Used after payment complete
   =================================================== */
 
+  // updateAppointmentStatus(
+  //   appointmentId: number,
+  //   status: string
+  // ): Observable<any> {
+  //   return this.http.put(
+  //     `${this.appointmentUrl}/${appointmentId}/status`,
+  //     { status }
+  //   );
+  // }
+
   updateAppointmentStatus(
-    appointmentId: number,
-    status: string
-  ): Observable<any> {
-    return this.http.put(
-      `${this.appointmentUrl}/${appointmentId}/status`,
-      { status }
-    );
-  }
+  appointmentId: number,
+  status: number
+): Observable<any> {
+  return this.http.put(
+    `${this.appointmentUrl}/${appointmentId}/status`,
+    { status }
+  );
+}
 
 }

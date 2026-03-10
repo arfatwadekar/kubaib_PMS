@@ -11,7 +11,7 @@ import { PaymentService } from 'src/app/services/payment.service';
   standalone:false
 })
 export class PaymentPage implements OnInit, OnDestroy {
-
+paymentId!: number;
   patientId!: number;
   appointmentId!: number;
 
@@ -90,7 +90,8 @@ export class PaymentPage implements OnInit, OnDestroy {
       const summary = summaryRes?.data ?? summaryRes;
 
       const payment = summary?.payment ?? {};
-
+      this.paymentId = payment.paymentId;
+this.paymentId = payment?.paymentId || payment?.id;
       this.consultationCharges = Number(payment.consultationCharges ?? 0);
       this.waveOffAmount = Number(payment.waveOffAmount ?? 0);
       this.pendingBalance = Number(payment.remainingBalance ?? 0);
@@ -148,66 +149,67 @@ export class PaymentPage implements OnInit, OnDestroy {
 
   /* ================= FINALIZE PAYMENT ================= */
 
-  async finalizePayment() {
+  // async finalizePayment() {
 
-    if (!this.amountPaid || this.amountPaid <= 0) {
-      await this.toast('Enter valid payment amount');
-      return;
-    }
+  //   if (!this.amountPaid || this.amountPaid <= 0) {
+  //     await this.toast('Enter valid payment amount');
+  //     return;
+  //   }
 
-    if (this.amountPaid > this.totalPayable) {
-      await this.toast('Amount cannot exceed payable amount');
-      return;
-    }
+  //   if (this.amountPaid > this.totalPayable) {
+  //     await this.toast('Amount cannot exceed payable amount');
+  //     return;
+  //   }
 
-    if (this.loading) return;
+  //   if (this.loading) return;
 
-    this.loading = true;
+  //   this.loading = true;
 
-    try {
+  //   try {
 
-      /* 1️⃣ CREATE PAYMENT */
+  //     /* 1️⃣ CREATE PAYMENT */
 
-      await firstValueFrom(
-        this.paymentApi.createPayment({
-          patientId: this.patientId,
-          appointmentId: this.appointmentId,
-          consultationCharges: this.consultationCharges,
-          waveOffAmount: this.waveOffAmount,
-          amountPaid: this.amountPaid,
-          paymentMode: this.paymentMode,
-          paymentDate: new Date(this.paymentDate).toISOString()
-        })
-      );
+  //     await firstValueFrom(
+  //       this.paymentApi.createPayment({
+  //         patientId: this.patientId,
+  //         appointmentId: this.appointmentId,
+  //         consultationCharges: this.consultationCharges,
+  //         waveOffAmount: this.waveOffAmount,
+  //         amountPaid: this.amountPaid,
+  //         paymentMode: this.paymentMode,
+  //         paymentDate: new Date(this.paymentDate).toISOString()
+  //       })
+  //     );
 
-      /* 2️⃣ UPDATE APPOINTMENT STATUS */
+  //     /* 2️⃣ UPDATE APPOINTMENT STATUS */
 
-      await firstValueFrom(
-        this.paymentApi.updateAppointmentStatus(
-          this.appointmentId,
-          'OutPatient'
-        )
-      );
+  //     await firstValueFrom(
+  //       this.paymentApi.updateAppointmentStatus(
+  //         this.appointmentId,
+  //         'OutPatient'
+  //       )
+  //     );
 
-      await this.toast('Payment completed successfully');
+  //     await this.toast('Payment completed successfully');
 
-      /* 3️⃣ REDIRECT TO DASHBOARD */
+  //     /* 3️⃣ REDIRECT TO DASHBOARD */
 
-      this.router.navigate(['/dashboard']);
+  //     this.router.navigate(['/dashboard']);
 
-    }
-    catch {
+  //   }
+  //   catch {
 
-      await this.toast('Payment failed. Please try again.');
+  //     await this.toast('Payment failed. Please try again.');
 
-    }
-    finally {
+  //   }
+  //   finally {
 
-      this.loading = false;
+  //     this.loading = false;
 
-    }
+  //   }
 
-  }
+  // }
+
 
   /* ================= GO BACK ================= */
 
@@ -235,5 +237,43 @@ export class PaymentPage implements OnInit, OnDestroy {
     await t.present();
 
   }
+
+async finalizePayment() {
+
+  if (!this.amountPaid || this.amountPaid <= 0) {
+    await this.toast('Enter payment amount');
+    return;
+  }
+
+  try {
+
+    await firstValueFrom(
+      this.paymentApi.updatePayment(this.paymentId,{
+        amountPaid: this.amountPaid,
+        paymentMode: this.paymentMode,
+        paymentDate: new Date(this.paymentDate).toISOString(),
+        notes:''
+      })
+    );
+
+    await firstValueFrom(
+      this.paymentApi.updateAppointmentStatus(
+        this.appointmentId,
+        4
+      )
+    );
+
+    await this.toast('Payment completed');
+
+    this.router.navigate(['/dashboard']);
+
+  }
+  catch {
+
+    await this.toast('Payment failed');
+
+  }
+
+}
 
 }

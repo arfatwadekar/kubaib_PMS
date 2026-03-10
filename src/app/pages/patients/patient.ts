@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute, Router, UrlSegment } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 type TabKey = 'prelim' | 'medical' | 'followup' | 'payment' | 'reports';
 type UserRole = 'Doctor' | 'Receptionist';
@@ -8,14 +8,15 @@ type UserRole = 'Doctor' | 'Receptionist';
   selector: 'app-patient',
   templateUrl: './patient.html',
   styleUrls: ['./patient.scss'],
-  standalone: false,
+  standalone:false
 })
 export class PatientPage implements OnInit {
-  isEditFromList = false
-appointmentId: number | null = null;
+
   activeTab: TabKey = 'prelim';
   role: UserRole = 'Receptionist';
+
   patientId: number | null = null;
+  appointmentId: number | null = null;
 
   constructor(
     private router: Router,
@@ -24,138 +25,137 @@ appointmentId: number | null = null;
 
   ngOnInit(): void {
 
-    // 🔹 Load role
-    const raw = (localStorage.getItem('mhc_role') || '').toLowerCase();
-    this.role = raw === 'doctor' ? 'Doctor' : 'Receptionist';
+    this.loadRole();
 
-//   this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe(params => {
 
-//   const id = Number(params['patientId']);
-//   this.patientId = id > 0 ? id : null;
+      const pid = Number(params['patientId']);
+      this.patientId = pid > 0 ? pid : null;
 
-//   const appointment = Number(params['appointmentId']);
-//   this.appointmentId = appointment > 0 ? appointment : null;
+      const aid = Number(params['appointmentId']);
+      this.appointmentId = aid > 0 ? aid : null;
 
-// });
+      const tab = params['tab'] as TabKey;
 
-this.route.queryParams.subscribe(params => {
+      // If tab provided → use it
+      if (tab && this.isTabAllowed(tab)) {
+        this.activeTab = tab;
+        return;
+      }
 
-  const id = Number(params['patientId']);
-  this.patientId = id > 0 ? id : null;
+      // Default landing tab based on role
+      const defaultTab: TabKey =
+        this.role === 'Doctor' ? 'medical' : 'payment';
 
-  const appointment = Number(params['appointmentId']);
-  this.appointmentId = appointment > 0 ? appointment : null;
+      this.activeTab = defaultTab;
 
- const tab = params['tab'] as TabKey;
+      this.navigateToTab(defaultTab);
 
-if (tab && this.isTabAllowed(tab)) {
+    });
 
-  this.activeTab = tab;
-
-  // ⭐ component route change
-  this.router.navigate([tab], {
-    relativeTo: this.route,
-    queryParamsHandling: 'merge',
-    replaceUrl: true
-  });
-
-}
-
-});
   }
 
-  // ======================
-  // SEGMENT CHANGE
-  // ======================
-  onSegmentChange(event: any) {
-    const tab = event.detail.value as TabKey;
+  private loadRole() {
+    const raw = (localStorage.getItem('mhc_role') || '').toLowerCase();
+    this.role = raw === 'doctor' ? 'Doctor' : 'Receptionist';
+  }
 
-    if (!this.isTabAllowed(tab)) return;
+  /* ================================
+     TAB SELECT
+  ================================= */
+
+  selectTab(tab: TabKey) {
+
+    if (this.isTabDisabled(tab)) return;
 
     this.activeTab = tab;
     this.navigateToTab(tab);
+
   }
 
-// private navigateToTab(tab: TabKey) {
-
-//   this.router.navigate([tab], {
-//     relativeTo: this.route,
-//     queryParams: {
-//       patientId: this.patientId,
-//       appointmentId: this.appointmentId,
-//       tab
-//     },
-//     queryParamsHandling: 'merge'
-//   });
-
-// }
-
+  /* ================================
+     ROUTER NAVIGATION
+  ================================= */
 
   private navigateToTab(tab: TabKey) {
-    // this.router.navigate([tab], {
-    //   relativeTo: this.route,
-    //   queryParams: { patientId: this.patientId, tab },
-    //   queryParamsHandling: 'merge'
-    // });
 
     this.router.navigate([tab], {
-  relativeTo: this.route,
-  queryParams: { patientId: this.patientId, tab },
-  queryParamsHandling: 'merge',
-  replaceUrl: true
-});
+      relativeTo: this.route,
+      queryParams: {
+        patientId: this.patientId,
+        appointmentId: this.appointmentId,
+        tab
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true
+    });
+
   }
 
-  // ======================
-  // ROLE PERMISSION
-  // ======================
+  /* ================================
+     ROLE PERMISSION
+  ================================= */
+
   isTabAllowed(tab: TabKey): boolean {
+
     if (this.role === 'Doctor') return true;
 
-    // Receptionist allowed tabs: Preliminary, Payment, Reports
     return (
       tab === 'prelim' ||
       tab === 'payment' ||
       tab === 'reports'
     );
+
   }
 
-  // isTabDisabled(tab: TabKey): boolean {
-  //   // When creating a patient (no patientId yet OR mode=create),
-  //   // only Preliminary tab should be enabled.
-  //   const mode = (this.route.snapshot.queryParamMap.get('mode') || '');
-  //   const isCreateMode = mode === 'create' || this.patientId === null;
+  /* ================================
+     DISABLED STATE
+  ================================= */
 
+  // isTabDisabled(tab: TabKey): boolean {
+
+  //   const mode = this.route.snapshot.queryParamMap.get('mode');
+  //   const from = this.route.snapshot.queryParamMap.get('from');
+
+  //   const isCreateMode = mode === 'create';
+
+  //   // Create Patient → only Preliminary
   //   if (isCreateMode) {
   //     return tab !== 'prelim';
   //   }
 
+  //   // Edit from Patient List → only Preliminary
+  //   if (from === 'list') {
+  //     return tab !== 'prelim';
+  //   }
+
+  //   // Dashboard → role based
   //   return !this.isTabAllowed(tab);
+
   // }
 
-isTabDisabled(tab: TabKey): boolean {
+  isTabDisabled(tab: TabKey): boolean {
 
   const mode = this.route.snapshot.queryParamMap.get('mode');
   const from = this.route.snapshot.queryParamMap.get('from');
 
-  const isCreateMode = mode === 'create';
-
-  // 🔒 Create mode → only prelim enabled
-  if (isCreateMode) {
+  // CREATE MODE → only Preliminary allowed
+  if (mode === 'create') {
     return tab !== 'prelim';
   }
 
-  // 🔒 Patient List Edit → only prelim enabled
+  // EDIT FROM LIST → only Preliminary
   if (from === 'list') {
     return tab !== 'prelim';
   }
 
-  // 🔓 Dashboard → role based
+  // Dashboard → role based
   if (from === 'dashboard') {
     return !this.isTabAllowed(tab);
   }
 
-  // 🔓 Default → role based
+  // Default → role based
   return !this.isTabAllowed(tab);
+
 }
 }

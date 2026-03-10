@@ -3,7 +3,7 @@
 <ion-content class="patient-page">
 
 <!-- ============================= -->
-<!-- CUSTOM ENTERPRISE SEGMENT -->
+<!-- TAB BAR -->
 <!-- ============================= -->
 
 <div class="custom-segment-bar">
@@ -11,52 +11,42 @@
   <div class="custom-segment">
 
     <button
-      *ngIf="isTabAllowed('prelim')"
       class="segment-tab"
       [class.active]="activeTab === 'prelim'"
-      [class.disabled]="isTabDisabled('prelim')"
       [disabled]="isTabDisabled('prelim')"
-      (click)="!isTabDisabled('prelim') && onSegmentChange({ detail: { value: 'prelim' } })">
+      (click)="selectTab('prelim')">
       Preliminary
     </button>
 
     <button
-      *ngIf="isTabAllowed('medical')"
       class="segment-tab"
       [class.active]="activeTab === 'medical'"
-      [class.disabled]="isTabDisabled('medical')"
       [disabled]="isTabDisabled('medical')"
-      (click)="!isTabDisabled('medical') && onSegmentChange({ detail: { value: 'medical' } })">
+      (click)="selectTab('medical')">
       Medical
     </button>
 
     <button
-      *ngIf="isTabAllowed('followup')"
       class="segment-tab"
       [class.active]="activeTab === 'followup'"
-      [class.disabled]="isTabDisabled('followup')"
       [disabled]="isTabDisabled('followup')"
-      (click)="!isTabDisabled('followup') && onSegmentChange({ detail: { value: 'followup' } })">
+      (click)="selectTab('followup')">
       Follow Up
     </button>
 
     <button
-      *ngIf="isTabAllowed('payment')"
       class="segment-tab"
       [class.active]="activeTab === 'payment'"
-      [class.disabled]="isTabDisabled('payment')"
       [disabled]="isTabDisabled('payment')"
-      (click)="!isTabDisabled('payment') && onSegmentChange({ detail: { value: 'payment' } })">
+      (click)="selectTab('payment')">
       Payment
     </button>
 
     <button
-      *ngIf="isTabAllowed('reports')"
       class="segment-tab"
       [class.active]="activeTab === 'reports'"
-      [class.disabled]="isTabDisabled('reports')"
       [disabled]="isTabDisabled('reports')"
-      (click)="!isTabDisabled('reports') && onSegmentChange({ detail: { value: 'reports' } })">
+      (click)="selectTab('reports')">
       Reports
     </button>
 
@@ -64,10 +54,11 @@
 
 </div>
 
-  <!-- ============================= -->
-  <!-- CONTENT AREA -->
-  <!-- ============================= -->
 
-    <router-outlet></router-outlet>
+<!-- ============================= -->
+<!-- PAGE CONTENT -->
+<!-- ============================= -->
+
+<router-outlet></router-outlet>
 
 </ion-content>
