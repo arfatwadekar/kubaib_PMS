@@ -2,13 +2,56 @@
      MEDICAL TAB
 =========================== -->
 <div class="ion-padding">
+
+    <!-- ================= PAGE HEADER ================= -->
+  <div class="page-title">
+    <div>
+      <div class="h1">   Medical Examination</div>
+      <div class="sub-text">
+         Document comprehensive medical history and clinical findings.
+      </div>
+    </div>
+
+      <div class="me-top-right">
+        <ion-button
+          size="small"
+          fill="clear"
+          type="button"
+          (click)="autofill()"
+          [disabled]="!patientId"
+        >
+          AutoFill
+        </ion-button>
+
+        <div class="saving-pill" *ngIf="loading">Saving…</div>
+        <div class="saved-pill" *ngIf="!loading && !medicalForm?.dirty">
+          Saved
+        </div>
+      </div>
+
+  </div>
+
   <div class="me-tab">
     <!-- =========================
        TOP BAR
   ========================= -->
-    <div class="me-top">
+    <!-- <div
+      class="me-top"
+      style="
+        max-width: 1100px;
+        margin: 0 auto 24px;
+        display: flex;
+        /* flex-direction: column; */
+        gap: 6px;
+      "
+    >
       <div class="me-top-left">
-        <div class="h1">Medical Examination</div>
+        <div
+          class="h1"
+          style="font-size: 22px; font-weight: 700; color: var(--text)"
+        >
+          Medical Examination
+        </div>
         <div class="sub">
           Document comprehensive medical history and clinical findings.
         </div>
@@ -30,12 +73,24 @@
           Saved
         </div>
       </div>
-    </div>
+    </div> -->
 
     <!-- =========================
        FORM
   ========================= -->
-    <form class="me-card" [formGroup]="medicalForm" [class.loading]="loading">
+    <form
+      class="me-card"
+      [formGroup]="medicalForm"
+      [class.loading]="loading"
+      style="
+        max-width: 1100px;
+        margin: 0 auto 40px;
+        padding: 28px;
+        /* background: var(--card); */
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      "
+    >
       <!-- =========================
          ACCORDION GROUP
     ========================= -->
@@ -50,7 +105,6 @@
         <ion-accordion value="s1">
           <ion-item slot="header" lines="none" class="sec-header">
             <ion-label>SECTION 1: COMPLAINTS AND HISTORY</ion-label>
-            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
           </ion-item>
 
           <div slot="content" class="sec-body">
@@ -164,10 +218,6 @@
                     formControlName="concomitant"
                   ></textarea>
                 </div>
-
-                <div class="hint">
-                  L: Location, S: Sensation, M: Modality, C: Concomitant
-                </div>
               </div>
             </div>
           </div>
@@ -179,7 +229,7 @@
         <ion-accordion value="s2">
           <ion-item slot="header" lines="none" class="sec-header">
             <ion-label>SECTION 2: FAMILY HISTORY</ion-label>
-            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+            
           </ion-item>
 
           <div slot="content" class="sec-body" formGroupName="familyHistory">
@@ -230,7 +280,7 @@
         <ion-accordion value="s3">
           <ion-item slot="header" lines="none" class="sec-header">
             <ion-label>SECTION 3: PERSONAL STATUS</ion-label>
-            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+            
           </ion-item>
 
           <div slot="content" class="sec-body" formGroupName="personalStatus">
@@ -309,7 +359,7 @@
         <ion-accordion value="s4">
           <ion-item slot="header" lines="none" class="sec-header">
             <ion-label>SECTION 4: MENSTRUAL HISTORY</ion-label>
-            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+            
           </ion-item>
 
           <div slot="content" class="sec-body" formGroupName="menstrualHistory">
@@ -360,7 +410,7 @@
         <ion-accordion value="s5">
           <ion-item slot="header" lines="none" class="sec-header">
             <ion-label>SECTION 5: MALE SEXUAL FUNCTION</ion-label>
-            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+            
           </ion-item>
 
           <div
@@ -391,7 +441,7 @@
         <ion-accordion value="s6">
           <ion-item slot="header" lines="none" class="sec-header">
             <ion-label>SECTION 6: PHYSICAL REACTION</ion-label>
-            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+            
           </ion-item>
 
           <div slot="content" class="sec-body" formGroupName="physicalReaction">
@@ -498,7 +548,7 @@
         <ion-accordion value="s7">
           <ion-item slot="header" lines="none" class="sec-header">
             <ion-label>SECTION 7: PHYSICAL EXAMINATION</ion-label>
-            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+            
           </ion-item>
 
           <div
@@ -809,7 +859,7 @@
         <ion-accordion value="s8">
           <ion-item slot="header" lines="none" class="sec-header">
             <ion-label>SECTION 8: MENTAL STATE EVALUATION</ion-label>
-            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+            
           </ion-item>
 
           <div slot="content" class="sec-body" formGroupName="mentalState">
@@ -976,7 +1026,7 @@
         <ion-accordion value="s8_emotional_grid">
           <ion-item slot="header" lines="none" class="sec-header">
             <ion-label>SECTION 8: EMOTIONAL STATE EVALUATION</ion-label>
-            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+            
           </ion-item>
 
           <div slot="content" class="sec-body" formGroupName="mentalState">
@@ -1084,7 +1134,7 @@ SECTION 9: BEHAVIORAL EVALUATION
         <ion-accordion value="s9">
           <ion-item slot="header" lines="none" class="sec-header">
             <ion-label>SECTION 9: BEHAVIORAL EVALUATION</ion-label>
-            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+            
           </ion-item>
 
           <div
@@ -1282,7 +1332,7 @@ SECTION 10: INTELLECTUAL STATE
         <ion-accordion value="s10">
           <ion-item slot="header" lines="none" class="sec-header">
             <ion-label>SECTION 10: INTELLECTUAL STATE</ion-label>
-            <ion-icon name="chevron-down-outline" slot="end"></ion-icon>
+            
           </ion-item>
 
           <div
