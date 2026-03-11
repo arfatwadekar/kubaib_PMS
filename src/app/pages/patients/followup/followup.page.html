@@ -25,7 +25,7 @@
       </div>
 
       <!-- ═════════════════════════════════════════════════════════════════ -->
-      <!-- SYMPTOMS PANEL -->
+      <!-- SYMPTOMS PANEL (CRITERIA MANAGEMENT) -->
       <!-- ═════════════════════════════════════════════════════════════════ -->
 
       <div class="panel">
@@ -63,10 +63,10 @@
             <div
               class="table-row"
               *ngFor="
-                  let ctrl of fuSymptomsArr.controls;
-                  let i = index;
-                  trackBy: trackByIndex;
-                "
+                let ctrl of fuSymptomsArr.controls;
+                let i = index;
+                trackBy: trackByIndex;
+              "
               [class.has-value]="ctrl.value"
             >
               <!-- SR NO -->
@@ -76,7 +76,7 @@
 
               <!-- DESCRIPTION -->
               <div class="col-desc">
-                <!-- READONLY MODE -->
+                <!-- READONLY MODE (Revisit - Saved criteria) -->
                 <span *ngIf="isSaved && !isEditMode" class="readonly-text">
                   {{ ctrl.value || '–' }}
                 </span>
@@ -93,10 +93,10 @@
             </div>
           </div>
         </form>
-        <!-- 
-        ACTION BUTTONS
+
+        <!-- ACTION BUTTONS FOR CRITERIA -->
         <div class="criteria-actions">
-          SAVE BUTTON (First time)
+          <!-- SAVE BUTTON (First time - New Visit) -->
           <button
             type="button"
             class="btn btn-primary"
@@ -110,7 +110,7 @@
             </span>
           </button>
 
-          EDIT BUTTON
+          <!-- EDIT BUTTON (Revisit - Saved criteria) -->
           <button
             type="button"
             class="btn btn-secondary"
@@ -120,7 +120,7 @@
             ✎ Edit
           </button>
 
-          UPDATE BUTTON (After edit)
+          <!-- UPDATE BUTTON (After edit - Revisit) -->
           <button
             type="button"
             class="btn btn-primary"
@@ -133,7 +133,7 @@
               <span class="spinner"></span> Updating...
             </span>
           </button>
-        </div> -->
+        </div>
 
         <!-- INFO TEXT -->
         <div class="panel-footer">
@@ -144,217 +144,10 @@
         </div>
       </div>
 
-      <!-- =============== previous ================== -->
-    <!-- <div class="container" style="margin-bottom:3rem" *ngIf="summary">
+      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <!-- FOLLOW-UP RECORD CARD -->
+      <!-- ═════════════════════════════════════════════════════════════════ -->
 
-  HEADER
-  <div class="header" style="background:red">
-    <h1>
-      Follow-Up Record -
-      {{ summary.followUpEntry?.followUpDate | date:'hh:mm a' }}
-    </h1>
-
-    <span class="header-date">
-      {{ summary.followUpEntry?.followUpDate | date:'dd/MM/yyyy' }}
-    </span>
-  </div>
-
-  CARD
-  <div class="card">
-    <div class="card-body">
-
-      SYMPTOMS
-      <div class="symptoms-section">
-        <label class="form-label">Follow-Up Symptoms (1-10)</label>
-
-        <div class="table-wrapper">
-          <table>
-
-            <thead>
-              <tr>
-                <th>SR No</th>
-
-                <th *ngFor="let ctrl of fuSymptomsArr.controls; let i=index">
-                  {{ ctrl.value || ('Symptom ' + (i+1)) }}
-                </th>
-
-              </tr>
-            </thead>
-
-            <tbody>
-              <tr>
-
-                <td><strong>Status</strong></td>
-
-                <td *ngFor="let ctrl of fuSymptomsArr.controls; let i=index">
-
-                  <input
-                    type="number"
-                    min="1"
-                    max="10"
-                    [value]="summary.followUpEntry?.statusRecords[i]?.remarks"
-                    readonly
-                  />
-
-                </td>
-
-              </tr>
-            </tbody>
-
-          </table>
-        </div>
-      </div>
-
-
-      INTERPRETATION
-      <div class="form-group">
-        <label class="form-label">Interpretation</label>
-
-        <textarea
-          [value]="summary.followUpEntry?.interpretation"
-          readonly
-        ></textarea>
-
-      </div>
-
-
-      TEMPORARY PROBLEMS
-      <div class="form-group">
-        <label class="form-label">Temporary Problems</label>
-
-        <textarea
-          [value]="summary.followUpEntry?.temporaryProblems"
-          readonly
-        ></textarea>
-
-      </div>
-
-
-      MEDICINES
-      <div class="medicines-section">
-
-        <label class="form-label">Prescribed Medicines</label>
-
-        <div style="overflow-x:auto;border:1px solid #e0e0e0;border-radius:4px">
-
-          <table class="medicine-table">
-
-            <thead>
-              <tr>
-                <th>Medicine Name</th>
-                <th>Dosage</th>
-                <th>Frequency</th>
-                <th>Duration</th>
-                <th>Instructions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-
-              <tr *ngFor="let med of summary.prescribedMedicines">
-
-                <td>{{med.medicineName}}</td>
-
-                <td>{{med.dosage}}</td>
-
-                <td>{{med.frequency}}</td>
-
-                <td>{{med.duration}}</td>
-
-                <td>{{med.instructions}}</td>
-
-              </tr>
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-      </div>
-
-
-      CHARGES
-      <div class="row">
-
-        <div class="form-group">
-
-          <label class="form-label">Consultation Charges</label>
-
-          <input
-            type="number"
-            [value]="summary.payment?.consultationCharges"
-            readonly
-          />
-
-        </div>
-
-
-        <div class="form-group">
-
-          <label class="form-label">Wave off charges?</label>
-
-          <input
-            type="text"
-            [value]="summary.payment?.waveOffAmount > 0 ? 'Yes' : 'No'"
-            readonly
-          />
-
-        </div>
-
-      </div>
-
-
-      WAVE OFF AMOUNT
-      <div class="form-group">
-
-        <label class="form-label">Wave off Amount</label>
-
-        <input
-          type="number"
-          [value]="summary.payment?.waveOffAmount"
-          readonly
-        />
-
-      </div>
-
-
-      NEXT APPOINTMENT
-      <div class="row">
-
-        <div class="form-group">
-
-          <label class="form-label">Next Appointment Date</label>
-
-          <input
-            type="date"
-            [value]="summary.appointmentDate | date:'yyyy-MM-dd'"
-            readonly
-          />
-
-        </div>
-
-
-        <div class="form-group">
-
-          <label class="form-label">Next Appointment Time</label>
-
-          <input
-            type="time"
-            [value]="summary.appointmentTime"
-            readonly
-          />
-
-        </div>
-
-      </div>
-
-    </div>
-  </div>
-
-</div> -->
-
-      <!-- =============== Follow Up card ===================== -->
       <div class="container">
         <!-- HEADER -->
         <div class="header">
@@ -365,7 +158,7 @@
         <!-- MAIN CARD -->
         <div class="card">
           <div class="card-body">
-            <!-- FOLLOW-UP SYMPTOMS -->
+            <!-- FOLLOW-UP SYMPTOMS (Rating table for revisit) -->
             <div class="symptoms-section" *ngIf="!isFirstVisit">
               <label class="form-label">Follow-Up Symptoms (1-10)</label>
 
@@ -377,7 +170,10 @@
                       <th>SR No</th>
 
                       <th
-                        *ngFor="let ctrl of fuSymptomsArr.controls; let i = index"
+                        *ngFor="
+                          let ctrl of fuSymptomsArr.controls;
+                          let i = index
+                        "
                       >
                         {{ ctrl.value || ('Symptom ' + (i + 1)) }}
                       </th>
@@ -390,7 +186,10 @@
                       <td><strong>Status</strong></td>
 
                       <td
-                        *ngFor="let ctrl of fuSymptomsArr.controls; let i = index"
+                        *ngFor="
+                          let ctrl of fuSymptomsArr.controls;
+                          let i = index
+                        "
                       >
                         <input
                           type="number"
@@ -399,7 +198,7 @@
                           step="1"
                           placeholder="1-10"
                           [(ngModel)]="symptomStatus[i]"
-                          (input)="validateSymptom($event,i)"
+                          (input)="validateSymptom($event, i)"
                         />
                       </td>
                     </tr>
@@ -449,34 +248,21 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr *ngFor="let med of prescriptions; let i=index">
+                    <tr *ngFor="let med of prescriptions; let i = index">
                       <td>
-                        <!-- <select
+                        <select
                           [(ngModel)]="med.medicineId"
-                          name="medicine{{i}}"
+                          (change)="onMedicineChange($event, i)"
+                          name="medicine{{ i }}"
                         >
                           <option value="">Select Medicine</option>
 
-                          <option
-                            *ngFor="let m of medicines"
-                            [ngValue]="m.medicineId"
-                          >
-                            {{m.name}}
+                          <option *ngFor="let m of medicines" [value]="m.medicineId">
+                            {{ m.name }}
                           </option>
-                        </select> -->
-                        <select
-  [(ngModel)]="med.medicineId"
-  (change)="onMedicineChange($event, i)"
-  name="medicine{{i}}"
->
-  <option value="">Select Medicine</option>
 
-  <option *ngFor="let m of medicines" [value]="m.medicineId">
-    {{ m.name }}
-  </option>
-
-  <option value="add_new">➕ Add New Medicine</option>
-</select>
+                          <option value="add_new">➕ Add New Medicine</option>
+                        </select>
                       </td>
 
                       <td>
@@ -522,31 +308,6 @@
             </div>
 
             <!-- CONSULTATION CHARGES & WAVE OFF -->
-            <!-- <div class="row">
-              <div class="form-group">
-                <label class="form-label">Consultation Charges</label>
-                <input type="text" placeholder="0.00" value="0.00" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Wave off charges?</label>
-                <div class="radio-group">
-                  <div class="radio-option">
-                    <input
-                      type="radio"
-                      id="waveoff-no"
-                      name="waveoff"
-                      checked
-                    />
-                    <label for="waveoff-no">No</label>
-                  </div>
-                  <div class="radio-option">
-                    <input type="radio" id="waveoff-yes" name="waveoff" />
-                    <label for="waveoff-yes">Yes</label>
-                  </div>
-                </div>
-              </div>
-            </div> -->
-
             <div class="row">
               <div class="form-group">
                 <label class="form-label">Consultation Charges</label>
@@ -595,12 +356,6 @@
                 [disabled]="!waveOffVerified"
               />
             </div>
-
-            <!-- WAVE OFF AMOUNT
-            <div class="form-group">
-              <label class="form-label">Wave off Amount</label>
-              <input type="text" placeholder="0.00" value="0.00" />
-            </div> -->
 
             <!-- NEXT APPOINTMENT -->
             <div class="row">

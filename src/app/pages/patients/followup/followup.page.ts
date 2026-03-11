@@ -1,327 +1,3 @@
-// import { Component, OnInit, OnDestroy } from "@angular/core";
-// import { FormBuilder, FormArray, FormControl } from "@angular/forms";
-// import { ActivatedRoute } from "@angular/router";
-// import { firstValueFrom, Subject } from "rxjs";
-// import { takeUntil } from "rxjs/operators";
-// import { ToastController } from "@ionic/angular";
-// import { FollowUpService } from "src/app/services/follow-up.service";
-
-// const INIT_ROWS = 10;
-// const MAX_ROWS = 30;
-// const AUTO_ADD_ROWS = 2;
-
-// @Component({
-//   selector: "app-followup",
-//   templateUrl: "./followup.page.html",
-//   styleUrls: ["./followup.page.scss"],
-//   standalone: false,
-// })
-// export class FollowupPage implements OnInit, OnDestroy {
-//   // ─────────────────────────────────────────────────────────────────────────
-//   // LIFECYCLE PROPERTIES
-//   // ─────────────────────────────────────────────────────────────────────────
-// medicines: any[] = [];
-
-//   patientId!: number;
-
-//   isFirstVisit = true;
-//   isSaved = false;
-//   isEditMode = false;
-//   criteriaLoading = false;
-
-//   existingCriteria: any[] = [];
-
-//   private destroy$ = new Subject<void>();
-
-//   // ─────────────────────────────────────────────────────────────────────────
-//   // FORM DEFINITION
-//   // ─────────────────────────────────────────────────────────────────────────
-
-//   fuCriteriaForm = this.fb.group({
-//     symptoms: this.fb.array<FormControl<string>>([]),
-//   });
-
-//   // ─────────────────────────────────────────────────────────────────────────
-//   // CONSTRUCTOR & DEPENDENCY INJECTION
-//   // ─────────────────────────────────────────────────────────────────────────
-
-//   constructor(
-//     private fb: FormBuilder,
-//     private route: ActivatedRoute,
-//     private api: FollowUpService,
-//     private toastCtrl: ToastController
-//   ) {}
-
-//   // ─────────────────────────────────────────────────────────────────────────
-//   // GETTERS
-//   // ─────────────────────────────────────────────────────────────────────────
-
-//   get fuSymptomsArr(): FormArray<FormControl<string>> {
-//     return this.fuCriteriaForm.get("symptoms") as FormArray<FormControl<string>>;
-//   }
-
-//   // Dynamically return number of symptoms for Follow-Up table columns
-//   get symptomCount(): number {
-//     return this.fuSymptomsArr.length;
-//   }
-
-//   // Create array of symptom numbers [1, 2, 3, ...] for *ngFor in template
-//   get symptomsArray(): number[] {
-//     return Array.from({ length: this.symptomCount }, (_, i) => i + 1);
-//   }
-
-//   // ─────────────────────────────────────────────────────────────────────────
-//   // LIFECYCLE HOOKS
-//   // ─────────────────────────────────────────────────────────────────────────
-
-//   ngOnInit() {
-//     this.patientId = Number(
-//       this.route.snapshot.queryParamMap.get("patientId")
-//     );
-
-//     if (!this.patientId || isNaN(this.patientId)) {
-//       this.showToast("Invalid patient ID");
-//       return;
-//     }
-
-//     this.initRows();
-//     this.listenExpansion();
-//     this.loadCriteria();
-//       this.loadMedicines();
-//   }
-
-//   ngOnDestroy() {
-//     this.destroy$.next();
-//     this.destroy$.complete();
-//   }
-
-//   // ─────────────────────────────────────────────────────────────────────────
-//   // INITIALIZE FORM ROWS
-//   // ─────────────────────────────────────────────────────────────────────────
-
-//   private initRows() {
-//     for (let i = 0; i < INIT_ROWS; i++) {
-//       this.fuSymptomsArr.push(this.fb.control("", { nonNullable: true }));
-//     }
-//   }
-
-//   // ─────────────────────────────────────────────────────────────────────────
-//   // AUTO-EXPANSION LISTENER
-//   // When last row is filled, auto-add rows until MAX_ROWS
-//   // ─────────────────────────────────────────────────────────────────────────
-
-//   private listenExpansion() {
-//     this.fuSymptomsArr.valueChanges
-//       .pipe(takeUntil(this.destroy$))
-//       .subscribe((values) => {
-//         // Only expand if:
-//         // 1. Data is not saved, OR
-//         // 2. In edit mode (after loading criteria)
-//         if (this.isSaved && !this.isEditMode) return;
-
-//         const lastValue = values[this.fuSymptomsArr.length - 1];
-
-//         // If last row has content and we haven't reached MAX_ROWS, add more rows
-//         if (lastValue && this.fuSymptomsArr.length < MAX_ROWS) {
-//           this.addRows(AUTO_ADD_ROWS);
-//         }
-//       });
-//   }
-
-//   // ─────────────────────────────────────────────────────────────────────────
-//   // ADD MORE ROWS
-//   // ─────────────────────────────────────────────────────────────────────────
-
-//   private addRows(count: number) {
-//     for (let i = 0; i < count; i++) {
-//       if (this.fuSymptomsArr.length >= MAX_ROWS) return;
-
-//       this.fuSymptomsArr.push(this.fb.control("", { nonNullable: true }));
-//     }
-//   }
-
-//   // ─────────────────────────────────────────────────────────────────────────
-//   // TRACK BY INDEX (Performance optimization)
-//   // ─────────────────────────────────────────────────────────────────────────
-
-//   trackByIndex(index: number): number {
-//     return index;
-//   }
-
-//   // ─────────────────────────────────────────────────────────────────────────
-//   // LOAD EXISTING CRITERIA FROM SERVER
-//   // ─────────────────────────────────────────────────────────────────────────
-
-//   private async loadCriteria() {
-//     try {
-//       const res: any = await firstValueFrom(
-//         this.api.getCriteriaByPatient(this.patientId)
-//       );
-
-//       // Handle various response formats
-//       const list = Array.isArray(res) ? res : res?.data || [];
-
-//       // If no criteria exist, this is a first visit
-//       if (!list.length) {
-//         this.isFirstVisit = true;
-//         this.isSaved = false;
-//         this.isEditMode = false;
-//         return;
-//       }
-
-//       // Populate form with existing criteria
-//       this.isSaved = true;
-//       this.isFirstVisit = false;
-//       this.isEditMode = false;
-
-//       // Clear initial rows and load criteria
-//       this.fuSymptomsArr.clear();
-//       this.existingCriteria = [...list];
-
-//       list.forEach((criteria: any) => {
-//         const ctrl = this.fb.control(
-//           { value: criteria.criteriaName, disabled: true },
-//           { nonNullable: true }
-//         );
-
-//         // Store criteria ID on control for later identification
-//         (ctrl as any).criteriaId = criteria.patientFollowUpCriteriaId;
-
-//         this.fuSymptomsArr.push(ctrl);
-//       });
-//     } catch (err) {
-//       console.error("Load criteria error:", err);
-//       this.showToast("Failed to load symptoms");
-//     }
-//   }
-
-//   // ─────────────────────────────────────────────────────────────────────────
-//   // SAVE OR UPDATE CRITERIA
-//   // Handles both create (new) and update (existing) scenarios
-//   // ─────────────────────────────────────────────────────────────────────────
-
-//   async saveCriteria() {
-//     const createList: string[] = [];
-//     const updateList: any[] = [];
-
-//     // Iterate through all controls and categorize them
-//     this.fuSymptomsArr.controls.forEach((ctrl) => {
-//       const value = ctrl.getRawValue().trim();
-
-//       // Skip empty values
-//       if (!value) return;
-
-//       const criteriaId = (ctrl as any).criteriaId;
-
-//       if (criteriaId) {
-//         // Existing criteria - check if changed
-//         const existing = this.existingCriteria.find(
-//           (x: any) => x.patientFollowUpCriteriaId === criteriaId
-//         );
-
-//         if (existing && existing.criteriaName !== value) {
-//           updateList.push({
-//             patientFollowUpCriteriaId: criteriaId,
-//             patientId: this.patientId,
-//             criteriaName: value,
-//           });
-//         }
-//       } else {
-//         // New criteria
-//         createList.push(value);
-//       }
-//     });
-
-//     // If nothing changed, notify user
-//     if (!createList.length && !updateList.length) {
-//       this.showToast("No changes to save");
-//       return;
-//     }
-
-//     this.criteriaLoading = true;
-
-//     try {
-//       // Process all updates first
-//       for (const updatePayload of updateList) {
-//         await firstValueFrom(this.api.updateCriteria(updatePayload));
-//       }
-
-//       // Process all creates
-//       if (createList.length) {
-//         // Remove duplicates from create list
-//         const uniqueList = [...new Set(createList)];
-
-//         await firstValueFrom(
-//           this.api.createCriteria({
-//             patientId: this.patientId,
-//             criteriaNames: uniqueList,
-//           })
-//         );
-//       }
-
-//       this.showToast("Symptoms saved successfully");
-
-//       // Reset state and reload
-//       this.isSaved = true;
-//       this.isEditMode = false;
-
-//       await this.loadCriteria();
-//     } catch (err) {
-//       console.error("Save criteria error:", err);
-//       this.showToast("Save failed. Please try again.");
-//     } finally {
-//       this.criteriaLoading = false;
-//     }
-//   }
-
-//   // ─────────────────────────────────────────────────────────────────────────
-//   // ENABLE EDIT MODE
-//   // Unlock all disabled controls so user can edit
-//   // ─────────────────────────────────────────────────────────────────────────
-
-//   enableEdit() {
-//     this.isEditMode = true;
-
-//     // Enable all controls for editing
-//     this.fuSymptomsArr.controls.forEach((ctrl) => {
-//       ctrl.enable();
-//     });
-//   }
-
-//   // ─────────────────────────────────────────────────────────────────────────
-//   // TOAST NOTIFICATION
-//   // ─────────────────────────────────────────────────────────────────────────
-
-//   private async showToast(message: string) {
-//     const toast = await this.toastCtrl.create({
-//       message,
-//       duration: 2500,
-//       position: "top",
-//       color: "dark",
-//     });
-
-//     await toast.present();
-//   }
-
-// async loadMedicines() {
-//   try {
-
-//     const res: any = await firstValueFrom(
-//       this.api.getAllMedicines(1, 100, "")
-//     );
-
-//     console.log("MED API RESPONSE:", res);
-
-//     this.medicines = res?.data?.items || [];
-
-//     console.log("MED LIST:", this.medicines);
-
-//   } catch (err) {
-//     console.error("Medicine load error", err);
-//   }
-// }
-// }
-
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormArray, FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -424,22 +100,6 @@ export class FollowupPage implements OnInit, OnDestroy {
   // LIFECYCLE HOOKS
   // ─────────────────────────────────────────────────────────────────────────
 
-  // ngOnInit() {
-  //   this.patientId = Number(
-  //     this.route.snapshot.queryParamMap.get("patientId")
-  //   );
-
-  //   if (!this.patientId || isNaN(this.patientId)) {
-  //     this.showToast("Invalid patient ID");
-  //     return;
-  //   }
-
-  //   this.initRows();
-  //   this.listenExpansion();
-  //   this.loadCriteria();
-  //   this.loadMedicines();
-  // }
-
   async ngOnInit() {
     const patientParam = this.route.snapshot.queryParamMap.get('patientId');
 
@@ -452,18 +112,23 @@ export class FollowupPage implements OnInit, OnDestroy {
       return;
     }
 
-    // 🔹 get latest appointment
+    // 1️⃣ Load current appointment
     await this.loadCurrentAppointment();
 
+    // 2️⃣ Load summary
+    await this.loadSummary();
 
-  // 2️⃣ summary load
-  await this.loadSummary();
-
-
+    // 3️⃣ Initialize form rows
     this.initRows();
     this.listenExpansion();
-    this.loadCriteria();
+
+    // 4️⃣ Load existing criteria (symptoms from first visit)
+    await this.loadCriteria();
+
+    // 5️⃣ Load medicines
     this.loadMedicines();
+
+    // 6️⃣ Add default medicine row
     this.addMedicineRow();
   }
 
@@ -471,6 +136,10 @@ export class FollowupPage implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // LOAD CURRENT APPOINTMENT
+  // ─────────────────────────────────────────────────────────────────────────
 
   async loadCurrentAppointment() {
     try {
@@ -487,7 +156,7 @@ export class FollowupPage implements OnInit, OnDestroy {
         return;
       }
 
-      // 🔹 latest appointment
+      // Get latest appointment
       this.currentAppointmentId = list[0].appointmentId;
 
       console.log('CURRENT APPOINTMENT ID:', this.currentAppointmentId);
@@ -497,8 +166,27 @@ export class FollowupPage implements OnInit, OnDestroy {
     }
   }
 
-  // ───────
-  // ──────────────────────────────────────────────────────────────────
+  // ─────────────────────────────────────────────────────────────────────────
+  // LOAD SUMMARY DATA
+  // ─────────────────────────────────────────────────────────────────────────
+
+  summary: any = null;
+
+  async loadSummary() {
+    try {
+      const res: any = await firstValueFrom(
+        this.api.getAppointmentSummary(this.currentAppointmentId),
+      );
+
+      console.log('SUMMARY API:', res);
+
+      this.summary = res;
+    } catch (err) {
+      console.error('Summary load error:', err);
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // INITIALIZE FORM ROWS
   // ─────────────────────────────────────────────────────────────────────────
 
@@ -553,6 +241,7 @@ export class FollowupPage implements OnInit, OnDestroy {
 
   // ─────────────────────────────────────────────────────────────────────────
   // LOAD EXISTING CRITERIA FROM SERVER
+  // This loads symptoms from the first visit or previous visits
   // ─────────────────────────────────────────────────────────────────────────
 
   private async loadCriteria() {
@@ -572,7 +261,9 @@ export class FollowupPage implements OnInit, OnDestroy {
         return;
       }
 
-      // Populate form with existing criteria
+      // ===================================================================
+      // REVISIT FLOW: Populate form with existing criteria
+      // ===================================================================
       this.isSaved = true;
       this.isFirstVisit = false;
       this.isEditMode = false;
@@ -592,6 +283,10 @@ export class FollowupPage implements OnInit, OnDestroy {
 
         this.fuSymptomsArr.push(ctrl);
       });
+
+      console.log('✓ CRITERIA LOADED FOR REVISIT');
+      console.log('Criteria count:', this.existingCriteria.length);
+      console.log('Existing criteria:', this.existingCriteria);
     } catch (err) {
       console.error('Load criteria error:', err);
       this.showToast('Failed to load symptoms');
@@ -599,30 +294,59 @@ export class FollowupPage implements OnInit, OnDestroy {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // SAVE OR UPDATE CRITERIA
-  // Handles both create (new) and update (existing) scenarios
+  // ENABLE EDIT MODE
+  // Unlock all disabled controls so user can edit existing symptoms
+  // ─────────────────────────────────────────────────────────────────────────
+
+  enableEdit() {
+    console.log('🔓 ENABLING EDIT MODE');
+
+    this.isEditMode = true;
+
+    // Enable all controls for editing
+    this.fuSymptomsArr.controls.forEach((ctrl) => {
+      ctrl.enable();
+    });
+
+    // Reset status badge to show editing state
+    this.showToast('Editing mode enabled. You can now modify symptoms.');
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // SAVE CRITERIA (For Initial Creation & Revisit Updates)
+  // This handles:
+  // 1. Creating new symptoms on first visit
+  // 2. Updating existing symptoms on revisit
+  // 3. Adding new symptoms on revisit
   // ─────────────────────────────────────────────────────────────────────────
 
   async saveCriteria() {
+    console.log('💾 SAVING CRITERIA');
+
     const createList: string[] = [];
     const updateList: any[] = [];
 
     // Iterate through all controls and categorize them
-    this.fuSymptomsArr.controls.forEach((ctrl) => {
+    this.fuSymptomsArr.controls.forEach((ctrl: any) => {
       const value = ctrl.getRawValue().trim();
 
       // Skip empty values
       if (!value) return;
 
-      const criteriaId = (ctrl as any).criteriaId;
+      const criteriaId = ctrl.criteriaId;
 
       if (criteriaId) {
-        // Existing criteria - check if changed
+        // ═══════════════════════════════════════════════════════════════════
+        // CASE 1: EXISTING CRITERIA (Has criteriaId)
+        // ═══════════════════════════════════════════════════════════════════
         const existing = this.existingCriteria.find(
           (x: any) => x.patientFollowUpCriteriaId === criteriaId,
         );
 
+        // Only add to update list if the value changed
         if (existing && existing.criteriaName !== value) {
+          console.log('📝 UPDATING CRITERIA:', criteriaId, value);
+
           updateList.push({
             patientFollowUpCriteriaId: criteriaId,
             patientId: this.patientId,
@@ -630,7 +354,10 @@ export class FollowupPage implements OnInit, OnDestroy {
           });
         }
       } else {
-        // New criteria
+        // ═══════════════════════════════════════════════════════════════════
+        // CASE 2: NEW CRITERIA (No criteriaId)
+        // ═══════════════════════════════════════════════════════════════════
+        console.log('✨ NEW CRITERIA:', value);
         createList.push(value);
       }
     });
@@ -644,15 +371,23 @@ export class FollowupPage implements OnInit, OnDestroy {
     this.criteriaLoading = true;
 
     try {
-      // Process all updates first
+      // ═══════════════════════════════════════════════════════════════════
+      // PROCESS ALL UPDATES FIRST (PUT requests)
+      // ═══════════════════════════════════════════════════════════════════
       for (const updatePayload of updateList) {
+        console.log('🔄 Calling PUT for criteria:', updatePayload);
+
         await firstValueFrom(this.api.updateCriteria(updatePayload));
       }
 
-      // Process all creates
+      // ═══════════════════════════════════════════════════════════════════
+      // PROCESS ALL CREATES (POST requests)
+      // ═══════════════════════════════════════════════════════════════════
       if (createList.length) {
         // Remove duplicates from create list
         const uniqueList = [...new Set(createList)];
+
+        console.log('➕ Calling POST for new criteria:', uniqueList);
 
         await firstValueFrom(
           this.api.createCriteria({
@@ -664,10 +399,13 @@ export class FollowupPage implements OnInit, OnDestroy {
 
       this.showToast('Symptoms saved successfully');
 
-      // Reset state and reload
+      // ═══════════════════════════════════════════════════════════════════
+      // RESET STATE AND RELOAD
+      // ═══════════════════════════════════════════════════════════════════
       this.isSaved = true;
       this.isEditMode = false;
 
+      // Reload criteria to reflect changes
       await this.loadCriteria();
     } catch (err) {
       console.error('Save criteria error:', err);
@@ -675,20 +413,6 @@ export class FollowupPage implements OnInit, OnDestroy {
     } finally {
       this.criteriaLoading = false;
     }
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  // ENABLE EDIT MODE
-  // Unlock all disabled controls so user can edit
-  // ─────────────────────────────────────────────────────────────────────────
-
-  enableEdit() {
-    this.isEditMode = true;
-
-    // Enable all controls for editing
-    this.fuSymptomsArr.controls.forEach((ctrl) => {
-      ctrl.enable();
-    });
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -712,11 +436,10 @@ export class FollowupPage implements OnInit, OnDestroy {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // ADD NEW MEDICINE
+  // ADD NEW MEDICINE (Dialog-based)
   // ─────────────────────────────────────────────────────────────────────────
 
   async addNewMedicine() {
-    // Prompt user for medicine name
     const medicineName = prompt('Enter medicine name:');
 
     if (!medicineName || !medicineName.trim()) {
@@ -762,29 +485,128 @@ export class FollowupPage implements OnInit, OnDestroy {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // TOAST NOTIFICATION
+  // ON MEDICINE CHANGE (Dropdown)
+  // Handles adding new medicine from dropdown selection
   // ─────────────────────────────────────────────────────────────────────────
 
-  private async showToast(message: string) {
-    const toast = await this.toastCtrl.create({
-      message,
-      duration: 2500,
-      position: 'top',
-      color: 'dark',
-    });
+  async onMedicineChange(event: any, index: number) {
+    const value = event.target.value;
 
-    await toast.present();
+    if (value !== 'add_new') return;
+
+    const name = prompt('Enter medicine name');
+
+    if (!name || !name.trim()) {
+      return;
+    }
+
+    try {
+      const payload = {
+        name: name.trim(),
+        strength: '',
+        dosageForm: 'Tablet',
+        stockQuantity: 0,
+        unit: 'Piece',
+        batchNumber: '',
+        expiryDate: new Date().toISOString(),
+        notes: 'Added from prescription',
+      };
+
+      const res: any = await firstValueFrom(
+        this.api.createMedicine(payload),
+      );
+
+      const newMed = res?.data || res;
+
+      // add to list
+      this.medicines.push(newMed);
+
+      // auto select
+      this.prescriptions[index].medicineId = newMed.medicineId;
+
+      this.showToast('Medicine added successfully');
+    } catch (err) {
+      console.error(err);
+      this.showToast('Failed to add medicine');
+    }
   }
 
-  // onWaveOffChange(value: string) {
-  //   if (value === 'yes') {
-  //     if (!this.waveOffVerified) {
-  //       this.showPasswordModal = true;
-  //     }
-  //   } else {
-  //     this.waveOffVerified = false;
-  //   }
-  // }
+  // ─────────────────────────────────────────────────────────────────────────
+  // ADD MEDICINE ROW TO PRESCRIPTION TABLE
+  // ─────────────────────────────────────────────────────────────────────────
+
+  addMedicineRow() {
+    this.prescriptions.push({
+      medicineId: null,
+      dosage: '',
+      frequency: '',
+      duration: '',
+      type: '',
+      instructions: '',
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // REMOVE MEDICINE ROW FROM PRESCRIPTION TABLE
+  // ─────────────────────────────────────────────────────────────────────────
+
+  removeMedicineRow(index: number) {
+    this.prescriptions.splice(index, 1);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BUILD STATUS RECORDS FOR FOLLOW-UP ENTRY
+  // Maps symptom values to their status ratings
+  // ─────────────────────────────────────────────────────────────────────────
+
+  buildStatusRecords() {
+    console.log('SYMPTOMS ARRAY:', this.symptomsArray);
+    console.log('SYMPTOM STATUS:', this.symptomStatus);
+
+    const records: any[] = [];
+
+    this.symptomsArray.forEach((sym) => {
+      if (!sym.criteriaId) return;
+
+      records.push({
+        patientFollowUpStatusId: 0,
+        patientFollowUpCriteriaId: sym.criteriaId,
+        criteriaName: sym.value,
+        remarks: String(this.symptomStatus[sym.index] || ''),
+      });
+    });
+
+    return records;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // VALIDATE SYMPTOM STATUS INPUT
+  // Ensures value is between 1-10
+  // ─────────────────────────────────────────────────────────────────────────
+
+  validateSymptom(event: any, index: number) {
+    let value = event.target.value;
+
+    // Remove non-numbers
+    value = value.replace(/[^0-9]/g, '');
+
+    let num = Number(value);
+
+    if (num > 10) {
+      num = 10;
+      this.showToast('Max value is 10');
+    }
+
+    if (num < 1 && value !== '') {
+      num = 1;
+    }
+
+    this.symptomStatus[index] = num;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // WAVE OFF CHANGE
+  // ─────────────────────────────────────────────────────────────────────────
 
   onWaveOffChange(value: string) {
     if (value === 'yes') {
@@ -799,6 +621,10 @@ export class FollowupPage implements OnInit, OnDestroy {
       this.waveOffAmount = 0;
     }
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // PASSWORD MODAL
+  // ─────────────────────────────────────────────────────────────────────────
 
   closePasswordModal() {
     this.showPasswordModal = false;
@@ -830,135 +656,86 @@ export class FollowupPage implements OnInit, OnDestroy {
     }
   }
 
-  addMedicineRow() {
-    this.prescriptions.push({
-      medicineId: null,
-      dosage: '',
-      frequency: '',
-      duration: '',
-      type: '',
-      instructions: '',
-    });
-  }
-
-  removeMedicineRow(index: number) {
-    this.prescriptions.splice(index, 1);
-  }
-
-  // buildStatusRecords(){
-
-  //   const records:any[] = [];
-
-  //   this.symptomsArray.forEach(sym=>{
-
-  //     records.push({
-  //       patientFollowUpStatusId: 0,
-  //       patientFollowUpCriteriaId: sym.criteriaId,
-  //       criteriaName: sym.value,
-  //       remarks: sym.status || ""
-  //     });
-
-  //   });
-
-  //   return records;
-
-  // }
-
-  buildStatusRecords() {
-    console.log('SYMPTOMS ARRAY:', this.symptomsArray);
-    console.log('SYMPTOM STATUS:', this.symptomStatus);
-
-    const records: any[] = [];
-
-    this.symptomsArray.forEach((sym) => {
-      if (!sym.criteriaId) return;
-
-      records.push({
-        patientFollowUpStatusId: 0,
-        patientFollowUpCriteriaId: sym.criteriaId,
-        criteriaName: sym.value,
-        remarks: String(this.symptomStatus[sym.index] || ''),
-      });
-    });
-
-    return records;
-  }
+  // ─────────────────────────────────────────────────────────────────────────
+  // SAVE FOLLOW-UP (Main save function)
+  // Orchestrates the entire follow-up flow:
+  // 1. Save/Update criteria (symptoms)
+  // 2. Create follow-up entry
+  // 3. Save prescriptions
+  // 4. Update appointment status
+  // 5. Create payment
+  // 6. Schedule next appointment (if applicable)
+  // ─────────────────────────────────────────────────────────────────────────
 
   async saveFollowUp() {
+    console.log('===== SAVE FOLLOW-UP STARTED =====');
     console.log('PATIENT ID:', this.patientId);
     console.log('APPOINTMENT ID:', this.currentAppointmentId);
 
     try {
+      // ═════════════════════════════════════════════════════════════════════
+      // 0️⃣ CREATE / UPDATE CRITERIA (Symptoms)
+      // ═════════════════════════════════════════════════════════════════════
 
-      /* -----------------------------------
-0️⃣ CREATE / UPDATE CRITERIA
-------------------------------------*/
+      console.log('\n📋 STEP 0: SAVE CRITERIA (SYMPTOMS)');
 
-const createList: string[] = [];
-const updateList: any[] = [];
+      const createList: string[] = [];
+      const updateList: any[] = [];
 
-this.fuSymptomsArr.controls.forEach((ctrl: any) => {
+      this.fuSymptomsArr.controls.forEach((ctrl: any) => {
+        const value = ctrl.getRawValue().trim();
+        if (!value) return;
 
-  const value = ctrl.getRawValue().trim();
-  if (!value) return;
+        const criteriaId = ctrl.criteriaId;
 
-  const criteriaId = ctrl.criteriaId;
+        if (criteriaId) {
+          const existing = this.existingCriteria.find(
+            (x: any) => x.patientFollowUpCriteriaId === criteriaId,
+          );
 
-  if (criteriaId) {
+          if (existing && existing.criteriaName !== value) {
+            console.log('  → Updating criteria:', value);
 
-    const existing = this.existingCriteria.find(
-      (x: any) => x.patientFollowUpCriteriaId === criteriaId
-    );
-
-    if (existing && existing.criteriaName !== value) {
-
-      updateList.push({
-        patientFollowUpCriteriaId: criteriaId,
-        patientId: this.patientId,
-        criteriaName: value
+            updateList.push({
+              patientFollowUpCriteriaId: criteriaId,
+              patientId: this.patientId,
+              criteriaName: value,
+            });
+          }
+        } else {
+          console.log('  → Creating new criteria:', value);
+          createList.push(value);
+        }
       });
 
-    }
+      // Update existing criteria
+      for (const updatePayload of updateList) {
+        console.log('  🔄 PUT request for:', updatePayload);
 
-  } else {
+        await firstValueFrom(this.api.updateCriteria(updatePayload));
+      }
 
-    createList.push(value);
+      // Create new criteria
+      if (createList.length) {
+        const uniqueList = [...new Set(createList)];
 
-  }
+        console.log('  ➕ POST request for:', uniqueList);
 
-});
+        await firstValueFrom(
+          this.api.createCriteria({
+            patientId: this.patientId,
+            criteriaNames: uniqueList,
+          }),
+        );
+      }
 
+      console.log('✓ Criteria saved successfully');
 
-/* -----------------------------------
-SAVE CRITERIA
-------------------------------------*/
+      // ═════════════════════════════════════════════════════════════════════
+      // 1️⃣ CREATE FOLLOWUP ENTRY
+      // ═════════════════════════════════════════════════════════════════════
 
-// update first
-for (const updatePayload of updateList) {
-
-  await firstValueFrom(
-    this.api.updateCriteria(updatePayload)
-  );
-
-}
-
-// create new
-if (createList.length) {
-
-  const uniqueList = [...new Set(createList)];
-
-  await firstValueFrom(
-    this.api.createCriteria({
-      patientId: this.patientId,
-      criteriaNames: uniqueList
-    })
-  );
-
-}
-
-      /* -----------------------------------
-       1️⃣ CREATE FOLLOWUP ENTRY
-    ------------------------------------*/
+      console.log('\n📝 STEP 1: CREATE FOLLOW-UP ENTRY');
 
       const followUpPayload = {
         patientFollowUpEntryId: 0,
@@ -971,18 +748,24 @@ if (createList.length) {
         statusRecords: this.buildStatusRecords(),
       };
 
-      console.log('FOLLOWUP PAYLOAD:', followUpPayload);
-      console.log('STATUS RECORDS:', followUpPayload.statusRecords);
+      console.log('Follow-up payload:', followUpPayload);
+      console.log('Status records:', followUpPayload.statusRecords);
 
       await firstValueFrom(this.api.createFollowUp(followUpPayload));
-      /* -----------------------------------
-       2️⃣ SAVE PRESCRIPTIONS
-    ------------------------------------*/
+
+      console.log('✓ Follow-up entry created');
+
+      // ═════════════════════════════════════════════════════════════════════
+      // 2️⃣ SAVE PRESCRIPTIONS
+      // ═════════════════════════════════════════════════════════════════════
+
+      console.log('\n💊 STEP 2: SAVE PRESCRIPTIONS');
+
       for (const med of this.prescriptions) {
-        console.log('MED:', med);
+        console.log('Medicine:', med);
 
         if (!med.medicineId) {
-          console.log('MEDICINE SKIPPED');
+          console.log('  ⊘ Skipped (no medicine selected)');
           continue;
         }
 
@@ -996,14 +779,18 @@ if (createList.length) {
           instructions: med.instructions,
         };
 
-        console.log('PRESCRIPTION PAYLOAD:', payload);
+        console.log('  Prescription payload:', payload);
 
         await firstValueFrom(this.api.addPrescription(payload));
       }
 
-      /* -----------------------------------
-       3️⃣ UPDATE APPOINTMENT STATUS
-    ------------------------------------*/
+      console.log('✓ Prescriptions saved');
+
+      // ═════════════════════════════════════════════════════════════════════
+      // 3️⃣ UPDATE APPOINTMENT STATUS
+      // ═════════════════════════════════════════════════════════════════════
+
+      console.log('\n📅 STEP 3: UPDATE APPOINTMENT STATUS');
 
       await firstValueFrom(
         this.api.updateAppointmentStatus(this.currentAppointmentId, {
@@ -1011,23 +798,13 @@ if (createList.length) {
         }),
       );
 
-      /* -----------------------------------
-       4️⃣ CREATE PAYMENT
-    ------------------------------------*/
+      console.log('✓ Appointment status updated to 3 (completed)');
 
-      // await firstValueFrom(
-      //   this.api.createPayment({
-      //     patientId: this.patientId,
-      //     appointmentId: this.currentAppointmentId,
-      //     consultationCharges: this.consultationCharge,
-      //     waveOffAmount: this.waveOffAmount,
-      //     amountPaid: this.consultationCharge - this.waveOffAmount,
-      //     paymentMode: 'Cash',
-      //     paymentDate: new Date().toISOString(),
-      //    waveOffPassword: this.adminPassword   // ✅ correct field
+      // ═════════════════════════════════════════════════════════════════════
+      // 4️⃣ CREATE PAYMENT
+      // ═════════════════════════════════════════════════════════════════════
 
-      //   }),
-      // );
+      console.log('\n💰 STEP 4: CREATE PAYMENT');
 
       const consultation = Number(this.consultationCharge) || 0;
       const waveOff = Number(this.waveOffAmount) || 0;
@@ -1046,13 +823,17 @@ if (createList.length) {
         waveOffPassword: this.adminPassword,
       };
 
-      console.log('PAYMENT PAYLOAD:', paymentPayload);
+      console.log('Payment payload:', paymentPayload);
 
       await firstValueFrom(this.api.createPayment(paymentPayload));
 
-      /* -----------------------------------
-       5️⃣ CREATE NEXT APPOINTMENT
-    ------------------------------------*/
+      console.log('✓ Payment created');
+
+      // ═════════════════════════════════════════════════════════════════════
+      // 5️⃣ CREATE NEXT APPOINTMENT (Optional)
+      // ═════════════════════════════════════════════════════════════════════
+
+      console.log('\n🔔 STEP 5: SCHEDULE NEXT APPOINTMENT');
 
       if (this.nextAppointmentDate && this.nextAppointmentTime) {
         await firstValueFrom(
@@ -1063,150 +844,46 @@ if (createList.length) {
             remark: 'Follow up',
           }),
         );
+
+        console.log('✓ Next appointment scheduled');
+      } else {
+        console.log('⊘ No next appointment scheduled');
       }
 
+      // ═════════════════════════════════════════════════════════════════════
+      // SUCCESS
+      // ═════════════════════════════════════════════════════════════════════
+
       this.showToast('Follow-Up saved successfully');
-    }catch (err) {
 
-  console.error(err);
-  this.showToast('Save failed');
-  return;
+      console.log('===== SAVE FOLLOW-UP COMPLETED SUCCESSFULLY =====');
 
-}
-
-await this.showToast('Follow-Up saved successfully');
-
-this.router.navigate(['/patients/payment'], {
-  queryParams: {
-    patientId: this.patientId,
-    appointmentId: this.currentAppointmentId
-  }
-});
-  }
-
-  validateSymptom(event: any, index: number) {
-    let value = event.target.value;
-
-    // remove non numbers
-    value = value.replace(/[^0-9]/g, '');
-
-    let num = Number(value);
-
-    if (num > 10) {
-      num = 10;
-      this.showToast('Max value is 10');
+      // Navigate to payment page
+      this.router.navigate(['/patients/payment'], {
+        queryParams: {
+          patientId: this.patientId,
+          appointmentId: this.currentAppointmentId,
+        },
+      });
+    } catch (err) {
+      console.error('===== SAVE FOLLOW-UP ERROR =====', err);
+      this.showToast('Save failed. Please check the console for details.');
+      return;
     }
-
-    if (num < 1 && value !== '') {
-      num = 1;
-    }
-
-    this.symptomStatus[index] = num;
   }
 
-  // ===============================
-  // summary function 
-    // ===============================
+  // ─────────────────────────────────────────────────────────────────────────
+  // TOAST NOTIFICATION
+  // ─────────────────────────────────────────────────────────────────────────
 
-//     async loadSummary() {
-//   try {
+  private async showToast(message: string) {
+    const toast = await this.toastCtrl.create({
+      message,
+      duration: 2500,
+      position: 'top',
+      color: 'dark',
+    });
 
-//     const res: any = await firstValueFrom(
-//       this.api.getAppointmentSummary(this.currentAppointmentId)
-//     );
-
-//     console.log("SUMMARY RAW RESPONSE:", res);
-
-//     const list = res?.data || res || [];
-
-//     if (!Array.isArray(list)) {
-//       console.log("SUMMARY:", list);
-//       return;
-//     }
-
-//     // date wise sort
-//     const sorted = list.sort(
-//       (a: any, b: any) =>
-//         new Date(a.followUpDate).getTime() -
-//         new Date(b.followUpDate).getTime()
-//     );
-
-//     console.log("SUMMARY DATE WISE:");
-
-//     sorted.forEach((item: any) => {
-//       console.log(
-//         "DATE:",
-//         new Date(item.followUpDate).toLocaleDateString(),
-//         item
-//       );
-//     });
-
-//   } catch (err) {
-//     console.error("Summary load error:", err);
-//   }
-// }
-
-summary:any = null;
-
-async loadSummary(){
-
- const res:any = await firstValueFrom(
-   this.api.getAppointmentSummary(this.currentAppointmentId)
- );
-
- console.log("SUMMARY API:",res);
-
- this.summary = res;
-
-}
-
-
-async onMedicineChange(event: any, index: number) {
-
-  const value = event.target.value;
-
-  if (value !== "add_new") return;
-
-  const name = prompt("Enter medicine name");
-
-  if (!name || !name.trim()) {
-    return;
+    await toast.present();
   }
-
-  try {
-
-    const payload = {
-      name: name.trim(),
-      strength: "",
-      dosageForm: "Tablet",
-      stockQuantity: 0,
-      unit: "Piece",
-      batchNumber: "",
-      expiryDate: new Date().toISOString(),
-      notes: "Added from prescription"
-    };
-
-    const res: any = await firstValueFrom(
-      this.api.createMedicine(payload)
-    );
-
-    const newMed = res?.data || res;
-
-    // add to list
-    this.medicines.push(newMed);
-
-    // auto select
-    this.prescriptions[index].medicineId = newMed.medicineId;
-
-    this.showToast("Medicine added successfully");
-
-  } catch (err) {
-
-    console.error(err);
-    this.showToast("Failed to add medicine");
-
-  }
-
-}
-
 }
