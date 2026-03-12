@@ -181,6 +181,9 @@ export class FollowupPage implements OnInit, OnDestroy {
       console.log('SUMMARY API:', res);
 
       this.summary = res;
+       if (res?.payment?.consultationCharges) {
+      this.consultationCharge = res.payment.consultationCharges;
+    }
     } catch (err) {
       console.error('Summary load error:', err);
     }
@@ -512,9 +515,7 @@ export class FollowupPage implements OnInit, OnDestroy {
         notes: 'Added from prescription',
       };
 
-      const res: any = await firstValueFrom(
-        this.api.createMedicine(payload),
-      );
+      const res: any = await firstValueFrom(this.api.createMedicine(payload));
 
       const newMed = res?.data || res;
 
@@ -584,10 +585,10 @@ export class FollowupPage implements OnInit, OnDestroy {
   // Ensures value is between 1-10
   // ─────────────────────────────────────────────────────────────────────────
 
-validateSymptom(event: any, index: number) {
-  const value = event.target.value;
-  this.symptomStatus[index] = value;
-}
+  validateSymptom(event: any, index: number) {
+    const value = event.target.value;
+    this.symptomStatus[index] = value;
+  }
 
   // ─────────────────────────────────────────────────────────────────────────
   // WAVE OFF CHANGE
@@ -791,22 +792,34 @@ validateSymptom(event: any, index: number) {
 
       console.log('\n💰 STEP 4: CREATE PAYMENT');
 
-      const consultation = Number(this.consultationCharge) || 0;
-      const waveOff = Number(this.waveOffAmount) || 0;
+  const consultation = parseFloat(String(this.consultationCharge)) || 0;
+const waveOff = parseFloat(String(this.waveOffAmount)) || 0;
+
+console.log("CONSULTATION INPUT:", consultation);
+console.log("WAVE OFF INPUT:", waveOff);
 
       if (waveOff > consultation) {
         this.showToast('Wave off cannot exceed consultation charges');
         return;
       }
 
+      // const paymentPayload: any = {
+      //   patientId: this.patientId,
+      //   appointmentId: this.currentAppointmentId,
+      //   consultationCharges: consultation,
+      //   waveOffAmount: waveOff,
+      //   amountPaid: consultation - waveOff,
+      //   waveOffPassword: this.adminPassword,
+      // };
+
       const paymentPayload: any = {
-        patientId: this.patientId,
-        appointmentId: this.currentAppointmentId,
-        consultationCharges: consultation,
-        waveOffAmount: waveOff,
-        amountPaid: consultation - waveOff,
-        waveOffPassword: this.adminPassword,
-      };
+  patientId: this.patientId,
+  appointmentId: this.currentAppointmentId,
+  consultationCharges: Math.round(consultation),
+  waveOffAmount: Math.round(waveOff),
+  amountPaid: Math.round(consultation - waveOff),
+  waveOffPassword: this.adminPassword,
+};
 
       console.log('Payment payload:', paymentPayload);
 
@@ -844,11 +857,14 @@ validateSymptom(event: any, index: number) {
       console.log('===== SAVE FOLLOW-UP COMPLETED SUCCESSFULLY =====');
 
       // Navigate to payment page
-      this.router.navigate(['/patients/payment'], {
+      this.router.navigate(['../payment'], {
+        relativeTo: this.route,
         queryParams: {
           patientId: this.patientId,
           appointmentId: this.currentAppointmentId,
+          tab: 'payment',
         },
+        queryParamsHandling: 'merge',
       });
     } catch (err) {
       console.error('===== SAVE FOLLOW-UP ERROR =====', err);
@@ -857,6 +873,15 @@ validateSymptom(event: any, index: number) {
     }
   }
 
+onConsultationChange(value: any) {
+  const num = parseFloat(value);
+  this.consultationCharge = isNaN(num) ? 0 : num;
+}
+
+onWaveOffAmountChange(value: any) {
+  const num = Number(value);
+  this.waveOffAmount = Number.isFinite(num) ? num : 0;
+}
   // ─────────────────────────────────────────────────────────────────────────
   // TOAST NOTIFICATION
   // ─────────────────────────────────────────────────────────────────────────

@@ -725,13 +725,17 @@ async loadClinicalCaseIfExists() {
   // }
 
 goNextFollowUp() {
-  this.router.navigate([], {
+
+  this.router.navigate(['../followup'], {
+    relativeTo: this.route,
     queryParams: {
-      tab: 'followup',
-      patientId: this.patientId
+      patientId: this.patientId,
+      appointmentId: this.route.snapshot.queryParamMap.get('appointmentId'),
+      tab: 'followup'
     },
     queryParamsHandling: 'merge'
   });
+
 }
 
   // ============================================================
