@@ -24,7 +24,7 @@ export class FollowupPage implements OnInit, OnDestroy {
   interpretation = '';
   temporaryProblems = '';
   waveOffSelected = false;
-  symptomStatus: number[] = [];
+  symptomStatus: string[] = [];
 
   consultationCharge = 0;
   waveOffAmount = 0;
@@ -584,25 +584,10 @@ export class FollowupPage implements OnInit, OnDestroy {
   // Ensures value is between 1-10
   // ─────────────────────────────────────────────────────────────────────────
 
-  validateSymptom(event: any, index: number) {
-    let value = event.target.value;
-
-    // Remove non-numbers
-    value = value.replace(/[^0-9]/g, '');
-
-    let num = Number(value);
-
-    if (num > 10) {
-      num = 10;
-      this.showToast('Max value is 10');
-    }
-
-    if (num < 1 && value !== '') {
-      num = 1;
-    }
-
-    this.symptomStatus[index] = num;
-  }
+validateSymptom(event: any, index: number) {
+  const value = event.target.value;
+  this.symptomStatus[index] = value;
+}
 
   // ─────────────────────────────────────────────────────────────────────────
   // WAVE OFF CHANGE
