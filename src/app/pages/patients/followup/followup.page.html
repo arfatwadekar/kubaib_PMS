@@ -355,12 +355,20 @@
             <!-- WAVE OFF AMOUNT -->
             <div class="form-group">
               <label class="form-label">Wave off Amount</label>
-              <input
+              <!-- <input
                 type="number"
                 [(ngModel)]="waveOffAmount"
                 placeholder="0.00"
                 [disabled]="!waveOffVerified"
-              />
+              /> -->
+
+              <input
+  type="number"
+  [ngModel]="waveOffAmount"
+  (ngModelChange)="onWaveOffAmountChange($event)"
+  placeholder="0.00"
+  [disabled]="!waveOffVerified"
+/>
             </div>
 
             <!-- NEXT APPOINTMENT -->

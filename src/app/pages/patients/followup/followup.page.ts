@@ -879,8 +879,8 @@ onConsultationChange(value: any) {
 }
 
 onWaveOffAmountChange(value: any) {
-  const num = Number(value);
-  this.waveOffAmount = Number.isFinite(num) ? num : 0;
+  const num = parseFloat(value);
+  this.waveOffAmount = isNaN(num) ? 0 : num;
 }
   // ─────────────────────────────────────────────────────────────────────────
   // TOAST NOTIFICATION
