@@ -98,12 +98,17 @@ this.paymentId = payment?.paymentId || payment?.id;
 
       /* 2️⃣ TOTAL PAYABLE */
 
-      this.totalPayable =
-        this.consultationCharges +
-        this.pendingBalance -
-        this.waveOffAmount;
+ /* 2️⃣ TOTAL PAYABLE */
 
-      this.newPendingBalance = this.totalPayable;
+this.totalPayable =
+  this.consultationCharges -
+  this.waveOffAmount;
+
+if (this.totalPayable < 0) {
+  this.totalPayable = 0;
+}
+
+this.newPendingBalance = this.totalPayable;
 
       /* 3️⃣ LOAD PRESCRIBED MEDICINES */
 
