@@ -181,9 +181,9 @@ export class FollowupPage implements OnInit, OnDestroy {
       console.log('SUMMARY API:', res);
 
       this.summary = res;
-       if (res?.payment?.consultationCharges) {
-      this.consultationCharge = res.payment.consultationCharges;
-    }
+      if (res?.payment?.consultationCharges && !this.consultationCharge) {
+        this.consultationCharge = Number(res.payment.consultationCharges);
+      }
     } catch (err) {
       console.error('Summary load error:', err);
     }
@@ -792,11 +792,11 @@ export class FollowupPage implements OnInit, OnDestroy {
 
       console.log('\n💰 STEP 4: CREATE PAYMENT');
 
-  const consultation = parseFloat(String(this.consultationCharge)) || 0;
-const waveOff = parseFloat(String(this.waveOffAmount)) || 0;
+      const consultation = parseFloat(String(this.consultationCharge)) || 0;
+      const waveOff = parseFloat(String(this.waveOffAmount)) || 0;
 
-console.log("CONSULTATION INPUT:", consultation);
-console.log("WAVE OFF INPUT:", waveOff);
+      console.log('CONSULTATION INPUT:', consultation);
+      console.log('WAVE OFF INPUT:', waveOff);
 
       if (waveOff > consultation) {
         this.showToast('Wave off cannot exceed consultation charges');
@@ -813,13 +813,13 @@ console.log("WAVE OFF INPUT:", waveOff);
       // };
 
       const paymentPayload: any = {
-  patientId: this.patientId,
-  appointmentId: this.currentAppointmentId,
-  consultationCharges: Math.round(consultation),
-  waveOffAmount: Math.round(waveOff),
-  amountPaid: Math.round(consultation - waveOff),
-  waveOffPassword: this.adminPassword,
-};
+        patientId: this.patientId,
+        appointmentId: this.currentAppointmentId,
+        consultationCharges: consultation,
+        waveOffAmount: waveOff,
+        amountPaid: consultation - waveOff,
+        waveOffPassword: this.adminPassword,
+      };
 
       console.log('Payment payload:', paymentPayload);
 
@@ -873,15 +873,15 @@ console.log("WAVE OFF INPUT:", waveOff);
     }
   }
 
-onConsultationChange(value: any) {
-  const num = parseFloat(value);
-  this.consultationCharge = isNaN(num) ? 0 : num;
-}
+  onConsultationChange(value: any) {
+    const num = parseFloat(value);
+    this.consultationCharge = isNaN(num) ? 0 : num;
+  }
 
-onWaveOffAmountChange(value: any) {
-  const num = parseFloat(value);
-  this.waveOffAmount = isNaN(num) ? 0 : num;
-}
+  onWaveOffAmountChange(value: any) {
+    const num = parseFloat(value);
+    this.waveOffAmount = isNaN(num) ? 0 : num;
+  }
   // ─────────────────────────────────────────────────────────────────────────
   // TOAST NOTIFICATION
   // ─────────────────────────────────────────────────────────────────────────
