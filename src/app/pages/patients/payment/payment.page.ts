@@ -8,16 +8,23 @@ import { PaymentService } from 'src/app/services/payment.service';
   selector: 'app-payment',
   templateUrl: './payment.page.html',
   styleUrls: ['./payment.page.scss'],
-  standalone:false
+  standalone: false
 })
 export class PaymentPage implements OnInit, OnDestroy {
-paymentId!: number;
+
+  /* ================= BASIC INFO ================= */
+
+  paymentId!: number;
   patientId!: number;
   appointmentId!: number;
-  paymentHistory: any[] = [];  // 👈 add this
-  currentPage = 1;
-pageSize = 5;
+
   loading = false;
+
+  /* ================= PAYMENT HISTORY ================= */
+
+  paymentHistory: any[] = [];
+  currentPage = 1;
+  pageSize = 5;
 
   /* ================= SUMMARY ================= */
 
@@ -49,7 +56,9 @@ pageSize = 5;
     private toastCtrl: ToastController
   ) {}
 
-  /* ================= INIT ================= */
+  /* ================================================= */
+  /* INIT */
+  /* ================================================= */
 
   ngOnInit(): void {
 
@@ -65,7 +74,8 @@ pageSize = 5;
         }
 
         this.loadPaymentData();
-this.loadPaymentHistory();
+        this.loadPaymentHistory();
+
       })
     );
 
@@ -75,7 +85,9 @@ this.loadPaymentHistory();
     this.sub.unsubscribe();
   }
 
-  /* ================= LOAD PAYMENT DATA ================= */
+  /* ================================================= */
+  /* LOAD PAYMENT DATA */
+  /* ================================================= */
 
   async loadPaymentData() {
 
@@ -83,36 +95,41 @@ this.loadPaymentHistory();
 
     try {
 
-      /* 1️⃣ GET APPOINTMENT SUMMARY */
-
-      const summaryRes: any = await firstValueFrom(
+      const res: any = await firstValueFrom(
         this.paymentApi.getAppointmentSummary(this.appointmentId)
       );
 
-      const summary = summaryRes?.data ?? summaryRes;
-
+      const summary = res?.data ?? res;
       const payment = summary?.payment ?? {};
-      this.paymentId = payment.paymentId;
-this.paymentId = payment?.paymentId || payment?.id;
-      this.consultationCharges = Number(payment.consultationCharges ?? 0);
-      this.waveOffAmount = Number(payment.waveOffAmount ?? 0);
-      this.pendingBalance = Number(payment.remainingBalance ?? 0);
 
-      /* 2️⃣ TOTAL PAYABLE */
+      this.paymentId = payment?.paymentId || payment?.id;
 
- /* 2️⃣ TOTAL PAYABLE */
+      /* ================= SUMMARY ================= */
 
-this.totalPayable =
-  this.consultationCharges -
-  this.waveOffAmount;
+      this.consultationCharges = Number(payment?.consultationCharges ?? 0);
+      this.waveOffAmount = Number(payment?.waveOffAmount ?? 0);
 
-if (this.totalPayable < 0) {
-  this.totalPayable = 0;
-}
+      /* prevent negative pending */
 
-this.newPendingBalance = this.totalPayable;
+      this.pendingBalance = Math.max(
+        0,
+        Number(payment?.remainingBalance ?? 0)
+      );
 
-      /* 3️⃣ LOAD PRESCRIBED MEDICINES */
+      /* ================= TOTAL PAYABLE ================= */
+
+      this.totalPayable =
+        this.consultationCharges +
+        this.pendingBalance -
+        this.waveOffAmount;
+
+      if (this.totalPayable < 0) {
+        this.totalPayable = 0;
+      }
+
+      this.newPendingBalance = this.totalPayable;
+
+      /* ================= LOAD MEDICINES ================= */
 
       const medicineRes: any = await firstValueFrom(
         this.paymentApi.getPrescriptionsByAppointment(this.appointmentId)
@@ -136,93 +153,161 @@ this.newPendingBalance = this.totalPayable;
 
   }
 
-  /* ================= BALANCE CALCULATION ================= */
+  /* ================================================= */
+  /* PAYMENT HISTORY */
+  /* ================================================= */
+
+  async loadPaymentHistory() {
+
+    try {
+
+      const res: any = await firstValueFrom(
+        this.paymentApi.getByPatient(this.patientId)
+      );
+
+      const data = res?.data ?? res ?? [];
+
+      this.paymentHistory = Array.isArray(data)
+        ? data.sort(
+            (a: any, b: any) =>
+              new Date(b.paymentDate).getTime() -
+              new Date(a.paymentDate).getTime()
+          )
+        : [];
+
+    }
+    catch {
+
+      console.error('Payment history load failed');
+
+    }
+
+  }
+
+  /* ================================================= */
+  /* BALANCE CALCULATION */
+  /* ================================================= */
 
   recalculateBalance() {
 
     const paid = Number(this.amountPaid ?? 0);
 
-    if (paid > this.totalPayable) {
+    this.newPendingBalance = this.totalPayable - paid;
 
+    if (this.newPendingBalance < 0) {
       this.newPendingBalance = 0;
-      return;
-
     }
-
-    this.newPendingBalance =
-      this.totalPayable - paid;
 
   }
 
-  /* ================= FINALIZE PAYMENT ================= */
+  /* ================================================= */
+  /* FINALIZE PAYMENT */
+  /* ================================================= */
 
-  // async finalizePayment() {
+  async finalizePayment() {
 
-  //   if (!this.amountPaid || this.amountPaid <= 0) {
-  //     await this.toast('Enter valid payment amount');
-  //     return;
-  //   }
+    if (!this.amountPaid || this.amountPaid <= 0) {
+      await this.toast('Enter payment amount');
+      return;
+    }
 
-  //   if (this.amountPaid > this.totalPayable) {
-  //     await this.toast('Amount cannot exceed payable amount');
-  //     return;
-  //   }
+    try {
 
-  //   if (this.loading) return;
+      await firstValueFrom(
+        this.paymentApi.updatePayment(this.paymentId,{
+          amountPaid: this.amountPaid,
+          paymentMode: this.paymentMode,
+          paymentDate: new Date(this.paymentDate).toISOString(),
+          notes: ''
+        })
+      );
 
-  //   this.loading = true;
+      /* ================= AFTER PAYMENT ================= */
 
-  //   try {
+      if (this.newPendingBalance === 0) {
 
-  //     /* 1️⃣ CREATE PAYMENT */
+        await firstValueFrom(
+          this.paymentApi.updateAppointmentStatus(
+            this.appointmentId,
+            4
+          )
+        );
 
-  //     await firstValueFrom(
-  //       this.paymentApi.createPayment({
-  //         patientId: this.patientId,
-  //         appointmentId: this.appointmentId,
-  //         consultationCharges: this.consultationCharges,
-  //         waveOffAmount: this.waveOffAmount,
-  //         amountPaid: this.amountPaid,
-  //         paymentMode: this.paymentMode,
-  //         paymentDate: new Date(this.paymentDate).toISOString()
-  //       })
-  //     );
+      }
 
-  //     /* 2️⃣ UPDATE APPOINTMENT STATUS */
+      await this.toast('Payment recorded successfully');
 
-  //     await firstValueFrom(
-  //       this.paymentApi.updateAppointmentStatus(
-  //         this.appointmentId,
-  //         'OutPatient'
-  //       )
-  //     );
+      this.router.navigate(['/dashboard']);
 
-  //     await this.toast('Payment completed successfully');
+    }
+    catch {
 
-  //     /* 3️⃣ REDIRECT TO DASHBOARD */
+      await this.toast('Payment failed');
 
-  //     this.router.navigate(['/dashboard']);
+    }
 
-  //   }
-  //   catch {
+  }
 
-  //     await this.toast('Payment failed. Please try again.');
+  /* ================================================= */
+  /* ADD PAYMENT RESET */
+  /* ================================================= */
 
-  //   }
-  //   finally {
+  addPayment() {
 
-  //     this.loading = false;
+    this.amountPaid = null;
+    this.paymentMode = 'Cash';
+    this.paymentDate = new Date().toISOString().split('T')[0];
 
-  //   }
+    this.newPendingBalance = this.totalPayable;
 
-  // }
+  }
 
+  /* ================================================= */
+  /* PAGINATION */
+  /* ================================================= */
 
-  /* ================= GO BACK ================= */
+  get paginatedPayments() {
+
+    const start = (this.currentPage - 1) * this.pageSize;
+
+    return this.paymentHistory.slice(
+      start,
+      start + this.pageSize
+    );
+
+  }
+
+  get totalPages() {
+
+    return Math.ceil(
+      this.paymentHistory.length / this.pageSize
+    );
+
+  }
+
+  nextPage() {
+
+    if (this.currentPage < this.totalPages) {
+      this.currentPage++;
+    }
+
+  }
+
+  prevPage() {
+
+    if (this.currentPage > 1) {
+      this.currentPage--;
+    }
+
+  }
+
+  /* ================================================= */
+  /* NAVIGATION */
+  /* ================================================= */
 
   goBack() {
 
-    this.router.navigate(['/followup'], {
+    this.router.navigate(['/patients/followup'], {
       queryParams: {
         patientId: this.patientId,
         appointmentId: this.appointmentId
@@ -231,7 +316,9 @@ this.newPendingBalance = this.totalPayable;
 
   }
 
-  /* ================= TOAST ================= */
+  /* ================================================= */
+  /* TOAST */
+  /* ================================================= */
 
   private async toast(message: string) {
 
@@ -244,82 +331,5 @@ this.newPendingBalance = this.totalPayable;
     await t.present();
 
   }
-
-async finalizePayment() {
-
-  if (!this.amountPaid || this.amountPaid <= 0) {
-    await this.toast('Enter payment amount');
-    return;
-  }
-
-  try {
-
-    await firstValueFrom(
-      this.paymentApi.updatePayment(this.paymentId,{
-        amountPaid: this.amountPaid,
-        paymentMode: this.paymentMode,
-        paymentDate: new Date(this.paymentDate).toISOString(),
-        notes:''
-      })
-    );
-
-    await firstValueFrom(
-      this.paymentApi.updateAppointmentStatus(
-        this.appointmentId,
-        4
-      )
-    );
-
-    await this.toast('Payment completed');
-
-    this.router.navigate(['/dashboard']);
-
-  }
-  catch {
-
-    await this.toast('Payment failed');
-
-  }
-
-}
-
-async loadPaymentHistory() {
-
-  try {
-
-    const res: any = await firstValueFrom(
-      this.paymentApi.getByPatient(this.patientId)
-    );
-
-    const data = res?.data ?? res ?? [];
-
-    this.paymentHistory = Array.isArray(data) ? data : [];
-
-  } catch {
-    console.error('Failed to load payment history');
-  }
-
-}
-
-get paginatedPayments() {
-  const start = (this.currentPage - 1) * this.pageSize;
-  return this.paymentHistory.slice(start, start + this.pageSize);
-}
-
-get totalPages() {
-  return Math.ceil(this.paymentHistory.length / this.pageSize);
-}
-
-nextPage() {
-  if (this.currentPage < this.totalPages) {
-    this.currentPage++;
-  }
-}
-
-prevPage() {
-  if (this.currentPage > 1) {
-    this.currentPage--;
-  }
-}
 
 }

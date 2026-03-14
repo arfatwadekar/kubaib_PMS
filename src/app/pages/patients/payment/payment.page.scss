@@ -2,8 +2,20 @@
   max-width:1100px;
   margin:auto;
   padding:20px;
-  font-family:Inter, sans-serif;
 }
+
+/* SUCCESS BANNER */
+
+.payment-success{
+  background:#e8f7ee;
+  color:#1b8f4b;
+  padding:12px 16px;
+  border-radius:8px;
+  margin-bottom:16px;
+  font-weight:600;
+}
+
+/* SUMMARY */
 
 .summary-grid{
   display:grid;
@@ -13,20 +25,19 @@
 }
 
 .summary-card{
-  background:white;
+  background:#fff;
   padding:18px;
   border-radius:10px;
   box-shadow:0 2px 6px rgba(0,0,0,0.08);
 }
 
-.summary-card.highlight{
-  background:#1d6ae5;
+.summary-card.total{
+  background:#1b8f4b;
   color:white;
 }
 
 .summary-label{
   font-size:14px;
-  margin-bottom:6px;
   opacity:.8;
 }
 
@@ -34,6 +45,8 @@
   font-size:22px;
   font-weight:600;
 }
+
+/* CARDS */
 
 .billing-card{
   background:white;
@@ -46,24 +59,35 @@
 .card-title{
   font-size:18px;
   font-weight:600;
-  margin-bottom:15px;
+  margin-bottom:12px;
 }
 
-.medicine-table{
+/* TABLE */
+
+.table-wrapper{
+  overflow-x:auto;
+}
+
+.medicine-table,
+.payment-table{
   width:100%;
   border-collapse:collapse;
 }
 
 .medicine-table th,
-.medicine-table td{
-  padding:12px;
-  border-bottom:1px solid #eee;
-  text-align:left;
-}
-
-.medicine-table th{
+.payment-table th{
   background:#f6f8fb;
 }
+
+.medicine-table th,
+.payment-table th,
+.medicine-table td,
+.payment-table td{
+  padding:12px;
+  border-bottom:1px solid #eee;
+}
+
+/* FORM */
 
 .form-grid{
   display:grid;
@@ -76,111 +100,67 @@
   flex-direction:column;
 }
 
-.form-group label{
-  font-size:14px;
-  margin-bottom:6px;
-}
-
-.form-group input,
-.form-group select{
+input,select{
   padding:10px;
   border:1px solid #ddd;
   border-radius:6px;
 }
 
+/* BALANCE */
+
 .balance-preview{
   display:flex;
   justify-content:space-between;
   background:#f7f9fc;
-  padding:15px;
+  padding:14px;
   border-radius:8px;
-  font-size:16px;
   margin-bottom:20px;
 }
 
 .balance-value{
   font-weight:600;
-  color:#e53935;
+  color:#d32f2f;
 }
+
+.balance-value.zero{
+  color:#1b8f4b;
+}
+
+/* FOOTER */
 
 .billing-footer{
   display:flex;
   justify-content:space-between;
+  margin-bottom:20px;
 }
 
 .btn-outline{
   padding:10px 20px;
-  border:1px solid #1d6ae5;
+  border:1px solid #1b8f4b;
   background:white;
-  color:#1d6ae5;
+  color:#1b8f4b;
   border-radius:6px;
-  cursor:pointer;
 }
 
 .btn-success{
   padding:10px 22px;
-  background:#1d6ae5;
+  background:#1b8f4b;
   color:white;
   border:none;
   border-radius:6px;
-  cursor:pointer;
 }
 
-
-.payment-history{
-  background:#fff;
-  border-radius:12px;
-  padding:16px;
-  margin-top:16px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.08);
-}
-
-.history-title{
-  font-size:18px;
-  font-weight:600;
-  margin-bottom:12px;
-}
-
-.table-wrapper{
-  overflow-x:auto;
-}
-
-.payment-table{
-  width:100%;
-  border-collapse:collapse;
-}
-
-.payment-table thead{
-  background:#f5f6fa;
-}
-
-.payment-table th{
-  text-align:left;
-  padding:10px;
-  font-size:14px;
-  font-weight:600;
-}
-
-.payment-table td{
-  padding:10px;
-  border-top:1px solid #eee;
-  font-size:14px;
-}
-
-.amount{
-  font-weight:600;
-}
+/* MODE BADGE */
 
 .mode-badge{
   padding:4px 10px;
   border-radius:20px;
   font-size:12px;
-  font-weight:500;
 }
 
 .mode-badge.cash{
   background:#e8f7ee;
-  color:#2e7d32;
+  color:#1b8f4b;
 }
 
 .mode-badge.online{
@@ -188,34 +168,42 @@
   color:#2962ff;
 }
 
-/* ========================= */
 /* PAGINATION */
-/* ========================= */
 
 .pagination{
   display:flex;
   justify-content:center;
-  align-items:center;
-  gap:12px;
-  margin-top:14px;
+  gap:10px;
+  margin-top:12px;
 }
 
-.page-btn{
+.pagination button{
+  background:#1b8f4b;
   border:none;
-  background:#3880ff;
-  color:#fff;
-  padding:6px 14px;
+  color:white;
+  padding:6px 12px;
   border-radius:6px;
-  cursor:pointer;
-  font-size:13px;
 }
 
-.page-btn:disabled{
+.pagination button:disabled{
   background:#ccc;
-  cursor:not-allowed;
 }
 
-.page-info{
-  font-size:14px;
-  font-weight:500;
+/* MOBILE */
+
+@media(max-width:900px){
+
+.summary-grid{
+  grid-template-columns:1fr;
+}
+
+.form-grid{
+  grid-template-columns:1fr;
+}
+
+.billing-footer{
+  flex-direction:column;
+  gap:10px;
+}
+
 }
