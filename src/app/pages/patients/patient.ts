@@ -134,27 +134,56 @@ export class PatientPage implements OnInit {
 
   // }
 
-  isTabDisabled(tab: TabKey): boolean {
+//   isTabDisabled(tab: TabKey): boolean {
+
+//   const mode = this.route.snapshot.queryParamMap.get('mode');
+//   const from = this.route.snapshot.queryParamMap.get('from');
+
+//   // CREATE MODE → only Preliminary allowed
+//   if (mode === 'create') {
+//     return tab !== 'prelim';
+//   }
+
+//   // EDIT FROM LIST → only Preliminary
+//   if (from === 'list') {
+//     return tab !== 'prelim';
+//   }
+
+//   // Dashboard → role based
+//   if (from === 'dashboard') {
+//     return !this.isTabAllowed(tab);
+//   }
+
+//   // Default → role based
+//   return !this.isTabAllowed(tab);
+
+// }
+
+isTabDisabled(tab: TabKey): boolean {
 
   const mode = this.route.snapshot.queryParamMap.get('mode');
   const from = this.route.snapshot.queryParamMap.get('from');
 
-  // CREATE MODE → only Preliminary allowed
+  /* CREATE PATIENT → ONLY PRELIMINARY */
+
   if (mode === 'create') {
     return tab !== 'prelim';
   }
 
-  // EDIT FROM LIST → only Preliminary
+  /* EDIT FROM PATIENT LIST → ONLY PRELIMINARY */
+
   if (from === 'list') {
     return tab !== 'prelim';
   }
 
-  // Dashboard → role based
+  /* DASHBOARD → ROLE BASED */
+
   if (from === 'dashboard') {
     return !this.isTabAllowed(tab);
   }
 
-  // Default → role based
+  /* DEFAULT → ROLE BASED */
+
   return !this.isTabAllowed(tab);
 
 }
