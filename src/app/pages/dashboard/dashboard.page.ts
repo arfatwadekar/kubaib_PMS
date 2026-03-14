@@ -354,16 +354,29 @@ openPatient(row: AppointmentRow) {
     this.selectedRow = null;
   }
 
+  // allowedNextStatuses(row: AppointmentRow): number[] {
+  //   const s = row?.statusCode;
+  //   if (s === AppointmentStatus.Pending)
+  //     return [AppointmentStatus.InPatient, AppointmentStatus.Cancelled];
+  //   if (s === AppointmentStatus.InPatient)
+  //     return [AppointmentStatus.AwaitingPayment, AppointmentStatus.Cancelled];
+  //   if (s === AppointmentStatus.AwaitingPayment)
+  //     return [AppointmentStatus.OutPatient];
+  //   return [];
+  // }
+
   allowedNextStatuses(row: AppointmentRow): number[] {
-    const s = row?.statusCode;
-    if (s === AppointmentStatus.Pending)
-      return [AppointmentStatus.InPatient, AppointmentStatus.Cancelled];
-    if (s === AppointmentStatus.InPatient)
-      return [AppointmentStatus.AwaitingPayment, AppointmentStatus.Cancelled];
-    if (s === AppointmentStatus.AwaitingPayment)
-      return [AppointmentStatus.OutPatient];
-    return [];
-  }
+
+  const s = row?.statusCode;
+
+  if (s === AppointmentStatus.Pending)
+    return [AppointmentStatus.InPatient, AppointmentStatus.Cancelled];
+
+  if (s === AppointmentStatus.InPatient)
+    return [AppointmentStatus.OutPatient, AppointmentStatus.Cancelled];
+
+  return [];
+}
 
   async markStatus(nextStatus: number) {
     if (!this.VALID_STATUS.has(nextStatus)) { await this.toast(`Invalid status: ${nextStatus}`); return; }
@@ -430,7 +443,7 @@ openPatient(row: AppointmentRow) {
   statusLabel(code: number): string {
     if (code === AppointmentStatus.Pending)         return 'Pending';
     if (code === AppointmentStatus.InPatient)       return 'In Patient';
-    if (code === AppointmentStatus.AwaitingPayment) return 'Awaiting Payment';
+    // if (code === AppointmentStatus.AwaitingPayment) return 'Awaiting Payment';
     if (code === AppointmentStatus.OutPatient)      return 'Out Patient';
     if (code === AppointmentStatus.Cancelled)       return 'Cancelled';
     return 'Unknown';

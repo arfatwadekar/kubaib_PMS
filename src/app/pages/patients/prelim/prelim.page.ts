@@ -60,8 +60,9 @@ type UserRole = 'Doctor' | 'Receptionist';
 })
 export class PrelimPage implements OnInit, OnDestroy {
 
-  today = new Date().toLocaleDateString('en-GB');
-
+  // today = new Date().toLocaleDateString('en-GB');
+today = new Date().toLocaleDateString('en-GB');
+maxDob = new Date().toISOString().split('T')[0];
   /* ================= STATE ================= */
   loading = false;
   isEditMode = false;
