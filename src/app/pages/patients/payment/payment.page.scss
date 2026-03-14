@@ -125,3 +125,97 @@
   border-radius:6px;
   cursor:pointer;
 }
+
+
+.payment-history{
+  background:#fff;
+  border-radius:12px;
+  padding:16px;
+  margin-top:16px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.08);
+}
+
+.history-title{
+  font-size:18px;
+  font-weight:600;
+  margin-bottom:12px;
+}
+
+.table-wrapper{
+  overflow-x:auto;
+}
+
+.payment-table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+.payment-table thead{
+  background:#f5f6fa;
+}
+
+.payment-table th{
+  text-align:left;
+  padding:10px;
+  font-size:14px;
+  font-weight:600;
+}
+
+.payment-table td{
+  padding:10px;
+  border-top:1px solid #eee;
+  font-size:14px;
+}
+
+.amount{
+  font-weight:600;
+}
+
+.mode-badge{
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:500;
+}
+
+.mode-badge.cash{
+  background:#e8f7ee;
+  color:#2e7d32;
+}
+
+.mode-badge.online{
+  background:#e6f0ff;
+  color:#2962ff;
+}
+
+/* ========================= */
+/* PAGINATION */
+/* ========================= */
+
+.pagination{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+  margin-top:14px;
+}
+
+.page-btn{
+  border:none;
+  background:#3880ff;
+  color:#fff;
+  padding:6px 14px;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:13px;
+}
+
+.page-btn:disabled{
+  background:#ccc;
+  cursor:not-allowed;
+}
+
+.page-info{
+  font-size:14px;
+  font-weight:500;
+}

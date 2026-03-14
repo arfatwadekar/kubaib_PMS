@@ -14,7 +14,9 @@ export class PaymentPage implements OnInit, OnDestroy {
 paymentId!: number;
   patientId!: number;
   appointmentId!: number;
-
+  paymentHistory: any[] = [];  // 👈 add this
+  currentPage = 1;
+pageSize = 5;
   loading = false;
 
   /* ================= SUMMARY ================= */
@@ -63,7 +65,7 @@ paymentId!: number;
         }
 
         this.loadPaymentData();
-
+this.loadPaymentHistory();
       })
     );
 
@@ -279,6 +281,45 @@ async finalizePayment() {
 
   }
 
+}
+
+async loadPaymentHistory() {
+
+  try {
+
+    const res: any = await firstValueFrom(
+      this.paymentApi.getByPatient(this.patientId)
+    );
+
+    const data = res?.data ?? res ?? [];
+
+    this.paymentHistory = Array.isArray(data) ? data : [];
+
+  } catch {
+    console.error('Failed to load payment history');
+  }
+
+}
+
+get paginatedPayments() {
+  const start = (this.currentPage - 1) * this.pageSize;
+  return this.paymentHistory.slice(start, start + this.pageSize);
+}
+
+get totalPages() {
+  return Math.ceil(this.paymentHistory.length / this.pageSize);
+}
+
+nextPage() {
+  if (this.currentPage < this.totalPages) {
+    this.currentPage++;
+  }
+}
+
+prevPage() {
+  if (this.currentPage > 1) {
+    this.currentPage--;
+  }
 }
 
 }
