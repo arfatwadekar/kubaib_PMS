@@ -175,7 +175,7 @@ export class CreateAppointmentModalComponent implements OnInit {
     // 🔥 Time logic: optional but auto current time
     const timeString = raw.appointmentTime
       ? this.apptService.hhmmToTimeString(raw.appointmentTime)
-      : getCurrentTime();
+      : null;
 
     const remark =
       raw.remark && raw.remark.trim()

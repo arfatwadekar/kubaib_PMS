@@ -52,6 +52,13 @@ export class FollowupPage implements OnInit, OnDestroy {
   existingCriteria: any[] = [];
 
   summaryList: any[] = [];
+  // ─── Patient Summary / History ───────────────────────────────────────────
+  summaryHistory: any[]  = [];
+  summaryPage         = 1;
+  summaryPageSize     = 10;
+  summaryTotalPages   = 0;
+  summaryTotalCount   = 0;
+  summaryLoading      = false;
 
   private destroy$ = new Subject<void>();
 
@@ -118,6 +125,8 @@ export class FollowupPage implements OnInit, OnDestroy {
     // 2️⃣ Load summary
     await this.loadSummary();
 
+    // 2️⃣b Load patient appointment history
+    await this.loadPatientSummary();
     // 3️⃣ Initialize form rows
     this.initRows();
     this.listenExpansion();
@@ -506,12 +515,6 @@ export class FollowupPage implements OnInit, OnDestroy {
     try {
       const payload = {
         name: name.trim(),
-        strength: '',
-        dosageForm: 'Tablet',
-        stockQuantity: 0,
-        unit: 'Piece',
-        batchNumber: '',
-        expiryDate: new Date().toISOString(),
         notes: 'Added from prescription',
       };
 
@@ -817,7 +820,6 @@ export class FollowupPage implements OnInit, OnDestroy {
         appointmentId: this.currentAppointmentId,
         consultationCharges: consultation,
         waveOffAmount: waveOff,
-        amountPaid: consultation - waveOff,
         waveOffPassword: this.adminPassword,
       };
 
@@ -832,16 +834,18 @@ export class FollowupPage implements OnInit, OnDestroy {
       // ═════════════════════════════════════════════════════════════════════
 
       console.log('\n🔔 STEP 5: SCHEDULE NEXT APPOINTMENT');
+      if (this.nextAppointmentDate) {
+        const appointmentPayload: any = {
+          patientId:       this.patientId,
+          appointmentDate: this.nextAppointmentDate,
+          remark:          'Follow up',
+        };
 
-      if (this.nextAppointmentDate && this.nextAppointmentTime) {
-        await firstValueFrom(
-          this.api.createAppointment({
-            patientId: this.patientId,
-            appointmentDate: this.nextAppointmentDate,
-            appointmentTime: this.nextAppointmentTime,
-            remark: 'Follow up',
-          }),
-        );
+        if (this.nextAppointmentTime) {
+          appointmentPayload.appointmentTime = this.nextAppointmentTime;
+        }
+
+        await firstValueFrom(this.api.createAppointment(appointmentPayload));
 
         console.log('✓ Next appointment scheduled');
       } else {
@@ -896,4 +900,35 @@ export class FollowupPage implements OnInit, OnDestroy {
 
     await toast.present();
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+// LOAD PATIENT APPOINTMENT SUMMARY (History list with pagination)
+// GET /api/Appointment/patient/{patientId}/summary
+// ─────────────────────────────────────────────────────────────────────────
+
+async loadPatientSummary(page: number = 1) {
+  this.summaryLoading = true;
+  try {
+    const res: any = await firstValueFrom(
+      this.api.getPatientAppointmentSummary(this.patientId, page, this.summaryPageSize)
+    );
+
+    console.log('PATIENT SUMMARY HISTORY:', res);
+
+    this.summaryHistory    = res?.appointments  || [];
+    this.summaryPage       = res?.page          || 1;
+    this.summaryTotalPages = res?.totalPages    || 0;
+    this.summaryTotalCount = res?.totalCount    || 0;
+  } catch (err) {
+    console.error('Patient summary load error:', err);
+    this.showToast('Failed to load appointment history');
+  } finally {
+    this.summaryLoading = false;
+  }
+}
+
+onSummaryPageChange(page: number) {
+  if (page < 1 || page > this.summaryTotalPages) return;
+  this.loadPatientSummary(page);
+}
 }

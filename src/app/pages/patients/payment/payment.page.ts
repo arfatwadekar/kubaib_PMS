@@ -89,70 +89,130 @@ export class PaymentPage implements OnInit, OnDestroy {
   /* LOAD PAYMENT DATA */
   /* ================================================= */
 
-  async loadPaymentData() {
+  // async loadPaymentData() {
 
-    this.loading = true;
+  //   this.loading = true;
 
-    try {
+  //   try {
 
-      const res: any = await firstValueFrom(
-        this.paymentApi.getAppointmentSummary(this.appointmentId)
-      );
+  //     const res: any = await firstValueFrom(
+  //       this.paymentApi.getAppointmentSummary(this.appointmentId)
+  //     );
 
-      const summary = res?.data ?? res;
-      const payment = summary?.payment ?? {};
+  //     const summary = res?.data ?? res;
+  //     const payment = summary?.payment ?? {};
 
-      this.paymentId = payment?.paymentId || payment?.id;
+  //     this.paymentId = payment?.paymentId || payment?.id;
+  //     this.waveOffAmount = Number(payment?.waveOffAmount ?? 0);
 
-      /* ================= SUMMARY ================= */
+  //     /* ================= SUMMARY ================= */
 
-      this.consultationCharges = Number(payment?.consultationCharges ?? 0);
-      this.waveOffAmount = Number(payment?.waveOffAmount ?? 0);
+  //     this.consultationCharges = Number(payment?.consultationCharges ?? 0);
 
-      /* prevent negative pending */
+  //     /* prevent negative pending */
 
-      this.pendingBalance = Math.max(
-        0,
-        Number(payment?.remainingBalance ?? 0)
-      );
+  //     this.pendingBalance = Math.max(
+  //       0,
+  //       Number(payment?.remainingBalance ?? 0)
+  //     );
 
-      /* ================= TOTAL PAYABLE ================= */
+  //     /* ================= TOTAL PAYABLE ================= */
 
-      this.totalPayable =
-        this.consultationCharges +
-        this.pendingBalance -
-        this.waveOffAmount;
+  //     this.totalPayable =
+  //       this.consultationCharges +
+  //       this.pendingBalance -
+  //       this.waveOffAmount;
 
-      if (this.totalPayable < 0) {
-        this.totalPayable = 0;
+  //     if (this.totalPayable < 0) {
+  //       this.totalPayable = 0;
+  //     }
+
+  //     this.newPendingBalance = this.totalPayable;
+
+  //     /* ================= LOAD MEDICINES ================= */
+
+  //     const medicineRes: any = await firstValueFrom(
+  //       this.paymentApi.getPrescriptionsByAppointment(this.appointmentId)
+  //     );
+
+  //     const meds = medicineRes?.data ?? medicineRes ?? [];
+
+  //     this.prescriptions = Array.isArray(meds) ? meds : [];
+
+  //   }
+  //   catch {
+
+  //     await this.toast('Failed to load payment data');
+
+  //   }
+  //   finally {
+
+  //     this.loading = false;
+
+  //   }
+
+  // }
+async loadPaymentData() {
+  this.loading = true;
+
+  try {
+    // ── 1. Appointment summary (for paymentId + medicines) ──────────────
+    const res: any = await firstValueFrom(
+      this.paymentApi.getAppointmentSummary(this.appointmentId)
+    );
+
+    const summary = res?.data ?? res;
+    const payment = summary?.payment ?? {};
+    console.log(payment);
+    this.paymentId     = payment?.paymentId;
+    this.waveOffAmount = Number(payment?.waveOffAmount ?? 0);
+
+    // ── 2. Check if payment is already done ──────────────────────────────
+    const isPaymentDone = !!payment?.paymentDate;
+
+    // ── 3. Calculate pending ──────────────────────────────────────────────
+    const consultation = Number(payment?.consultationCharges ?? 0);
+    const waveOff      = Number(payment?.waveOffAmount       ?? 0);
+    const alreadyPaid  = Number(payment?.amountPaid          ?? 0);
+
+    let realPending = Math.max(0, consultation - waveOff - alreadyPaid);
+
+    // ── 4. If payment done → call balance API for actual remaining ────────
+    if (isPaymentDone) {
+      try {
+        const balanceRes: any = await firstValueFrom(
+          this.paymentApi.getBalance(this.patientId)
+        );
+        realPending = Math.max(0, Number(balanceRes?.pendingBalance ?? 0));
+        console.log('Balance API pending:', realPending);
+      } catch {
+        console.error('Balance API failed, falling back to calculated value');
       }
-
-      this.newPendingBalance = this.totalPayable;
-
-      /* ================= LOAD MEDICINES ================= */
-
-      const medicineRes: any = await firstValueFrom(
-        this.paymentApi.getPrescriptionsByAppointment(this.appointmentId)
-      );
-
-      const meds = medicineRes?.data ?? medicineRes ?? [];
-
-      this.prescriptions = Array.isArray(meds) ? meds : [];
-
-    }
-    catch {
-
-      await this.toast('Failed to load payment data');
-
-    }
-    finally {
-
-      this.loading = false;
-
     }
 
+    // ── 5. Derive display values ──────────────────────────────────────────
+    this.consultationCharges = isPaymentDone ? 0        : realPending;
+    this.pendingBalance      = realPending;
+    this.totalPayable        = isPaymentDone ? realPending : realPending;
+    this.newPendingBalance   = realPending;
+
+    console.log('Payment done:', isPaymentDone);
+    console.log('Real pending:', realPending);
+
+    // ── 6. Medicines ──────────────────────────────────────────────────────
+    const medicineRes: any = await firstValueFrom(
+      this.paymentApi.getPrescriptionsByAppointment(this.appointmentId)
+    );
+
+    const meds = medicineRes?.data ?? medicineRes ?? [];
+    this.prescriptions = Array.isArray(meds) ? meds : [];
+
+  } catch {
+    await this.toast('Failed to load payment data');
+  } finally {
+    this.loading = false;
   }
-
+}
   /* ================================================= */
   /* PAYMENT HISTORY */
   /* ================================================= */
@@ -224,7 +284,6 @@ export class PaymentPage implements OnInit, OnDestroy {
 
       /* ================= AFTER PAYMENT ================= */
 
-      if (this.newPendingBalance === 0) {
 
         await firstValueFrom(
           this.paymentApi.updateAppointmentStatus(
@@ -233,7 +292,6 @@ export class PaymentPage implements OnInit, OnDestroy {
           )
         );
 
-      }
 
       await this.toast('Payment recorded successfully');
 

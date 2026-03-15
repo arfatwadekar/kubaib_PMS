@@ -70,12 +70,6 @@ export type AppointmentCreatePayload = {
 
 export type MedicineCreatePayload = {
   name: string;
-  strength: string;
-  dosageForm: string;
-  stockQuantity: number;
-  unit: string;
-  batchNumber: string;
-  expiryDate: string;
   notes: string;
 };
 
@@ -146,6 +140,8 @@ export class FollowUpService {
     APPT_BY_ID:          (id: number)  => `api/Appointment/${id}`,
     APPT_STATUS_UPDATE:  (id: number)  => `api/Appointment/${id}/status`,
     APPT_SUMMARY:        (id: number)  => `api/Appointment/${id}/summary`,
+    PATIENT_APPT_SUMMARY: (pid: number, page: number, pageSize: number) =>
+  `api/Appointment/patient/${pid}/summary?page=${page}&pageSize=${pageSize}`,
 
     // Medicine
     MEDICINES:                            `api/Medicine`,
@@ -159,7 +155,7 @@ export class FollowUpService {
     PAYMENT_BY_PATIENT:  (pid: number) => `api/Payment/patient/${pid}`,
 
     // Discount code verify (replaces admin password for wave-off)
-VERIFY_ADMIN_PASSWORD: `api/Auth/verify-admin-password`,
+    VERIFY_ADMIN_PASSWORD: `api/Auth/verify-admin-password`,
   };
 
   constructor(private http: HttpClient) {}
@@ -167,6 +163,10 @@ VERIFY_ADMIN_PASSWORD: `api/Auth/verify-admin-password`,
   private url(path: string): string {
     return `${this.base.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
   }
+
+  getPatientAppointmentSummary(patientId: number, page = 1, pageSize = 10): Observable<any> {
+  return this.http.get(this.url(this.EP.PATIENT_APPT_SUMMARY(patientId, page, pageSize)));
+}
 
   // ── FollowUp Criteria ─────────────────────────────────────────────────────
 
