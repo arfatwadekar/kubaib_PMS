@@ -167,17 +167,18 @@ async loadPaymentData() {
     const payment = summary?.payment ?? {};
     console.log(payment);
 
-    this.paymentId     = payment?.paymentId;
-    this.waveOffAmount = Number(payment?.waveOffAmount ?? 0);
+    this.paymentId = payment?.paymentId;
 
     // ── 2. Check if payment is already done ──────────────────────────────
     const isPaymentDone  = !!payment?.paymentDate;
     this.isPaymentDone   = isPaymentDone;
 
     // ── 3. Consultation charges for THIS visit ────────────────────────────
-    const consultation   = Number(payment?.consultationCharges ?? 0);
-    const waveOff        = Number(payment?.waveOffAmount       ?? 0);
-    this.consultationCharges = isPaymentDone ? 0 : Math.max(0, consultation - waveOff);
+    const consultation = Number(payment?.consultationCharges ?? 0);
+    const waveOff      = Number(payment?.waveOffAmount       ?? 0);
+
+    this.consultationCharges = isPaymentDone ? 0 : Math.max(0, consultation);
+    this.waveOffAmount       = isPaymentDone ? 0 : waveOff;  // ← single assignment, no duplicate
 
     // ── 4. Always call balance API for pending from previous visits ───────
     let pendingFromApi = 0;
@@ -192,17 +193,15 @@ async loadPaymentData() {
     }
 
     // ── 5. Derive display values ──────────────────────────────────────────
-    // Card 1: Consultation Charges (This Visit)
-    // Card 2: Pending Balance (from previous visits via balance API)
-    // Card 3: Total = Card 1 + Card 2
     this.pendingBalance    = pendingFromApi;
     this.totalPayable      = Math.max(0, this.consultationCharges + pendingFromApi - this.waveOffAmount);
     this.newPendingBalance = this.totalPayable;
 
-    console.log('Payment done:', isPaymentDone);
+    console.log('Payment done:',         isPaymentDone);
     console.log('Consultation charges:', this.consultationCharges);
-    console.log('Pending balance:', this.pendingBalance);
-    console.log('Total payable:', this.totalPayable);
+    console.log('Wave off:',             this.waveOffAmount);
+    console.log('Pending balance:',      this.pendingBalance);
+    console.log('Total payable:',        this.totalPayable);
 
     // ── 6. Medicines ──────────────────────────────────────────────────────
     const medicineRes: any = await firstValueFrom(
