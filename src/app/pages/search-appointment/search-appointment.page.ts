@@ -7,6 +7,7 @@ import {
   AppointmentStatus,
 } from 'src/app/services/search-appointment.service';
 
+
 /* =========================================================
    TYPES
 ========================================================= */
@@ -45,7 +46,11 @@ export class SearchAppointmentPage implements OnInit {
   pageSize = 5;
   currentPage = 1;
   totalPages = 1;
-
+  // ADD THESE:
+  apiPage       = 1;
+  apiPageSize   = 50;
+  apiTotalPages = 0;
+  apiTotalCount = 0;
   /* ================= MODAL STATE ================= */
 
   isEditOpen = false;
@@ -83,27 +88,31 @@ export class SearchAppointmentPage implements OnInit {
   load(ev?: any) {
     this.loading = true;
 
-    this.api.getQueue().subscribe({
+    const statusMap: Record<number, string> = {
+      1: 'Pending',
+      2: 'InPatient',
+      3: 'AwaitingPayment',
+      4: 'OutPatient',
+      5: 'Cancelled',
+    };
+
+    const statusParam = this.statusFilter ? statusMap[this.statusFilter] : '';
+
+    this.api.getAppointments(
+      this.viewMode,
+      this.apiPage,
+      this.apiPageSize,
+      statusParam,
+      this.searchText.trim()
+    ).subscribe({
       next: (res) => {
-
-        const list = res?.appointments ?? [];
-        const todayStr = new Date().toISOString().slice(0, 10);
-
-        const segmented = list.filter((a) => {
-          const date = a.appointmentDate?.slice(0, 10);
-          if (!date) return false;
-
-          if (this.viewMode === 'today') return date === todayStr;
-          if (this.viewMode === 'future') return date > todayStr;
-          if (this.viewMode === 'past') return date < todayStr;
-
-          return true;
-        });
-
-        this.rows = segmented.map(a => ({
+        this.rows = (res?.appointments ?? []).map(a => ({
           ...a,
           _saving: false
         }));
+
+        this.apiTotalPages = res?.totalPages ?? 0;
+        this.apiTotalCount = res?.totalCount ?? 0;
 
         this.currentPage = 1;
         this.applyFilter();
@@ -124,23 +133,7 @@ export class SearchAppointmentPage implements OnInit {
   ========================================================= */
 
   applyFilter() {
-
-    const q = this.searchText.trim().toLowerCase();
-
-    const temp = this.rows.filter((r) => {
-
-      const matchText =
-        !q ||
-        r.patient?.fullName?.toLowerCase().includes(q) ||
-        r.patient?.phoneNumber?.includes(q) ||
-        r.patient?.patientIdFormatted?.toLowerCase().includes(q);
-
-      const matchStatus =
-        this.statusFilter === 0 ||
-        r.status === this.statusFilter;
-
-      return matchText && matchStatus;
-    });
+    const temp = this.rows;
 
     this.totalPages = Math.ceil(temp.length / this.pageSize) || 1;
 
@@ -149,9 +142,7 @@ export class SearchAppointmentPage implements OnInit {
     }
 
     const start = (this.currentPage - 1) * this.pageSize;
-    const end = start + this.pageSize;
-
-    this.filtered = temp.slice(start, end);
+    this.filtered = temp.slice(start, start + this.pageSize);
   }
 
   nextPage() {
@@ -354,8 +345,21 @@ async saveEdit() {
   }
 
   changeTab(mode: ViewMode) {
-    this.viewMode = mode;
-    this.currentPage = 1;
+    this.viewMode     = mode;
+    this.apiPage      = 1;
+    this.currentPage  = 1;
+    this.searchText   = '';
+    this.statusFilter = 0;
+    this.load();
+  }
+
+  onSearchInput() {
+    this.apiPage = 1;
+    this.load();
+  }
+
+  onStatusChange() {
+    this.apiPage = 1;
     this.load();
   }
 

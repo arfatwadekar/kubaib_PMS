@@ -1101,3 +1101,396 @@ input[type="number"]::-webkit-outer-spin-button {
   display:flex;
   justify-content:space-between;
 }
+
+// ═══════════════════════════════════════════
+// APPOINTMENT HISTORY
+// ═══════════════════════════════════════════
+
+.hist-section {
+  margin-bottom: 24px;
+}
+
+.hist-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+
+  .hist-head-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .hist-icon {
+    font-size: 24px;
+    width: 44px;
+    height: 44px;
+    background: #eff6ff;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .hist-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+  }
+
+  .hist-sub {
+    font-size: 12px;
+    color: #94a3b8;
+    margin: 2px 0 0;
+  }
+
+  .hist-badge {
+    background: #dbeafe;
+    color: #1d4ed8;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 999px;
+  }
+}
+
+// ── Loading ──────────────────────────────
+
+.hist-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #64748b;
+  font-size: 14px;
+  padding: 20px 0;
+
+  .hist-spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #e2e8f0;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+// ── Empty ────────────────────────────────
+
+.hist-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: #94a3b8;
+
+  .hist-empty-icon {
+    font-size: 36px;
+    margin-bottom: 8px;
+  }
+
+  p { font-size: 14px; margin: 0; }
+}
+
+// ── Timeline ─────────────────────────────
+
+.hist-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.hist-item {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.hist-dot-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 14px;
+  flex-shrink: 0;
+
+  .hist-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #3b82f6;
+    border: 2px solid #bfdbfe;
+    flex-shrink: 0;
+    z-index: 1;
+  }
+
+  .hist-line {
+    width: 2px;
+    flex: 1;
+    min-height: 24px;
+    background: #e2e8f0;
+    margin-top: 4px;
+  }
+}
+
+// ── Card ─────────────────────────────────
+
+.hist-card {
+  flex: 1;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  }
+}
+
+.hist-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  .hist-date-block {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .hist-date {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+  }
+
+  .hist-time {
+    font-size: 13px;
+    color: #64748b;
+  }
+
+  .hist-right-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+}
+
+.hist-status-chip {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+
+  &.hist-status-completed,
+  &.hist-status-outpatient { background: #dcfce7; color: #15803d; }
+  &.hist-status-pending     { background: #fef9c3; color: #a16207; }
+  &.hist-status-cancelled   { background: #fee2e2; color: #b91c1c; }
+  &.hist-status-inpatient   { background: #dbeafe; color: #1d4ed8; }
+}
+
+.hist-remark-tag {
+  font-size: 12px;
+  color: #64748b;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.hist-divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 12px 0;
+}
+
+// ── Blocks ───────────────────────────────
+
+.hist-block {
+  margin-bottom: 12px;
+
+  &:last-child { margin-bottom: 0; }
+}
+
+.hist-block-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  .hist-block-icon { font-size: 14px; }
+}
+
+// ── Tables ───────────────────────────────
+
+.hist-table-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #f1f5f9;
+}
+
+.hist-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+
+  th {
+    background: #f8fafc;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  td {
+    padding: 8px 12px;
+    color: #334155;
+    border-bottom: 1px solid #f8fafc;
+
+    &:last-child { border-bottom: none; }
+  }
+
+  tr:last-child td { border-bottom: none; }
+}
+
+.hist-med-name {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.hist-remark-val {
+  display: inline-block;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+// ── Meta Row ─────────────────────────────
+
+.hist-meta-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.hist-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  .hist-meta-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #94a3b8;
+  }
+
+  .hist-meta-value {
+    font-size: 13px;
+    color: #334155;
+  }
+
+  .hist-charge {
+    font-weight: 600;
+    color: #0f766e;
+  }
+}
+
+// ── Payment Row ──────────────────────────
+
+.hist-payment-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+  flex-wrap: wrap;
+
+  .hist-payment-icon { font-size: 14px; }
+
+  .hist-payment-pills {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+}
+
+.hist-pill {
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f1f5f9;
+  color: #475569;
+
+  b { color: #1e293b; }
+
+  &.hist-pill--success { background: #dcfce7; color: #15803d; b { color: #15803d; } }
+  &.hist-pill--warning { background: #fef9c3; color: #a16207; b { color: #a16207; } }
+  &.hist-pill--danger  { background: #fee2e2; color: #b91c1c; b { color: #b91c1c; } }
+}
+
+// ── Pagination ───────────────────────────
+
+.hist-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 8px;
+  padding: 12px 0;
+
+  .hist-page-btn {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #334155;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover:not(:disabled) {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+    }
+
+    &:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+  }
+
+  .hist-page-info {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+  }
+}
