@@ -47,6 +47,8 @@ export class PaymentPage implements OnInit, OnDestroy {
 
   newPendingBalance = 0;
 
+  /* ================= PAYMENT STATUS ================= */
+  isPaymentDone = false;
   private sub = new Subscription();
 
   constructor(
@@ -156,7 +158,7 @@ async loadPaymentData() {
   this.loading = true;
 
   try {
-    // ── 1. Appointment summary (for paymentId + medicines) ──────────────
+    // ── 1. Appointment summary ────────────────────────────────────────────
     const res: any = await firstValueFrom(
       this.paymentApi.getAppointmentSummary(this.appointmentId)
     );
@@ -164,40 +166,43 @@ async loadPaymentData() {
     const summary = res?.data ?? res;
     const payment = summary?.payment ?? {};
     console.log(payment);
+
     this.paymentId     = payment?.paymentId;
     this.waveOffAmount = Number(payment?.waveOffAmount ?? 0);
 
     // ── 2. Check if payment is already done ──────────────────────────────
-    const isPaymentDone = !!payment?.paymentDate;
+    const isPaymentDone  = !!payment?.paymentDate;
+    this.isPaymentDone   = isPaymentDone;
 
-    // ── 3. Calculate pending ──────────────────────────────────────────────
-    const consultation = Number(payment?.consultationCharges ?? 0);
-    const waveOff      = Number(payment?.waveOffAmount       ?? 0);
-    const alreadyPaid  = Number(payment?.amountPaid          ?? 0);
+    // ── 3. Consultation charges for THIS visit ────────────────────────────
+    const consultation   = Number(payment?.consultationCharges ?? 0);
+    const waveOff        = Number(payment?.waveOffAmount       ?? 0);
+    this.consultationCharges = isPaymentDone ? 0 : Math.max(0, consultation - waveOff);
 
-    let realPending = Math.max(0, consultation - waveOff - alreadyPaid);
-
-    // ── 4. If payment done → call balance API for actual remaining ────────
-    if (isPaymentDone) {
-      try {
-        const balanceRes: any = await firstValueFrom(
-          this.paymentApi.getBalance(this.patientId)
-        );
-        realPending = Math.max(0, Number(balanceRes?.pendingBalance ?? 0));
-        console.log('Balance API pending:', realPending);
-      } catch {
-        console.error('Balance API failed, falling back to calculated value');
-      }
+    // ── 4. Always call balance API for pending from previous visits ───────
+    let pendingFromApi = 0;
+    try {
+      const balanceRes: any = await firstValueFrom(
+        this.paymentApi.getBalance(this.patientId)
+      );
+      pendingFromApi = Math.max(0, Number(balanceRes?.pendingBalance ?? 0));
+      console.log('Balance API pending:', pendingFromApi);
+    } catch {
+      console.error('Balance API failed');
     }
 
     // ── 5. Derive display values ──────────────────────────────────────────
-    this.consultationCharges = isPaymentDone ? 0        : realPending;
-    this.pendingBalance      = realPending;
-    this.totalPayable        = isPaymentDone ? realPending : realPending;
-    this.newPendingBalance   = realPending;
+    // Card 1: Consultation Charges (This Visit)
+    // Card 2: Pending Balance (from previous visits via balance API)
+    // Card 3: Total = Card 1 + Card 2
+    this.pendingBalance    = pendingFromApi;
+    this.totalPayable      = this.consultationCharges + pendingFromApi;
+    this.newPendingBalance = this.totalPayable;
 
     console.log('Payment done:', isPaymentDone);
-    console.log('Real pending:', realPending);
+    console.log('Consultation charges:', this.consultationCharges);
+    console.log('Pending balance:', this.pendingBalance);
+    console.log('Total payable:', this.totalPayable);
 
     // ── 6. Medicines ──────────────────────────────────────────────────────
     const medicineRes: any = await firstValueFrom(

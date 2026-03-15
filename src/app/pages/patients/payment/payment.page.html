@@ -24,7 +24,7 @@
 
   <!-- ================= PRESCRIBED MEDICINES ================= -->
 
-  <div class="billing-card">
+<div class="billing-card" *ngIf="!isPaymentDone">
 
     <div class="card-title">Prescribed Medicines</div>
 
@@ -61,7 +61,7 @@
 
   <!-- ================= ADD PAYMENT BUTTON ================= -->
 
-  <div class="add-payment-section">
+<div class="add-payment-section" *ngIf="!isPaymentDone">
 
     <button
       class="btn-add-payment"
@@ -75,7 +75,7 @@
 
   <!-- ================= PAYMENT FORM ================= -->
 
-  <div class="billing-card">
+<div class="billing-card" *ngIf="!isPaymentDone">
 
     <div class="card-title">New Payment</div>
 
@@ -116,7 +116,7 @@
 
   <!-- ================= BALANCE ================= -->
 
-  <div class="balance-preview">
+  <div class="balance-preview" *ngIf="!isPaymentDone">
 
     <span>New Pending Balance</span>
 
@@ -129,7 +129,7 @@
 
   <!-- ================= FOOTER ================= -->
 
-  <div class="billing-footer">
+  <div class="billing-footer" *ngIf="!isPaymentDone">
 
     <button
       class="btn-outline"

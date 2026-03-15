@@ -40,6 +40,8 @@ export class FollowupPage implements OnInit, OnDestroy {
 
   waveOffVerified = false;
 
+  isFollowUpAlreadySaved = false;
+
   medicines: any[] = [];
   patientId!: number;
   creatingMedicine = false;
@@ -119,8 +121,12 @@ export class FollowupPage implements OnInit, OnDestroy {
       return;
     }
 
+    const apptParam = this.route.snapshot.queryParamMap.get('appointmentId');
+    if (apptParam && Number(apptParam)) {
+      this.currentAppointmentId = Number(apptParam);
+    }
     // 1️⃣ Load current appointment
-    await this.loadCurrentAppointment();
+    //await this.loadCurrentAppointment();
 
     // 2️⃣ Load summary
     await this.loadSummary();
@@ -919,6 +925,15 @@ async loadPatientSummary(page: number = 1) {
     this.summaryPage       = res?.page          || 1;
     this.summaryTotalPages = res?.totalPages    || 0;
     this.summaryTotalCount = res?.totalCount    || 0;
+
+
+    // ── Check if current appointment already has a follow-up saved ──────────
+    this.isFollowUpAlreadySaved = this.summaryHistory.some(
+      (appt: any) => appt.appointmentId === this.currentAppointmentId
+    );
+console.log(this.currentAppointmentId)
+console.log(this.summaryHistory)
+    console.log('Follow-up already saved:', this.isFollowUpAlreadySaved);
   } catch (err) {
     console.error('Patient summary load error:', err);
     this.showToast('Failed to load appointment history');
