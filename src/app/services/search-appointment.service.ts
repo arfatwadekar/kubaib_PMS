@@ -50,9 +50,23 @@ export class SearchAppointmentService {
 
   constructor(private http: HttpClient) {}
 
-  getQueue(): Observable<AppointmentPagedResponse> {
-    return this.http.get<AppointmentPagedResponse>(`${this.base}/api/Appointment/queue`);
-  }
+  getAppointments(
+      filter: 'today' | 'future' | 'past' = 'today',
+      page: number = 1,
+      pageSize: number = 50,
+      status: string = '',
+      search: string = ''
+    ): Observable<AppointmentPagedResponse> {
+
+      let params = `?filter=${filter}&page=${page}&pageSize=${pageSize}`;
+
+      if (status) params += `&status=${status}`;
+      if (search) params += `&search=${encodeURIComponent(search)}`;
+
+      return this.http.get<AppointmentPagedResponse>(
+        `${this.base}/api/Appointment${params}`
+      );
+    }
 
   getToday(): Observable<AppointmentPagedResponse> {
     return this.http.get<AppointmentPagedResponse>(`${this.base}/api/Appointment/today`);
