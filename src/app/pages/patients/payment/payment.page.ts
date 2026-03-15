@@ -196,7 +196,7 @@ async loadPaymentData() {
     // Card 2: Pending Balance (from previous visits via balance API)
     // Card 3: Total = Card 1 + Card 2
     this.pendingBalance    = pendingFromApi;
-    this.totalPayable      = this.consultationCharges + pendingFromApi;
+    this.totalPayable      = Math.max(0, this.consultationCharges + pendingFromApi - this.waveOffAmount);
     this.newPendingBalance = this.totalPayable;
 
     console.log('Payment done:', isPaymentDone);
