@@ -42,11 +42,13 @@ export class DashboardService {
   }
 
   /** GET /api/Dashboard/weekly-overview */
-  getWeeklyOverview(): Observable<any> {
-    return this.http.get(
-      `${this.base}/api/Dashboard/weekly-overview`
-    );
-  }
+  getWeeklyOverview(weekOffset: number = 0): Observable<any> {
+  const params = new HttpParams().set('weekOffset', weekOffset.toString());
+  return this.http.get(
+    `${this.base}/api/Dashboard/weekly-overview`,
+    { params }
+  );
+}
 
   /**
    * GET /api/Dashboard/todays-appointments

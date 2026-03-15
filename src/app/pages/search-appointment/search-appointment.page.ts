@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { AlertController, ToastController } from '@ionic/angular';
+import { firstValueFrom, Observable } from 'rxjs';
 import {
   SearchAppointmentService,
   ApiAppointment,
@@ -172,57 +173,106 @@ export class SearchAppointmentPage implements OnInit {
   ========================================================= */
 
   openEditModal(row: UiRow) {
+    // FROM:
+    // if (this.viewMode === 'past') return;
 
-    if (this.viewMode === 'past') return;
+    // TO: only block if past AND already cancelled
+    if (this.viewMode === 'past' && row.status === 5) return;
+
+    const isPastCancel = this.viewMode === 'past' && row.status !== 5;
 
     this.selectedAppointment = {
       ...row,
-      _dateDraft: row.appointmentDate?.slice(0, 10),
-      _timeDraft: this.toHHmm(row.appointmentTimeFormatted),
-      _remarkDraft: row.remark ?? ''
+      _dateDraft:      row.appointmentDate?.slice(0, 10),
+      _timeDraft:      this.toHHmm(row.appointmentTimeFormatted),
+      _remarkDraft:    row.remark ?? '',
+      _originalStatus: row.status,
+      _isPastCancel:   isPastCancel,
+      status:          isPastCancel ? 5 : row.status
     };
 
     this.isEditOpen = true;
   }
-
   closeEditModal() {
     this.isEditOpen = false;
     this.selectedAppointment = null;
   }
+async saveEdit() {
+  if (!this.selectedAppointment) return;
 
-  saveEdit() {
+  const row = this.rows.find(r =>
+    r.appointmentId === this.selectedAppointment.appointmentId
+  );
 
-    if (!this.selectedAppointment) return;
+  if (!row) return;
 
-    const row = this.rows.find(r =>
-      r.appointmentId === this.selectedAppointment.appointmentId
-    );
-
-    if (!row) return;
-
+  // ── Past cancel: only update status, skip appointment update ──────────
+  if (this.selectedAppointment._isPastCancel) {
     row._saving = true;
-
-    this.api.updateAppointment(row.appointmentId, {
-      appointmentDate: this.selectedAppointment._dateDraft,
-      appointmentTime: this.toTimeWithSeconds(this.selectedAppointment._timeDraft),
-      remark: this.selectedAppointment._remarkDraft,
-    }).subscribe({
-      next: (updated) => {
-
-        Object.assign(row, updated);
-
-        row._saving = false;
-        this.isEditOpen = false;
-
-        this.toast('Appointment updated');
-        this.applyFilter();
-      },
-      error: () => {
-        row._saving = false;
-        this.toast('Update failed');
-      }
-    });
+    try {
+      await firstValueFrom(
+        this.api.updateStatus(row.appointmentId, 5)
+      );
+      row.status      = 5;
+      this.isEditOpen = false;
+      this.toast('Appointment cancelled');
+      this.load();
+    } catch {
+      this.toast('Cancel failed');
+    } finally {
+      row._saving = false;
+    }
+    return;
   }
+
+  row._saving = true;
+
+  const statusChanged =
+    Number(this.selectedAppointment.status) !==
+    Number(this.selectedAppointment._originalStatus);
+
+  // ── Build payload — appointmentTime only if user selected it ──────────
+  const updatePayload: any = {
+    appointmentDate: this.selectedAppointment._dateDraft,
+    remark:          this.selectedAppointment._remarkDraft,
+  };
+
+  if (this.selectedAppointment._timeDraft) {
+    updatePayload.appointmentTime = this.toTimeWithSeconds(this.selectedAppointment._timeDraft);
+  }
+
+  this.api.updateAppointment(row.appointmentId, updatePayload).subscribe({
+    next: async (updated) => {
+
+      // ── Call status API only if status actually changed ──────────────
+      if (statusChanged) {
+        try {
+          await firstValueFrom(
+            this.api.updateStatus(
+              row.appointmentId,
+              Number(this.selectedAppointment.status)
+            )
+          );
+          row.status = Number(this.selectedAppointment.status);
+        } catch {
+          this.toast('Status update failed');
+        }
+      }
+
+      Object.assign(row, updated);
+
+      row._saving     = false;
+      this.isEditOpen = false;
+
+      this.toast('Appointment updated');
+      this.load();
+    },
+    error: () => {
+      row._saving = false;
+      this.toast('Update failed');
+    }
+  });
+}
 
   /* =========================================================
      STATUS UPDATE

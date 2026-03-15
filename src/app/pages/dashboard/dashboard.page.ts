@@ -179,7 +179,7 @@ export class DashboardPage {
       forkJoin({
         appointments: this.api.getTodayAppointments().pipe(catchError(() => of(null))),
         stats:        this.api.getDashboardStats().pipe(catchError(() => of(null))),
-        weekly:       this.api.getWeeklyOverview().pipe(catchError(() => of(null))),
+        weekly: this.api.getWeeklyOverview(this.weekOffset).pipe(catchError(() => of(null))),
       })
       .pipe(finalize(() => { this.isLoading = false; resolve(); }))
       .subscribe(async ({ appointments, stats, weekly }) => {
@@ -217,7 +217,7 @@ export class DashboardPage {
   nextWeek() { this.weekOffset++; this.loadWeekOnly(); }
 
   private loadWeekOnly() {
-    this.api.getWeeklyOverview()
+    this.api.getWeeklyOverview(this.weekOffset)
       .pipe(catchError(() => of(null)))
       .subscribe((w) => this.refreshBarChart(w));
   }
@@ -322,20 +322,26 @@ openPatient(row: AppointmentRow) {
 
   const role = (localStorage.getItem('mhc_role') || '').trim().toLowerCase();
 
-  let route = '/patients/prelim';
+  let route  = '/patients/prelim';
+  let tab    = 'prelim';
 
-  if (role === 'doctor') {
-    route = '/patients/medical';   // Doctor → Medical
-  } 
-  else if (role === 'receptionist') {
-    route = '/patients/payment';   // Receptionist → Payment
+  if (Number(row.statusCode) === AppointmentStatus.AwaitingPayment) {
+    route = '/patients/payment';
+    tab   = 'payment';
+  } else if (role === 'doctor') {
+    route = '/patients/medical';
+    tab   = 'medical';
+  } else if (role === 'receptionist') {
+    route = '/patients/payment';
+    tab   = 'payment';
   }
 
   this.router.navigate([route], {
     queryParams: {
-      patientId: row.patientId,
+      patientId:     row.patientId,
       appointmentId: row.appointmentId,
-      from: 'dashboard'
+      from:          'dashboard',
+      tab:           tab            // ← this was missing
     }
   });
 }

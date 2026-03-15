@@ -160,49 +160,31 @@
     <div class="table-wrapper">
 
       <table class="payment-table">
-
         <thead>
           <tr>
             <th>#</th>
-            <th>Amount</th>
+            <th>Consultation</th>
+            <th>Wave Off</th>
+            <th>Amount Paid</th>
             <th>Mode</th>
             <th>Date</th>
           </tr>
         </thead>
 
         <tbody>
-
-          <tr
-            *ngFor="let p of paginatedPayments; let i = index"
-          >
-
+          <tr *ngFor="let p of paginatedPayments; let i = index">
+            <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
+            <td>₹ {{ p.consultationCharges }}</td>
+            <td>₹ {{ p.waveOffAmount }}</td>
+            <td class="amount">₹ {{ p.amountPaid }}</td>
             <td>
-              {{ (currentPage - 1) * pageSize + i + 1 }}
-            </td>
-
-            <td class="amount">
-              ₹ {{ p.amountPaid }}
-            </td>
-
-            <td>
-
-              <span
-                class="mode-badge"
-                [ngClass]="p.paymentMode?.toLowerCase()"
-              >
-                {{ p.paymentMode }}
+              <span class="mode-badge" [ngClass]="p.paymentMode?.toLowerCase()">
+                {{ p.paymentMode || '—' }}
               </span>
-
             </td>
-
-            <td>
-              {{ p.paymentDate | date:'dd-MM-yyyy' }}
-            </td>
-
+            <td>{{ p.paymentDate | date:'dd-MM-yyyy' }}</td>
           </tr>
-
         </tbody>
-
       </table>
 
     </div>

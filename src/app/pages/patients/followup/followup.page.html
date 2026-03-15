@@ -1,5 +1,151 @@
 <div class="ion-padding fu-container">
   <div class="fu-wrap">
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- APPOINTMENT HISTORY SECTION                                            -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<div class="history-section">
+
+  <!-- SECTION HEADER -->
+  <div class="history-header">
+    <h2 class="history-title">📋 Appointment History</h2>
+    <span class="history-count" *ngIf="summaryTotalCount > 0">
+      {{ summaryTotalCount }} record(s)
+    </span>
+  </div>
+
+  <!-- LOADING STATE -->
+  <div class="history-loading" *ngIf="summaryLoading">
+    <span class="spinner"></span> Loading history...
+  </div>
+
+  <!-- EMPTY STATE -->
+  <div class="history-empty" *ngIf="!summaryLoading && summaryHistory.length === 0">
+    <p>No past appointments found for this patient.</p>
+  </div>
+
+  <!-- HISTORY CARDS (read-only) -->
+  <div
+    class="history-card"
+    *ngFor="let appt of summaryHistory"
+  >
+    <!-- CARD HEADER -->
+    <div class="history-card-header">
+      <div class="history-card-meta">
+        <span class="history-appt-date">
+          📅 {{ appt.appointmentDate | date: 'dd MMM yyyy' }}
+          &nbsp;⏰ {{ appt.appointmentTime }}
+        </span>
+        <span class="history-status-badge">{{ appt.status }}</span>
+      </div>
+      <span class="history-remark" *ngIf="appt.remark">
+        {{ appt.remark }}
+      </span>
+    </div>
+
+    <!-- FOLLOW-UP ENTRY DETAILS -->
+    <div class="history-followup" *ngIf="appt.followUpEntry">
+
+      <!-- SYMPTOM STATUS TABLE -->
+      <div class="history-symptoms" *ngIf="appt.followUpEntry.statusRecords?.length">
+        <label class="history-label">Symptom Status</label>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Symptom</th>
+                <th>Status / Remarks</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let sr of appt.followUpEntry.statusRecords">
+                <td>{{ sr.criteriaName }}</td>
+                <td>{{ sr.remarks || '–' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- INTERPRETATION -->
+      <div class="history-field" *ngIf="appt.followUpEntry.interpretation">
+        <span class="history-label">Interpretation:</span>
+        <span class="history-value">{{ appt.followUpEntry.interpretation }}</span>
+      </div>
+
+      <!-- CHARGE -->
+      <div class="history-field" *ngIf="appt.followUpEntry.charge">
+        <span class="history-label">Charge:</span>
+        <span class="history-value">₹ {{ appt.followUpEntry.charge }}</span>
+      </div>
+    </div>
+
+    <!-- PRESCRIBED MEDICINES -->
+    <div class="history-medicines" *ngIf="appt.prescribedMedicines?.length">
+      <label class="history-label">💊 Prescribed Medicines</label>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>Medicine</th>
+              <th>Dosage</th>
+              <th>Frequency</th>
+              <th>Duration</th>
+              <th>Instructions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let med of appt.prescribedMedicines">
+              <td>{{ med.medicineName }}</td>
+              <td>{{ med.dosage || '–' }}</td>
+              <td>{{ med.frequency || '–' }}</td>
+              <td>{{ med.duration || '–' }}</td>
+              <td>{{ med.instructions || '–' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PAYMENT DETAILS -->
+    <div class="history-payment" *ngIf="appt.payment">
+      <label class="history-label">💰 Payment</label>
+      <div class="history-payment-row">
+        <span>Charges: ₹{{ appt.payment.consultationCharges }}</span>
+        <span *ngIf="appt.payment.waveOffAmount">
+          Wave Off: ₹{{ appt.payment.waveOffAmount }}
+        </span>
+        <span>Paid: ₹{{ appt.payment.amountPaid }}</span>
+        <span *ngIf="appt.payment.remainingBalance">
+          Balance: ₹{{ appt.payment.remainingBalance }}
+        </span>
+      </div>
+    </div>
+  </div>
+  <!-- END HISTORY CARDS -->
+
+  <!-- PAGINATION -->
+  <div class="history-pagination" *ngIf="summaryTotalPages > 1">
+    <button
+      class="btn btn-secondary"
+      [disabled]="summaryPage === 1 || summaryLoading"
+      (click)="onSummaryPageChange(summaryPage - 1)"
+    >
+      ← Prev
+    </button>
+
+    <span class="page-info">Page {{ summaryPage }} of {{ summaryTotalPages }}</span>
+
+    <button
+      class="btn btn-secondary"
+      [disabled]="summaryPage === summaryTotalPages || summaryLoading"
+      (click)="onSummaryPageChange(summaryPage + 1)"
+    >
+      Next →
+    </button>
+  </div>
+
+</div>
+<!-- END HISTORY SECTION -->
     <div class="fu-card">
       <!-- ═════════════════════════════════════════════════════════════════ -->
       <!-- HEADER SECTION -->

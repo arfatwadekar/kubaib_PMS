@@ -115,16 +115,25 @@
             </td>
 
             <td class="text-right">
-              <!-- Show Edit only if not Past -->
-              <ng-container *ngIf="viewMode !== 'past'; else noAction">
-                <button class="edit-btn" (click)="openEditModal(r)">
-                  Edit
-                </button>
-              </ng-container>
+  <!-- Today / Future Tab -->
+  <ng-container *ngIf="viewMode !== 'past'; else pastAction">
+    <button class="edit-btn" (click)="openEditModal(r)">
+      Edit
+    </button>
+  </ng-container>
 
-              <!-- Past Tab -->
-              <ng-template #noAction> — </ng-template>
-            </td>
+            <!-- Past Tab -->
+            <ng-template #pastAction>
+              <button
+                class="edit-btn"
+                *ngIf="r.status !== 5"
+                (click)="openEditModal(r)"
+              >
+                Cancel Appt
+              </button>
+              <span *ngIf="r.status === 5">—</span>
+            </ng-template>
+          </td>
           </tr>
         </tbody>
       </table>
@@ -149,40 +158,67 @@
 
       <!-- BODY -->
       <div class="modal-body" *ngIf="selectedAppointment">
-        <!-- DATE + TIME -->
-        <div class="row-2">
-          <div class="form-field">
-            <label>Date</label>
-            <input type="date" [(ngModel)]="selectedAppointment._dateDraft" />
-          </div>
 
-          <div class="form-field">
-            <label>Time</label>
-            <input type="time" [(ngModel)]="selectedAppointment._timeDraft" />
-          </div>
-        </div>
+  <!-- DATE + TIME -->
+  <div class="row-2">
+    <div class="form-field">
+      <label>Date</label>
+      <input
+        type="date"
+        [(ngModel)]="selectedAppointment._dateDraft"
+        [disabled]="selectedAppointment._isPastCancel"
+      />
+    </div>
 
-        <!-- STATUS -->
-        <div class="form-field">
-          <label>Status</label>
-          <select [(ngModel)]="selectedAppointment.status">
-            <option
-              *ngFor="let s of statusOptions"
-              [value]="s.value"
-              [disabled]="s.value === 0"
-            >
-              {{ s.label }}
-            </option>
-          </select>
-        </div>
+    <div class="form-field">
+      <label>Time</label>
+      <input
+        type="time"
+        [(ngModel)]="selectedAppointment._timeDraft"
+        [disabled]="selectedAppointment._isPastCancel"
+      />
+    </div>
+  </div>
 
-        <!-- REMARK -->
-        <div class="form-field">
-          <label>Remark</label>
-          <textarea rows="3" [(ngModel)]="selectedAppointment._remarkDraft">
-          </textarea>
-        </div>
+  <!-- STATUS -->
+      <div class="form-field">
+        <label>Status</label>
+
+        <!-- Past cancel mode: only Cancelled option -->
+        <select
+          *ngIf="selectedAppointment._isPastCancel"
+          [(ngModel)]="selectedAppointment.status"
+          disabled
+        >
+          <option [value]="5">Cancelled</option>
+        </select>
+
+        <!-- Normal edit mode: all options -->
+        <select
+          *ngIf="!selectedAppointment._isPastCancel"
+          [(ngModel)]="selectedAppointment.status"
+        >
+          <option
+            *ngFor="let s of statusOptions"
+            [value]="s.value"
+            [disabled]="s.value === 0"
+          >
+            {{ s.label }}
+          </option>
+        </select>
       </div>
+
+      <!-- REMARK -->
+      <div class="form-field">
+        <label>Remark</label>
+        <textarea
+          rows="3"
+          [(ngModel)]="selectedAppointment._remarkDraft"
+          [disabled]="selectedAppointment._isPastCancel"
+        ></textarea>
+      </div>
+
+    </div>
 
       <!-- FOOTER -->
       <div class="modal-footer">
