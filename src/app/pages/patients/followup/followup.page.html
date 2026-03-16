@@ -151,10 +151,16 @@
 
     <div class="container" *ngIf="!isFollowUpAlreadySaved">
         <!-- HEADER -->
-        <div class="header">
+        <!-- <div class="header">
           <h1>Follow-Up Record - 08:10 PM</h1>
           <span class="header-date">08/03/2026</span>
-        </div>
+        </div> -->
+        <div class="header">
+  <h1>Follow-Up Record - {{ today | date:'hh:mm a' }}</h1>
+  <span class="header-date highlight-date">
+    {{ today | date:'dd/MM/yyyy' }}
+  </span>
+</div>
 
         <!-- MAIN CARD -->
         <div class="card">

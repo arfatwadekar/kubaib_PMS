@@ -1,5 +1,5 @@
 <app-header
-  title="Medicine Dashboard"
+  title="Medicine List"
   actionLabel="Refresh"
   (action)="refresh()"
 ></app-header>
@@ -62,7 +62,7 @@
         <div>Strength</div>
         <div>Form</div>
         <div>Stock</div>
-        <div>Unit</div>
+        <!-- <div>Unit</div> -->
         <div>Actions</div>
       </div>
 
@@ -86,9 +86,9 @@
           {{ m.stockQuantity }} in stock
         </div>
 
-        <div class="cell">
+        <!-- <div class="cell">
           {{ m.unit }}
-        </div>
+        </div> -->
 
         <div class="cell actions">
           <button class="btn-view" (click)="view(m.medicineId)">View</button>

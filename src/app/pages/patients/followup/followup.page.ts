@@ -17,6 +17,7 @@ const AUTO_ADD_ROWS = 2;
   standalone: false,
 })
 export class FollowupPage implements OnInit, OnDestroy {
+  today = new Date();
   // ─────────────────────────────────────────────────────────────────────────
   // LIFECYCLE PROPERTIES
   // ─────────────────────────────────────────────────────────────────────────

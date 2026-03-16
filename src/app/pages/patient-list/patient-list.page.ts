@@ -68,6 +68,9 @@ export class PatientListPage implements OnInit, OnDestroy {
     this.setupSearchStream();
     this.loadPatients(true);
   }
+  ionViewWillEnter() {
+  this.loadPatients(true);
+}
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
@@ -251,7 +254,8 @@ async openAppointmentModal(row: Row) {
   this.router.navigate(['/patients'], {
     queryParams: {
       mode: 'create',     // 👈 IMPORTANT
-      from: 'list'        // 👈 optional but clean
+      from: 'list'    ,    // 👈 optional but clean
+        tab: 'prelim'
     }
   });
 }

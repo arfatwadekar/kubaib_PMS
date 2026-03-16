@@ -13,6 +13,7 @@
       <div class="summary-label">Pending Balance</div>
       <div class="summary-value">₹ {{ pendingBalance }}</div>
     </div>
+    
 
     <div class="summary-card">
       <div class="summary-label">Wave Off</div>
@@ -94,13 +95,22 @@
       <div class="form-group">
         <label>Amount Paid</label>
 
-        <input
+        <!-- <input
           type="number"
           [(ngModel)]="amountPaid"
           (input)="recalculateBalance()"
           placeholder="Enter amount"
-        />
+        /> -->
 
+        <input
+  type="number"
+  [(ngModel)]="amountPaid"
+  (input)="recalculateBalance()"
+  (keydown.arrowup)="$event.preventDefault()"
+  (keydown.arrowdown)="$event.preventDefault()"
+  (wheel)="$event.preventDefault()"
+  placeholder="Enter amount"
+/>
       </div>
 
       <div class="form-group">

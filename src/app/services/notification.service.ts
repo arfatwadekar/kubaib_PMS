@@ -70,4 +70,8 @@ export class NotificationService {
   getLocalUnreadCount(): number {
     return this.notificationsSubject.value.filter(n => !n.isRead).length;
   }
+
+  delete(id: number) {
+  return this.http.delete(`${this.baseUrl}/${id}`);
+}
 }

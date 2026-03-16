@@ -11,7 +11,7 @@ import { IonPopover } from '@ionic/angular';
   selector: 'app-header',
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
-  standalone:false
+  standalone: false
 })
 export class HeaderComponent {
 
@@ -25,9 +25,15 @@ export class HeaderComponent {
   @Input() profileRole?: string;
   @Input() profileInitial?: string;
 
+  // ========== NOTIFICATION INPUTS ==========
+  @Input() showNotification = false;
+  @Input() notificationCount = 0;
+  @Input() notificationIcon = 'notifications-outline';
+
   @Output() action = new EventEmitter<void>();
   @Output() editProfile = new EventEmitter<void>();
   @Output() logout = new EventEmitter<void>();
+  @Output() notificationClick = new EventEmitter<void>();
 
   @ViewChild('popover') popover!: IonPopover;
 
@@ -58,6 +64,22 @@ export class HeaderComponent {
 
   onActionClick() {
     this.action.emit();
+  }
+
+  // ================= NOTIFICATION =================
+
+  onNotificationClick() {
+    this.notificationClick.emit();
+  }
+
+  // Clear notification count programmatically (optional)
+  clearNotifications() {
+    this.notificationCount = 0;
+  }
+
+  // Update notification count
+  setNotificationCount(count: number) {
+    this.notificationCount = count;
   }
 
   // ================= POPOVER =================

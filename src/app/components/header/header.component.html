@@ -21,6 +21,22 @@
     <!-- RIGHT (Profile / Action) -->
     <ion-buttons slot="end">
 
+      <!-- NOTIFICATION BELL -->
+      <ion-button
+        *ngIf="showNotification"
+        fill="clear"
+        class="notification-btn"
+        (click)="onNotificationClick()"
+      >
+        <ion-icon [name]="notificationIcon"></ion-icon>
+        <ion-badge 
+          *ngIf="notificationCount > 0"
+          class="notification-badge"
+        >
+          {{ notificationCount > 99 ? '99+' : notificationCount }}
+        </ion-badge>
+      </ion-button>
+
       <ion-button
         *ngIf="actionIcon"
         fill="clear"
