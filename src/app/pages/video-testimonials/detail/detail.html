@@ -1,4 +1,6 @@
-<app-header [title]="pageTitle"></app-header>
+<app-header [title]="pageTitle"   [showNotification]="true"
+  [notificationCount]="unreadCount"
+  (notificationClick)="openNotifications()"></app-header>
 
 <ion-content class="detail-bg">
   <div class="video-detail-wrapper">

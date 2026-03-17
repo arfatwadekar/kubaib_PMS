@@ -7,6 +7,9 @@ import { environment } from 'src/environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
+  // getNotifications() {
+  //   throw new Error('Method not implemented.');
+  // }
 
   private baseUrl = `${environment.apiBaseUrl}/api/Notification`;
   private hubUrl = `${environment.apiBaseUrl}/notificationHub`;
@@ -71,7 +74,11 @@ export class NotificationService {
     return this.notificationsSubject.value.filter(n => !n.isRead).length;
   }
 
-  delete(id: number) {
+deleteNotification(id: number) {
   return this.http.delete(`${this.baseUrl}/${id}`);
+}
+
+getNotifications(): Observable<Notification[]> {
+  return this.http.get<Notification[]>(this.baseUrl);
 }
 }

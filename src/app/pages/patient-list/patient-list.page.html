@@ -1,4 +1,6 @@
-<app-header title="All Patients"></app-header>
+<app-header title="All Patients" [showNotification]="true"
+  [notificationCount]="unreadCount"
+  (notificationClick)="openNotifications()"></app-header>
 
 <ion-content class="app-bg">
   <div class="app-container">

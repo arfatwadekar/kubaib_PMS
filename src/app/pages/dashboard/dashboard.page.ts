@@ -1,11 +1,12 @@
 import { Component, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { ToastController } from '@ionic/angular';
+import { AlertController, PopoverController, ToastController } from '@ionic/angular';
 import { forkJoin, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { ChartConfiguration, ChartData, ChartOptions } from 'chart.js';
 import { BaseChartDirective } from 'ng2-charts';
 import { DashboardService } from 'src/app/services/dashboard.service';
+import { NotificationService } from 'src/app/services/notification.service';
 
 // ─── Enums & Types ───────────────────────────────────────────────────────────
 
@@ -51,6 +52,8 @@ type CardFilterKey =
   standalone:  false,
 })
 export class DashboardPage {
+unreadCount = 0;
+notifications: any[] = [];
 
   @ViewChild('barChartRef')   barChartRef?:   BaseChartDirective;
   @ViewChild('donutChartRef') donutChartRef?: BaseChartDirective;
@@ -155,8 +158,27 @@ export class DashboardPage {
     private api:       DashboardService,
     private toastCtrl: ToastController,
     private router:    Router,
+     private popoverCtrl: PopoverController,
+       private notificationService: NotificationService,
+
   ) {}
 
+  ngOnInit() {
+  this.loadNotifications();
+}
+
+
+async loadNotifications() {
+  const res: any = await this.notificationService.getNotifications().toPromise();
+
+  this.notifications = res || [];
+
+  this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+}
+
+openNotifications() {
+  this.router.navigate(['/notifications']);
+}
   // ─── Lifecycle ───────────────────────────────────────────────
 
   ionViewWillEnter() {
@@ -574,12 +596,27 @@ openPatient(row: AppointmentRow) {
     t.present();
   }
 
-  onEditProfile() {
-  console.log('Navigate to profile page');
+//   onEditProfile() {
+//   console.log('Navigate to profile page');
+// }
+
+
+
+
+async onLogout() {
+  console.log('Logging out...');
+  
+  // Clear storage
+  localStorage.clear();
+  sessionStorage.clear();
+  
+  // Close popover/modal
+  await this.popoverCtrl.dismiss();
+  
+  // Navigate to login
+  this.router.navigate(['/login']);
+  
+  console.log('Logged out successfully');
 }
 
-onLogout() {
-  localStorage.clear();
-  console.log('Navigate to login');
-}
 }

@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { NotificationService } from 'src/app/services/notification.service';
 import { Notification } from 'src/app/models/notification.model';
 import { Router } from '@angular/router';
+import { AlertController } from '@ionic/angular';
 import { Subject, takeUntil } from 'rxjs';
 
 @Component({
@@ -11,7 +12,7 @@ import { Subject, takeUntil } from 'rxjs';
   standalone: false
 })
 export class ListingComponent implements OnInit, OnDestroy {
-
+isDoctor = false;
   notifications: Notification[] = [];
   unreadCount = 0;
   loading = false;
@@ -20,30 +21,71 @@ export class ListingComponent implements OnInit, OnDestroy {
 
   constructor(
     private notificationService: NotificationService,
-    private router: Router
+    private router: Router,
+    private alertController: AlertController
   ) {}
 
   // ==========================
   // INIT
   // ==========================
+  // ngOnInit(): void {
+
+  //   this.loadNotifications();
+
+  //   // Listen to real-time updates from service
+  //   this.notificationService.notifications$
+  //     .pipe(takeUntil(this.destroy$))
+  //     .subscribe((data: Notification[]) => {
+
+  //       this.notifications = data.sort(
+  //         (a, b) =>
+  //           new Date(b.createdOn).getTime() -
+  //           new Date(a.createdOn).getTime()
+  //       );
+
+  //       this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+  //     });
+  // }
+  
+
   ngOnInit(): void {
 
-    this.loadNotifications();
+  // Check user role
+  const role = localStorage.getItem('mhc_role');
+  this.isDoctor = role === 'Doctor';
 
-    // Listen to real-time updates from service
-    this.notificationService.notifications$
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((data: Notification[]) => {
+  // Load initial notifications
+  this.loadNotifications();
 
-        this.notifications = data.sort(
-          (a, b) =>
-            new Date(b.createdOn).getTime() -
-            new Date(a.createdOn).getTime()
-        );
+  // Listen to realtime notification updates
+  this.notificationService.notifications$
+    .pipe(takeUntil(this.destroy$))
+    .subscribe((data: Notification[]) => {
 
-        this.unreadCount = this.notifications.filter(n => !n.isRead).length;
-      });
-  }
+      if (!data) return;
+
+      // Sort latest first
+      this.notifications = [...data].sort(
+        (a, b) =>
+          new Date(b.createdOn).getTime() -
+          new Date(a.createdOn).getTime()
+      );
+
+      // Calculate unread count
+      this.unreadCount = this.notifications
+        .filter(n => !n.isRead)
+        .length;
+    });
+
+     this.notificationService.notifications$.subscribe(data => {
+    this.unreadCount = data.filter(n => !n.isRead).length;
+  });
+}
+
+
+openNotifications() {
+  console.log('Already on notifications page');
+}
 
   // ==========================
   // LOAD INITIAL DATA
@@ -90,6 +132,92 @@ export class ListingComponent implements OnInit, OnDestroy {
   }
 
   // ==========================
+  // DELETE NOTIFICATION
+  // ==========================
+  // deleteNotification(notification: Notification, event?: Event): void {
+
+  //   event?.stopPropagation();
+
+  //   if (!notification.webNotificationId) return;
+
+  //   // Show confirmation dialog
+  //   this.showDeleteConfirmation(notification);
+  // }
+
+  /**
+   * Show Ionic alert dialog for delete confirmation
+   */
+  private async showDeleteConfirmation(notification: Notification): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Delete Notification',
+      message: `Are you sure you want to delete the notification from <strong>${notification.name}</strong>?`,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+          handler: () => {
+            console.log('Delete cancelled');
+          }
+        },
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: () => {
+            this.confirmDelete(notification);
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  /**
+   * Perform the actual deletion
+   */
+  private confirmDelete(notification: Notification): void {
+
+    notification.isDeleting = true;
+
+    this.notificationService
+      .deleteNotification(notification.webNotificationId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          // Remove from local array
+          this.notifications = this.notifications.filter(
+            n => n.webNotificationId !== notification.webNotificationId
+          );
+
+          // Update unread count
+          this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+
+          console.log('Notification deleted successfully');
+        },
+        error: (err) => {
+          console.error('Delete Error:', err);
+          notification.isDeleting = false;
+
+          // Show error alert
+          this.showErrorAlert('Failed to delete notification. Please try again.');
+        }
+      });
+  }
+
+  /**
+   * Show error alert
+   */
+  private async showErrorAlert(message: string): Promise<void> {
+    const alert = await this.alertController.create({
+      header: 'Error',
+      message: message,
+      buttons: ['OK']
+    });
+
+    await alert.present();
+  }
+
+  // ==========================
   // OPEN DETAIL
   // ==========================
   openDetail(notification: Notification): void {
@@ -116,4 +244,18 @@ export class ListingComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+  deleteNotification(notification: Notification, event?: Event): void {
+
+  event?.stopPropagation();
+
+  if (!this.isDoctor) {
+    console.warn('Only doctor can delete notifications');
+    return;
+  }
+
+  if (!notification.webNotificationId) return;
+
+  this.showDeleteConfirmation(notification);
+}
 }

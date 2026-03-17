@@ -36,7 +36,9 @@ export class HeaderComponent {
   @Output() notificationClick = new EventEmitter<void>();
 
   @ViewChild('popover') popover!: IonPopover;
+// @Input() notificationCount = 0;
 
+// @Output() notificationClick = new EventEmitter<void>();
   profileOpen = false;
   profileEvent: any;
 
@@ -68,9 +70,9 @@ export class HeaderComponent {
 
   // ================= NOTIFICATION =================
 
-  onNotificationClick() {
-    this.notificationClick.emit();
-  }
+  // onNotificationClick() {
+  //   this.notificationClick.emit();
+  // }
 
   // Clear notification count programmatically (optional)
   clearNotifications() {
@@ -105,4 +107,8 @@ export class HeaderComponent {
     this.closePopover();
     this.logout.emit();
   }
+
+  onNotificationClick() {
+  this.notificationClick.emit();
+}
 }

@@ -7,6 +7,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { Subject, takeUntil } from 'rxjs';
 import { AnnouncementService } from 'src/app/services/announcement.service';
+import { NotificationService } from 'src/app/services/notification.service';
 
 type PageMode = 'create' | 'edit' | 'view';
 
@@ -44,6 +45,7 @@ export class AnnouncementDetailPage implements OnInit, OnDestroy {
     private router:    Router,
     private toastCtrl: ToastController,
     private svc:       AnnouncementService,
+     private notificationService: NotificationService,
   ) {}
 
   // ═══════════════════════════════════════════════════════════
@@ -80,6 +82,7 @@ export class AnnouncementDetailPage implements OnInit, OnDestroy {
           this.mode = 'create';
         }
       });
+       this.loadNotifications();
   }
 
   ngOnDestroy(): void {
@@ -246,4 +249,18 @@ export class AnnouncementDetailPage implements OnInit, OnDestroy {
     const t = await this.toastCtrl.create({ message, duration: 2200, color, position: 'top' });
     await t.present();
   }
+      unreadCount = 0;
+notifications: any[] = [];
+async loadNotifications() {
+  const res: any = await this.notificationService.getNotifications().toPromise();
+
+  this.notifications = res || [];
+
+  this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+}
+
+openNotifications() {
+  this.router.navigate(['/notifications']);
+}
+
 }

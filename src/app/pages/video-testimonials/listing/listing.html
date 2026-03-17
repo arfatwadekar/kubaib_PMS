@@ -1,4 +1,6 @@
-<app-header title="Video Testimonials"></app-header>
+<app-header title="Video Testimonials"   [showNotification]="true"
+  [notificationCount]="unreadCount"
+  (notificationClick)="openNotifications()"></app-header>
 
 <ion-content class="video-bg">
   <div class="video-container">

@@ -19,6 +19,7 @@ import {
 import { PatientService } from 'src/app/services/patient.service';
 import { CreateAppointmentModalComponent } from 'src/app/components/create-appointment-modal/create-appointment-modal.component';
 import { PatientActionPopoverComponent } from 'src/app/components/patient-action-popover/patient-action-popover.component';
+import { NotificationService } from 'src/app/services/notification.service';
 
 type Row = {
   srNo: number;
@@ -39,7 +40,8 @@ type Row = {
 })
 export class PatientListPage implements OnInit, OnDestroy {
   loading = false;
-
+unreadCount = 0;
+notifications: any[] = [];
   searchText = '';
   isSearching = false;
   searchedOnce = false;
@@ -62,11 +64,13 @@ export class PatientListPage implements OnInit, OnDestroy {
     private router: Router,
     private modalCtrl: ModalController,
     private popoverCtrl: PopoverController,
+     private notificationService: NotificationService,
   ) {}
 
   ngOnInit(): void {
     this.setupSearchStream();
     this.loadPatients(true);
+      this.loadNotifications();
   }
   ionViewWillEnter() {
   this.loadPatients(true);
@@ -320,5 +324,17 @@ async openAppointmentModal(row: Row) {
   }
 
   
+
+  async loadNotifications() {
+  const res: any = await this.notificationService.getNotifications().toPromise();
+
+  this.notifications = res || [];
+
+  this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+}
+
+openNotifications() {
+  this.router.navigate(['/notifications']);
+}
 
 }

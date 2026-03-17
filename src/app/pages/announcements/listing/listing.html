@@ -1,4 +1,6 @@
-<app-header title="Announcements"></app-header>
+<app-header title="Announcements"    [showNotification]="true"
+  [notificationCount]="unreadCount"
+  (notificationClick)="openNotifications()"></app-header>
 
 <ion-content class="listing-content">
   <div class="page-wrap">

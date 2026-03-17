@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormArray, FormBuilder, FormGroup } from '@angular/forms';
 import { AlertController, ToastController } from '@ionic/angular';
 import { Subject, takeUntil } from 'rxjs';
@@ -8,6 +8,7 @@ import {
   PatientReportPayload,
   PatientReportService,
 } from 'src/app/services/patient-report.service';
+import { NotificationService } from 'src/app/services/notification.service';
 
 type UiRow = { label: string; apiKey: keyof PatientReportPayload };
 
@@ -97,7 +98,9 @@ export class ReportPage implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private api: PatientReportService,
     private toastCtrl: ToastController,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+      private notificationService: NotificationService,
+         private router:    Router,
   ) {}
 
   ngOnInit(): void {
@@ -124,6 +127,8 @@ export class ReportPage implements OnInit, OnDestroy {
         this.clearReportFields();
       }
     });
+
+     this.loadNotifications();
   }
 
   ngOnDestroy(): void {
@@ -420,4 +425,20 @@ export class ReportPage implements OnInit, OnDestroy {
     });
     await t.present();
   }
+
+
+  
+  unreadCount = 0;
+notifications: any[] = [];
+async loadNotifications() {
+  const res: any = await this.notificationService.getNotifications().toPromise();
+
+  this.notifications = res || [];
+
+  this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+}
+
+openNotifications() {
+  this.router.navigate(['/notifications']);
+}
 }

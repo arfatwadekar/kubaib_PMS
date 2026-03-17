@@ -1,8 +1,10 @@
 <app-header
   title="Mariam Health Care"
   [showProfile]="true"
-  (editProfile)="onEditProfile()"
   (logout)="onLogout()"
+    [showNotification]="true"
+  [notificationCount]="unreadCount"
+  (notificationClick)="openNotifications()"
 ></app-header>
 
 <ion-content class="dash-bg">

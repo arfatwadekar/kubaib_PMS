@@ -1,7 +1,9 @@
 <app-header
   [title]="mode === 'create' ? 'New Announcement'
          : mode === 'edit'   ? 'Edit Announcement'
-         :                     'Announcement Details'">
+         :                     'Announcement Details'"     [showNotification]="true"
+  [notificationCount]="unreadCount"
+  (notificationClick)="openNotifications()">
 </app-header>
 
 <ion-content class="detail-content">

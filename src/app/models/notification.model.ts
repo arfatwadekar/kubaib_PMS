@@ -1,13 +1,22 @@
 export interface Notification {
-  webNotificationId?: number;
+
+  webNotificationId: number;
+
   name: string;
-  email: string;
 
-  // 👇 ADD THIS
-  phone?: string;      // agar backend se "phone" aata hai
-  phoneNumber?: string; // agar backend se "phoneNumber" aata hai
+  email?: string;
 
-  message: string;
+  phone?: string;
+
+  phoneNumber?: string;
+
+  message?: string;
+
   createdOn: string;
+
   isRead: boolean;
+
+  // UI state
+  isDeleting?: boolean;
+
 }

@@ -1,72 +1,96 @@
-<app-header title="Notifications"></app-header>
+<app-header
+  title="Notifications"
+  [showNotification]="true"
+  [notificationCount]="unreadCount"
+  (notificationClick)="openNotifications()"
+></app-header>
 
 <ion-content class="notification-page">
-
   <div class="container">
-
+    <!-- LOADING -->
     <div *ngIf="loading" class="loading-state">
       <ion-spinner name="crescent"></ion-spinner>
     </div>
 
-    <div *ngIf="!loading && notifications.length > 0"
-         class="notification-list">
+    <!-- EMPTY -->
+    <div *ngIf="!loading && notifications.length === 0" class="empty-state">
+      <ion-icon name="notifications-off-outline"></ion-icon>
+      <h2>No Notifications</h2>
+      <p>You're all caught up!</p>
+    </div>
 
-      <div *ngFor="let n of notifications"
-           class="notification-card"
-           [class.unread]="!n.isRead"
-           [class.read]="n.isRead"
-         >
-
-        <!-- LEFT ICON -->
+    <!-- LIST -->
+    <div *ngIf="!loading && notifications.length > 0" class="notification-list">
+      <div
+        *ngFor="let n of notifications"
+        class="notification-card"
+        [class.unread]="!n.isRead"
+        [class.read]="n.isRead"
+        [class.deleting]="n.isDeleting"
+      >
+        <!-- ICON -->
         <div class="icon-box">
           <ion-icon name="notifications-outline"></ion-icon>
         </div>
 
         <!-- CONTENT -->
         <div class="content">
-
           <div class="top-row">
-
+            <!-- USER -->
             <div class="user-info">
-              <h3 class="name">{{ n.name }}</h3>
+              <h3 class="name">
+                {{ n.name }}
+              </h3>
 
-              <p class="sub-info" *ngIf="n.email">
+              <p *ngIf="n.email" class="sub-info">
                 {{ n.email }}
               </p>
 
-              <p class="sub-info" *ngIf="n.phone || n.phoneNumber">
+              <p *ngIf="n.phone || n.phoneNumber" class="sub-info">
                 {{ n.phone || n.phoneNumber }}
               </p>
             </div>
 
+            <!-- META -->
             <div class="right-meta">
               <span class="date">
-                {{ n.createdOn | date:'dd MMM yyyy, hh:mm a' }}
+                {{ n.createdOn | date: "dd MMM yyyy, hh:mm a" }}
               </span>
 
-              <span *ngIf="n.isRead" class="read-badge">
-                Read
-              </span>
+              <span *ngIf="n.isRead" class="read-badge"> Read </span>
 
-              <button *ngIf="!n.isRead"
-                      class="mark-btn"
-                      (click)="markAsRead(n, $event)">
-                Mark Read
-              </button>
+              <!-- ACTIONS -->
+              <div class="action-buttons">
+                <button
+                  *ngIf="!n.isRead"
+                  class="mark-btn"
+                  (click)="markAsRead(n, $event)"
+                  [disabled]="n.isDeleting"
+                >
+                  Mark Read
+                </button>
+
+                <button
+                  class="delete-btn"
+                  (click)="deleteNotification(n, $event)"
+                  [disabled]="n?.isDeleting"
+                >
+                  <!-- Normal state -->
+                  <span *ngIf="!n?.isDeleting"> Delete </span>
+
+                  <!-- Loading state -->
+                  <span *ngIf="n?.isDeleting"> Deleting... </span>
+                </button>
+              </div>
             </div>
-
           </div>
 
+          <!-- MESSAGE -->
           <p class="message">
             {{ n.message }}
           </p>
-
         </div>
-
       </div>
-
     </div>
-
   </div>
-
 </ion-content>

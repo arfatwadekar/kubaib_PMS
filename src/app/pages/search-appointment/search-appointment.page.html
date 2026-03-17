@@ -1,4 +1,6 @@
-<app-header title="Search Appointments"></app-header>
+<app-header title="Search Appointments"  [showNotification]="true"
+  [notificationCount]="unreadCount"
+  (notificationClick)="openNotifications()"></app-header>
 
 <ion-content class="page">
   <div class="page-container">

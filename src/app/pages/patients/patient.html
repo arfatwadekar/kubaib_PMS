@@ -1,4 +1,6 @@
-<app-header title="Patient"></app-header>
+<app-header title="Patient"  [showNotification]="true"
+  [notificationCount]="unreadCount"
+  (notificationClick)="openNotifications()"></app-header>
 
 <ion-content class="patient-page">
 

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
 import { firstValueFrom, Observable } from 'rxjs';
+import { NotificationService } from 'src/app/services/notification.service';
 import {
   SearchAppointmentService,
   ApiAppointment,
@@ -70,7 +72,9 @@ export class SearchAppointmentPage implements OnInit {
   constructor(
     private api: SearchAppointmentService,
     private toastCtrl: ToastController,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+        private notificationService: NotificationService,
+            private router:    Router,
   ) {}
 
   /* =========================================================
@@ -79,6 +83,7 @@ export class SearchAppointmentPage implements OnInit {
 
   ngOnInit(): void {
     this.load();
+      this.loadNotifications();
   }
 
   /* =========================================================
@@ -384,6 +389,18 @@ async saveEdit() {
       return '';
   }
 }
+ 
+  unreadCount = 0;
+notifications: any[] = [];
+async loadNotifications() {
+  const res: any = await this.notificationService.getNotifications().toPromise();
 
+  this.notifications = res || [];
 
+  this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+}
+
+openNotifications() {
+  this.router.navigate(['/notifications']);
+}
 }

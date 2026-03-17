@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Subject, takeUntil } from 'rxjs';
 import { BlogService } from 'src/app/services/blog.service';
+import { NotificationService } from 'src/app/services/notification.service';
 
 type PageMode = 'create' | 'edit' | 'view';
 
@@ -50,7 +51,8 @@ export class VideoDetailPage implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private sanitizer: DomSanitizer,
-    private blogService: BlogService
+    private blogService: BlogService,
+    private notificationService: NotificationService,
   ) {}
 
   // ═══════════════════════════════════════
@@ -88,6 +90,8 @@ export class VideoDetailPage implements OnInit, OnDestroy {
           this.mode = 'create';
         }
       });
+
+       this.loadNotifications();
   }
 
   ngOnDestroy(): void {
@@ -313,4 +317,18 @@ export class VideoDetailPage implements OnInit, OnDestroy {
          : this.mode === 'edit'   ? 'Edit Testimonial'
          :                          'View Testimonial';
   }
+
+    unreadCount = 0;
+notifications: any[] = [];
+async loadNotifications() {
+  const res: any = await this.notificationService.getNotifications().toPromise();
+
+  this.notifications = res || [];
+
+  this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+}
+
+openNotifications() {
+  this.router.navigate(['/notifications']);
+}
 }

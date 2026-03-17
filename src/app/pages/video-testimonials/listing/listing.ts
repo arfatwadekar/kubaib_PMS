@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
 import { BlogService } from 'src/app/services/blog.service';
+import { NotificationService } from 'src/app/services/notification.service';
 
 interface BlogCard {
   id: number;
@@ -21,7 +22,6 @@ interface BlogCard {
   standalone: false,
 })
 export class VideoListingPage implements OnInit, OnDestroy {
-
   blogs: BlogCard[] = [];
   search = '';
   loading = false;
@@ -36,7 +36,7 @@ export class VideoListingPage implements OnInit, OnDestroy {
 
   // ── Computed stats ──────────────────────
   get activeCount(): number {
-    return this.blogs.filter(b => b.isActive).length;
+    return this.blogs.filter((b) => b.isActive).length;
   }
 
   get totalViews(): number {
@@ -46,7 +46,11 @@ export class VideoListingPage implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private searchSubject$ = new Subject<string>();
 
-  constructor(private router: Router, private blogService: BlogService) {}
+  constructor(
+    private router: Router,
+    private blogService: BlogService,
+    private notificationService: NotificationService,
+  ) {}
 
   // ═══════════════════════════════════════
   //  LIFECYCLE
@@ -56,12 +60,13 @@ export class VideoListingPage implements OnInit, OnDestroy {
     // Debounced search — fires 350ms after user stops typing
     this.searchSubject$
       .pipe(debounceTime(350), distinctUntilChanged(), takeUntil(this.destroy$))
-      .subscribe(term => {
+      .subscribe((term) => {
         this.pageNumber = 1;
         term ? this.runSearch(term) : this.loadBlogs();
       });
 
     this.loadBlogs();
+     this.loadNotifications();
   }
 
   // Ionic caches pages — ionViewWillEnter fires every time
@@ -81,11 +86,17 @@ export class VideoListingPage implements OnInit, OnDestroy {
 
   loadBlogs(): void {
     this.loading = true;
-    this.blogService.getBlogs(this.pageNumber, this.pageSize)
+    this.blogService
+      .getBlogs(this.pageNumber, this.pageSize)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: res  => { this.applyResponse(res); this.loading = false; },
-        error: _err => { this.loading = false; }
+        next: (res) => {
+          this.applyResponse(res);
+          this.loading = false;
+        },
+        error: (_err) => {
+          this.loading = false;
+        },
       });
   }
 
@@ -101,11 +112,17 @@ export class VideoListingPage implements OnInit, OnDestroy {
 
   private runSearch(term: string): void {
     this.loading = true;
-    this.blogService.searchBlogs(term, this.pageNumber, this.pageSize)
+    this.blogService
+      .searchBlogs(term, this.pageNumber, this.pageSize)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: res   => { this.applyResponse(res); this.loading = false; },
-        error: _err  => { this.loading = false; }
+        next: (res) => {
+          this.applyResponse(res);
+          this.loading = false;
+        },
+        error: (_err) => {
+          this.loading = false;
+        },
       });
   }
 
@@ -118,19 +135,21 @@ export class VideoListingPage implements OnInit, OnDestroy {
     // { items, totalCount, totalPages }  ← paginated wrapper
     // { data, total }                    ← alternate wrapper
     // BlogCard[]                         ← plain array
-    const items: any[] = res?.items ?? res?.data ?? (Array.isArray(res) ? res : []);
+    const items: any[] =
+      res?.items ?? res?.data ?? (Array.isArray(res) ? res : []);
 
     this.totalCount = res?.totalCount ?? res?.total ?? items.length;
-    this.totalPages = res?.totalPages ?? (Math.ceil(this.totalCount / this.pageSize) || 1);
+    this.totalPages =
+      res?.totalPages ?? (Math.ceil(this.totalCount / this.pageSize) || 1);
 
-    this.blogs = items.map(b => ({
-      id:           b.blogId     ?? b.id,
-      title:        b.title      ?? '—',
-      description:  b.description ?? '',
-      viewCount:    b.viewCount  ?? 0,
-      likeCount:    b.likeCount  ?? 0,
-      isActive:     b.isActive   ?? true,
-      createdAt:    b.createdAt  ?? b.createdDate ?? null,
+    this.blogs = items.map((b) => ({
+      id: b.blogId ?? b.id,
+      title: b.title ?? '—',
+      description: b.description ?? '',
+      viewCount: b.viewCount ?? 0,
+      likeCount: b.likeCount ?? 0,
+      isActive: b.isActive ?? true,
+      createdAt: b.createdAt ?? b.createdDate ?? null,
       thumbnailUrl: this.resolveThumbnail(b),
     }));
   }
@@ -158,10 +177,13 @@ export class VideoListingPage implements OnInit, OnDestroy {
     if (Array.isArray(b.images) && b.images.length) {
       const first = b.images[0];
       if (typeof first === 'string') {
-        return first.startsWith('data:') ? first : 'data:image/jpeg;base64,' + first;
+        return first.startsWith('data:')
+          ? first
+          : 'data:image/jpeg;base64,' + first;
       }
       if (typeof first === 'object') {
-        const raw = first.imageData ?? first.data ?? first.base64 ?? first.content ?? '';
+        const raw =
+          first.imageData ?? first.data ?? first.base64 ?? first.content ?? '';
         if (raw) return 'data:image/jpeg;base64,' + raw;
       }
     }
@@ -180,7 +202,7 @@ export class VideoListingPage implements OnInit, OnDestroy {
     // Show at most 5 pages around current page (sliding window)
     const delta = 2;
     const start = Math.max(1, this.pageNumber - delta);
-    const end   = Math.min(this.totalPages, this.pageNumber + delta);
+    const end = Math.min(this.totalPages, this.pageNumber + delta);
     return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 
@@ -195,9 +217,15 @@ export class VideoListingPage implements OnInit, OnDestroy {
   //  NAVIGATION
   // ═══════════════════════════════════════
 
-  create(): void          { this.router.navigate(['/video-testimonials/create']); }
-  edit(id: number): void  { this.router.navigate(['/video-testimonials/edit', id]); }
-  view(id: number): void  { this.router.navigate(['/video-testimonials/view', id]); }
+  create(): void {
+    this.router.navigate(['/video-testimonials/create']);
+  }
+  edit(id: number): void {
+    this.router.navigate(['/video-testimonials/edit', id]);
+  }
+  view(id: number): void {
+    this.router.navigate(['/video-testimonials/view', id]);
+  }
 
   // ═══════════════════════════════════════
   //  DELETE
@@ -208,24 +236,27 @@ export class VideoListingPage implements OnInit, OnDestroy {
 
     this.deletingId = id;
 
-    this.blogService.deleteBlog(id)
+    this.blogService
+      .deleteBlog(id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
           this.deletingId = null;
-          this.blogs = this.blogs.filter(b => b.id !== id);
+          this.blogs = this.blogs.filter((b) => b.id !== id);
           this.totalCount = Math.max(0, this.totalCount - 1);
           // If current page becomes empty, go to previous page
           if (this.blogs.length === 0 && this.pageNumber > 1) {
             this.pageNumber--;
           }
           // Reload to keep pagination accurate
-          this.search.trim() ? this.runSearch(this.search.trim()) : this.loadBlogs();
+          this.search.trim()
+            ? this.runSearch(this.search.trim())
+            : this.loadBlogs();
         },
-        error: _err => {
+        error: (_err) => {
           this.deletingId = null;
           // Optionally show a toast/alert here
-        }
+        },
       });
   }
 
@@ -235,5 +266,21 @@ export class VideoListingPage implements OnInit, OnDestroy {
 
   trackById(_: number, b: BlogCard): number {
     return b.id;
+  }
+
+  unreadCount = 0;
+  notifications: any[] = [];
+  async loadNotifications() {
+    const res: any = await this.notificationService
+      .getNotifications()
+      .toPromise();
+
+    this.notifications = res || [];
+
+    this.unreadCount = this.notifications.filter((n) => !n.isRead).length;
+  }
+
+  openNotifications() {
+    this.router.navigate(['/notifications']);
   }
 }

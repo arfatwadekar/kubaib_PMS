@@ -12,6 +12,7 @@ import {
   MedicineListResponse
 } from 'src/app/services/medicine.service';
 import { AlertController, ToastController } from '@ionic/angular';
+import { NotificationService } from 'src/app/services/notification.service';
 
 @Component({
   selector: 'app-medicine-listing',
@@ -41,7 +42,8 @@ export class ListingPage implements OnInit, OnDestroy {
     private medicineService: MedicineService,
     private router: Router,
     private alertCtrl: AlertController,
-    private toastCtrl: ToastController
+    private toastCtrl: ToastController,
+     private notificationService: NotificationService,
   ) {}
 
   // ================= INIT =================
@@ -49,7 +51,9 @@ export class ListingPage implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initializeSearchListener();
     this.loadMedicines();
+       this.loadNotifications();
   }
+
 
   ionViewWillEnter(): void {
   this.loadMedicines();   // 👈 IMPORTANT FIX
@@ -247,4 +251,18 @@ private buildPageNumbers(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
+    unreadCount = 0;
+notifications: any[] = [];
+async loadNotifications() {
+  const res: any = await this.notificationService.getNotifications().toPromise();
+
+  this.notifications = res || [];
+
+  this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+}
+
+openNotifications() {
+  this.router.navigate(['/notifications']);
+}
 }

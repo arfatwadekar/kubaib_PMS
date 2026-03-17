@@ -1,5 +1,8 @@
 <app-header
   [title]="mode === 'create' ? 'Create Medicine' : (mode === 'edit' ? 'Edit Medicine' : 'View Medicine')"
+    [showNotification]="true"
+  [notificationCount]="unreadCount"
+  (notificationClick)="openNotifications()"
 ></app-header>
 
 <ion-content [fullscreen]="true" class="detail-bg">

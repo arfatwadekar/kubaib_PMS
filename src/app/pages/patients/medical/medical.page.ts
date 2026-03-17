@@ -27,20 +27,25 @@ type Complaint = {
   modality: string;
   concomitant: string;
 };
+
 @Component({
   selector: 'app-medical',
   templateUrl: './medical.page.html',
   styleUrls: ['./medical.page.scss'],
   standalone: false,
 })
-export class MedicalPage implements OnInit, OnDestroy{
-     // =====================
+export class MedicalPage implements OnInit, OnDestroy {
+  // =====================
   // STATE
   // =====================
   loading = false;
   patientId: number | null = null;
   medicalExists = false;
   openSection: string = 's1';
+
+  // ⭐ AUTO-SAVE STATE
+  private isAutoSaving = false;
+  private autoSaveInProgress = false;
 
   private destroy$ = new Subject<void>();
   private sub = new Subscription();
@@ -202,7 +207,10 @@ export class MedicalPage implements OnInit, OnDestroy{
     private route: ActivatedRoute,
     private toastCtrl: ToastController,
     private router: Router,
-  ) {}
+  ) {
+    // ⭐ Handle browser back button and route changes
+    this.setupAutoSaveOnNavigation();
+  }
 
   // =====================
   // INIT / DESTROY
@@ -211,38 +219,18 @@ export class MedicalPage implements OnInit, OnDestroy{
     this.initMedicalBmiAutoCalc();
 
     this.sub.add(
-      // this.route.queryParams.subscribe((qp) => {
-      //   const id = safeNum(qp?.['patientId']);
-
-      //   if (id > 0) {
-      //     this.patientId = id;
-      //     void this.loadClinicalCaseIfExists();
-      //   } else {
-      //     this.patientId = null;
-      //     this.resetMedicalForm();
-      //   }
-      // })
-
       this.route.queryParams.subscribe((qp) => {
+        const id = safeNum(qp?.['patientId']);
 
-  const id = safeNum(qp?.['patientId']);
-
-  if (id > 0) {
-
-    this.patientId = id;
-
-    // important fix
-    this.medicalExists = false;
-
-    void this.loadClinicalCaseIfExists();
-
-  } else {
-
-    this.patientId = null;
-    this.resetMedicalForm();
-  }
-
-})
+        if (id > 0) {
+          this.patientId = id;
+          this.medicalExists = false;
+          void this.loadClinicalCaseIfExists();
+        } else {
+          this.patientId = null;
+          this.resetMedicalForm();
+        }
+      })
     );
   }
 
@@ -250,6 +238,71 @@ export class MedicalPage implements OnInit, OnDestroy{
     this.sub.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  // ============================================================
+  // ⭐ AUTO-SAVE ON NAVIGATION
+  // ============================================================
+  /**
+   * Setup listeners to auto-save form when user navigates away
+   */
+  private setupAutoSaveOnNavigation(): void {
+    // Listen to route changes (tab/page navigation)
+    this.router.events
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        // Check if form has unsaved changes and auto-save
+        if (this.medicalForm?.dirty && !this.isAutoSaving && this.patientId) {
+          void this.autoSaveBeforeNavigation();
+        }
+      });
+
+    // Listen to window beforeunload (browser back/close)
+    window.addEventListener('beforeunload', (event) => {
+      if (this.medicalForm?.dirty && !this.isAutoSaving && this.patientId) {
+        event.preventDefault();
+        // Modern browsers require returnValue to be set
+        event.returnValue = '';
+      }
+    });
+  }
+
+  /**
+   * Auto-save before navigation with silent success
+   */
+  private async autoSaveBeforeNavigation(): Promise<void> {
+    if (!this.patientId || this.autoSaveInProgress || !this.medicalForm?.dirty) {
+      return;
+    }
+
+    this.isAutoSaving = true;
+    this.autoSaveInProgress = true;
+
+    try {
+      const payload = this.buildClinicalCasePayload();
+
+      if (this.medicalExists) {
+        await firstValueFrom(this.medicalExamApi.update(payload));
+      } else {
+        await firstValueFrom(this.medicalExamApi.create(payload));
+        this.medicalExists = true;
+      }
+
+      // Mark form as pristine after successful save
+      this.medicalForm.markAsPristine();
+
+      console.log('✅ Auto-saved medical record');
+    } catch (error: any) {
+      console.error('❌ Auto-save failed:', error);
+      // Show error toast but don't block navigation
+      await this.toast(
+        'Warning: Changes could not be auto-saved. Please check your connection.',
+        'warning'
+      );
+    } finally {
+      this.isAutoSaving = false;
+      this.autoSaveInProgress = false;
+    }
   }
 
   // ============================================================
@@ -316,52 +369,33 @@ export class MedicalPage implements OnInit, OnDestroy{
   // AUTOFILL (demo data)
   // ============================================================
   autofill() {
+    if (!this.patientId) return;
 
-  if (!this.patientId) return;
+    const fillControls = (group: any) => {
+      Object.keys(group.controls).forEach(key => {
+        const control = group.get(key);
 
-  const fillControls = (group: any) => {
+        if (control instanceof FormGroup) {
+          fillControls(control);
+        } else {
+          const value = control.value;
 
-    Object.keys(group.controls).forEach(key => {
-
-      const control = group.get(key);
-
-      if (control instanceof FormGroup) {
-
-        fillControls(control);
-
-      } else {
-
-        const value = control.value;
-
-        if (value === null || value === '' || value === undefined) {
-
-          if (typeof value === 'boolean') {
-
-            control.setValue(false);
-
-          } else if (typeof value === 'number') {
-
-            control.setValue(50);
-
-          } else {
-
-            control.setValue('Normal');
-
+          if (value === null || value === '' || value === undefined) {
+            if (typeof value === 'boolean') {
+              control.setValue(false);
+            } else if (typeof value === 'number') {
+              control.setValue(50);
+            } else {
+              control.setValue('Normal');
+            }
           }
-
         }
+      });
+    };
 
-      }
-
-    });
-
-  };
-
-  fillControls(this.medicalForm);
-
-  this.medicalForm.markAsDirty();
-
-}
+    fillControls(this.medicalForm);
+    this.medicalForm.markAsDirty();
+  }
 
   // ============================================================
   // SAVE RECORD
@@ -507,7 +541,7 @@ export class MedicalPage implements OnInit, OnDestroy{
         await this.toast('Clinical case saved');
       }
       // ⭐ redirect after save/update
-this.goNextFollowUp();
+      this.goNextFollowUp();
     } catch (e: any) {
       await this.presentSimpleAlert(
         'Save Failed',
@@ -521,95 +555,47 @@ this.goNextFollowUp();
   // ============================================================
   // LOAD FROM API
   // ============================================================
-//   async loadClinicalCaseIfExists() {
-//     if (!this.patientId) return;
+  async loadClinicalCaseIfExists() {
+    if (!this.patientId) return;
 
-//     try {
-//       const res: any = await firstValueFrom(
-//         this.medicalExamApi.getByPatientId(this.patientId),
-//       );
-//       // const data = res?.data ?? res;
+    try {
+      const res: any = await firstValueFrom(
+        this.medicalExamApi.getByPatientId(this.patientId)
+      );
 
-//       // if (!data) {
-//       //   this.medicalExists = false;
-//       //   return;
-//       // }
+      const data = res?.data ?? res;
 
-//       const data = res?.data ?? res;
+      // ⭐ check if medical record actually exists
+      if (
+        !data ||
+        (
+          (!data.complaints || data.complaints.length === 0) &&
+          !data.familyHistory &&
+          !data.personalStatus &&
+          !data.menstrualHistory &&
+          !data.maleSexualFunction &&
+          !data.physicalReaction &&
+          !data.physicalExamination &&
+          !data.mentalState &&
+          !data.behavioralEvaluation
+        )
+      ) {
+        this.medicalExists = false;
+        return;
+      }
 
-// // agar empty object aaye to bhi new record treat karo
-// if (!data || Object.keys(data).length === 0) {
-//   this.medicalExists = false;
-//   return;
-// }
-
-//       this.patchMedicalFormFromApi(data);
-//       this.medicalForm.markAsPristine();
-//       this.medicalExists = true;
-//     } catch (e: any) {
-//       if (e?.status === 404) {
-//         this.medicalExists = false;
-//         return;
-//       }
-//       console.error(e);
-//       await this.toast(
-//         e?.error?.message || e?.message || 'Failed to load clinical case',
-//       );
-//     }
-//   }
-
-async loadClinicalCaseIfExists() {
-
-  if (!this.patientId) return;
-
-  try {
-
-    const res: any = await firstValueFrom(
-      this.medicalExamApi.getByPatientId(this.patientId)
-    );
-
-    const data = res?.data ?? res;
-
-    // ⭐ check if medical record actually exists
-    if (
-      !data ||
-      (
-        (!data.complaints || data.complaints.length === 0) &&
-        !data.familyHistory &&
-        !data.personalStatus &&
-        !data.menstrualHistory &&
-        !data.maleSexualFunction &&
-        !data.physicalReaction &&
-        !data.physicalExamination &&
-        !data.mentalState &&
-        !data.behavioralEvaluation
-      )
-    ) {
+      this.patchMedicalFormFromApi(data);
+      this.medicalForm.markAsPristine();
+      this.medicalExists = true;
+    } catch (e: any) {
+      if (e?.status === 404) {
+        this.medicalExists = false;
+        return;
+      }
 
       this.medicalExists = false;
-      return;
-
     }
-
-    this.patchMedicalFormFromApi(data);
-
-    this.medicalForm.markAsPristine();
-
-    this.medicalExists = true;
-
-  } catch (e: any) {
-
-    if (e?.status === 404) {
-
-      this.medicalExists = false;
-      return;
-
-    }
-
-    this.medicalExists = false;
-
   }
-}
 
   private patchMedicalFormFromApi(api: ClinicalCasePayload) {
     const complaints: Complaint[] = Array.isArray(api?.complaints)
@@ -717,32 +703,28 @@ async loadClinicalCaseIfExists() {
     });
   }
 
-  // goNextFollowUp() {
-  //   this.router.navigate([], {
-  //     queryParams: { tab: 'followup', patientId: this.patientId },
-  //     queryParamsHandling: 'merge',
-  //   });
-  // }
-
-goNextFollowUp() {
-
-  this.router.navigate(['../followup'], {
-    relativeTo: this.route,
-    queryParams: {
-      patientId: this.patientId,
-      appointmentId: this.route.snapshot.queryParamMap.get('appointmentId'),
-      tab: 'followup'
-    },
-    queryParamsHandling: 'merge'
-  });
-
-}
+  goNextFollowUp() {
+    this.router.navigate(['../followup'], {
+      relativeTo: this.route,
+      queryParams: {
+        patientId: this.patientId,
+        appointmentId: this.route.snapshot.queryParamMap.get('appointmentId'),
+        tab: 'followup'
+      },
+      queryParamsHandling: 'merge'
+    });
+  }
 
   // ============================================================
   // UTIL
   // ============================================================
-  private async toast(message: string) {
-    const t = await this.toastCtrl.create({ message, duration: 2000, position: 'top' });
+  private async toast(message: string, type: 'success' | 'error' | 'warning' = 'success') {
+    const t = await this.toastCtrl.create({
+      message,
+      duration: 2000,
+      position: 'top',
+      color: type === 'error' ? 'danger' : type === 'warning' ? 'warning' : 'success',
+    });
     await t.present();
   }
 

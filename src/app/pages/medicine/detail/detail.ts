@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
 import { Subject, takeUntil } from 'rxjs';
 import { MedicineService, Medicine } from 'src/app/services/medicine.service';
+import { NotificationService } from 'src/app/services/notification.service';
 
 type PageMode = 'create' | 'edit' | 'view';
 
@@ -31,7 +32,8 @@ export class DetailPage implements OnInit, OnDestroy {
     private router: Router,
     private medicineService: MedicineService,
     private toastCtrl: ToastController,
-    private alertCtrl: AlertController
+    private alertCtrl: AlertController,
+         private notificationService: NotificationService,
   ) {}
 
   // ============================================================
@@ -87,6 +89,8 @@ export class DetailPage implements OnInit, OnDestroy {
       }
 
     });
+
+     this.loadNotifications();
 }
 
   private resolveMode(): void {
@@ -383,5 +387,19 @@ export class DetailPage implements OnInit, OnDestroy {
   this.form.patchValue({
     stockQuantity: newValue
   });
+}
+
+    unreadCount = 0;
+notifications: any[] = [];
+async loadNotifications() {
+  const res: any = await this.notificationService.getNotifications().toPromise();
+
+  this.notifications = res || [];
+
+  this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+}
+
+openNotifications() {
+  this.router.navigate(['/notifications']);
 }
 }

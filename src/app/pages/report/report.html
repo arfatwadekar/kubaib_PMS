@@ -1,4 +1,6 @@
-<app-header title="Patient Report"></app-header>
+<app-header title="Patient Report"  [showNotification]="true"
+  [notificationCount]="unreadCount"
+  (notificationClick)="openNotifications()"></app-header>
 
 <ion-content class="page">
   <form class="table-card" [formGroup]="form">

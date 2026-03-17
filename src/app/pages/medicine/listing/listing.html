@@ -1,7 +1,8 @@
 <app-header
   title="Medicine List"
-  actionLabel="Refresh"
-  (action)="refresh()"
+   [showNotification]="true"
+  [notificationCount]="unreadCount"
+  (notificationClick)="openNotifications()"
 ></app-header>
 
 <ion-content class="medicine-bg">

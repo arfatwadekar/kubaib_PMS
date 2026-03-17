@@ -1,7 +1,9 @@
-<ion-header class="app-header" mode="md" style="  
-    background: none;     box-shadow: rgba(0, 0, 0, 0.08) 0px 4px 12px;">
+<ion-header
+  class="app-header"
+  mode="md"
+  style="background: none; box-shadow: rgba(0, 0, 0, 0.08) 0px 4px 12px"
+>
   <ion-toolbar>
-
     <!-- LEFT (Hamburger / Back) -->
     <ion-buttons slot="start">
       <ion-back-button
@@ -20,7 +22,6 @@
 
     <!-- RIGHT (Profile / Action) -->
     <ion-buttons slot="end">
-
       <!-- NOTIFICATION BELL -->
       <ion-button
         *ngIf="showNotification"
@@ -28,21 +29,21 @@
         class="notification-btn"
         (click)="onNotificationClick()"
       >
-        <ion-icon [name]="notificationIcon"></ion-icon>
-        <ion-badge 
-          *ngIf="notificationCount > 0"
-          class="notification-badge"
+        <ion-icon
+          [name]="
+            notificationCount > 0 ? 'notifications' : 'notifications-outline'
+          "
         >
-          {{ notificationCount > 99 ? '99+' : notificationCount }}
-        </ion-badge>
-      </ion-button>
+        </ion-icon>
 
-      <ion-button
-        *ngIf="actionIcon"
-        fill="clear"
-        (click)="onActionClick()"
-      >
-        <ion-icon [name]="actionIcon"></ion-icon>
+       <ion-badge
+  *ngIf="notificationCount > 0"
+  class="notification-badge"
+  [class.large]="notificationCount > 9"
+  [class.extra-large]="notificationCount > 99"
+>
+  {{ notificationCount > 99 ? '99+' : notificationCount }}
+</ion-badge>
       </ion-button>
 
       <!-- PROFILE -->
@@ -56,9 +57,7 @@
         <div class="avatar">{{ resolvedInitial }}</div>
         <ion-icon name="chevron-down-outline"></ion-icon>
       </ion-button>
-
     </ion-buttons>
-
   </ion-toolbar>
 </ion-header>
 
@@ -70,17 +69,16 @@
 >
   <ng-template>
     <ion-list lines="none">
-
+      <!-- 
       <ion-item button (click)="onEditProfile()">
         <ion-icon name="person-outline" slot="start"></ion-icon>
         <ion-label>Edit Profile</ion-label>
-      </ion-item>
+      </ion-item> -->
 
       <ion-item button (click)="onLogout()" class="logout">
         <ion-icon name="log-out-outline" slot="start"></ion-icon>
         <ion-label>Logout</ion-label>
       </ion-item>
-
     </ion-list>
   </ng-template>
 </ion-popover>

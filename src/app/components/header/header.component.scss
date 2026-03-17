@@ -105,3 +105,54 @@ ion-popover {
     --padding-end: 16px;
   }
 }
+
+.notification-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+
+  ion-icon {
+    font-size: 22px;
+  }
+}
+
+/* 🔴 DEFAULT (1-9) */
+.notification-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+
+  min-width: 20px;
+  height: 20px;
+  padding: 0 4px;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: #ff3b30;
+  color: #fff;
+
+  // box-shadow: 0 0 0 2px #fff;
+}
+
+/* 🔵 10-99 */
+.notification-badge.large {
+  min-width: 20px;
+  height: 18px;
+  border-radius: 10px;
+  font-size: 10px;
+}
+
+/* 🟣 99+ */
+.notification-badge.extra-large {
+  min-width: 26px;
+  height: 18px;
+  border-radius: 10px;
+  font-size: 10px;
+  padding: 0 6px;
+}

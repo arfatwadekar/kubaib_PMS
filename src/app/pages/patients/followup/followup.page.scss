@@ -1535,3 +1535,18 @@ input[type="number"]::-webkit-outer-spin-button {
   font-weight: 600;
   border: 1px solid #ffeeba;
 }
+
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.no-spinner[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Scroll से value change होना रोकना */
+.no-spinner:focus {
+  outline: none;
+}

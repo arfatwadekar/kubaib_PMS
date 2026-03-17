@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { NotificationService } from 'src/app/services/notification.service';
 
 type TabKey = 'prelim' | 'medical' | 'followup' | 'payment' | 'reports';
 type UserRole = 'Doctor' | 'Receptionist';
@@ -20,7 +21,8 @@ export class PatientPage implements OnInit {
 
   constructor(
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+           private notificationService: NotificationService,
   ) {}
 
   ngOnInit(): void {
@@ -53,7 +55,21 @@ export class PatientPage implements OnInit {
 
     });
 
+    this.loadNotifications();
   }
+
+  
+async loadNotifications() {
+  const res: any = await this.notificationService.getNotifications().toPromise();
+
+  this.notifications = res || [];
+
+  this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+}
+
+openNotifications() {
+  this.router.navigate(['/notifications']);
+}
 
   private loadRole() {
     const raw = (localStorage.getItem('mhc_role') || '').toLowerCase();
@@ -187,4 +203,7 @@ isTabDisabled(tab: TabKey): boolean {
   return !this.isTabAllowed(tab);
 
 }
+
+unreadCount = 0;
+notifications: any[] = [];
 }

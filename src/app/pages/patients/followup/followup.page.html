@@ -329,13 +329,14 @@
   min="0"
   (ngModelChange)="onConsultationChange($event)"
 /> -->
-
-                <input
-                  type="number"
-                  [ngModel]="consultationCharge"
-                  (ngModelChange)="onConsultationChange($event)"
-                  min="0"
-                />
+<input
+  type="number"
+  [ngModel]="consultationCharge"
+  (ngModelChange)="onConsultationChange($event)"
+  (wheel)="$event.preventDefault()"
+  min="0"
+  class="no-spinner"
+/>
               </div>
 
               <div class="form-group">
@@ -376,13 +377,15 @@
                 [disabled]="!waveOffVerified"
               /> -->
 
-              <input
-                type="number"
-                [ngModel]="waveOffAmount"
-                (ngModelChange)="onWaveOffAmountChange($event)"
-                placeholder="0.00"
-                [disabled]="!waveOffVerified"
-              />
+            <input
+  type="number"
+  [ngModel]="waveOffAmount"
+  (ngModelChange)="onWaveOffAmountChange($event)"
+  (wheel)="$event.preventDefault()"
+  placeholder="0.00"
+  [disabled]="!waveOffVerified"
+  class="no-spinner"
+/>
             </div>
 
             <!-- NEXT APPOINTMENT -->
