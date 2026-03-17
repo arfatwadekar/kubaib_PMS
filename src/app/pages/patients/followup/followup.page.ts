@@ -18,6 +18,7 @@ const AUTO_ADD_ROWS = 2;
 })
 export class FollowupPage implements OnInit, OnDestroy {
   today = new Date();
+  todayDate: string = '';
   // ─────────────────────────────────────────────────────────────────────────
   // LIFECYCLE PROPERTIES
   // ─────────────────────────────────────────────────────────────────────────
@@ -146,6 +147,11 @@ export class FollowupPage implements OnInit, OnDestroy {
 
     // 6️⃣ Add default medicine row
     this.addMedicineRow();
+
+     const today = new Date();
+
+  // format: yyyy-MM-dd (IMPORTANT ⚠️)
+  this.todayDate = today.toISOString().split('T')[0];
   }
 
   ngOnDestroy() {

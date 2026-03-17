@@ -1,6 +1,5 @@
 <div class="ion-padding fu-container">
   <div class="fu-wrap">
-
     <div class="fu-card">
       <!-- ═════════════════════════════════════════════════════════════════ -->
       <!-- HEADER SECTION -->
@@ -149,18 +148,18 @@
       <!-- FOLLOW-UP RECORD CARD -->
       <!-- ═════════════════════════════════════════════════════════════════ -->
 
-    <div class="container" *ngIf="!isFollowUpAlreadySaved">
+      <div class="container" *ngIf="!isFollowUpAlreadySaved">
         <!-- HEADER -->
         <!-- <div class="header">
           <h1>Follow-Up Record - 08:10 PM</h1>
           <span class="header-date">08/03/2026</span>
         </div> -->
         <div class="header">
-  <h1>Follow-Up Record - {{ today | date:'hh:mm a' }}</h1>
-  <span class="header-date highlight-date">
-    {{ today | date:'dd/MM/yyyy' }}
-  </span>
-</div>
+          <h1>Follow-Up Record - {{ today | date:'hh:mm a' }}</h1>
+          <span class="header-date highlight-date">
+            {{ today | date:'dd/MM/yyyy' }}
+          </span>
+        </div>
 
         <!-- MAIN CARD -->
         <div class="card">
@@ -329,14 +328,14 @@
   min="0"
   (ngModelChange)="onConsultationChange($event)"
 /> -->
-<input
-  type="number"
-  [ngModel]="consultationCharge"
-  (ngModelChange)="onConsultationChange($event)"
-  (wheel)="$event.preventDefault()"
-  min="0"
-  class="no-spinner"
-/>
+                <input
+                  type="number"
+                  [ngModel]="consultationCharge"
+                  (ngModelChange)="onConsultationChange($event)"
+                  (wheel)="$event.preventDefault()"
+                  min="0"
+                  class="no-spinner"
+                />
               </div>
 
               <div class="form-group">
@@ -377,15 +376,15 @@
                 [disabled]="!waveOffVerified"
               /> -->
 
-            <input
-  type="number"
-  [ngModel]="waveOffAmount"
-  (ngModelChange)="onWaveOffAmountChange($event)"
-  (wheel)="$event.preventDefault()"
-  placeholder="0.00"
-  [disabled]="!waveOffVerified"
-  class="no-spinner"
-/>
+              <input
+                type="number"
+                [ngModel]="waveOffAmount"
+                (ngModelChange)="onWaveOffAmountChange($event)"
+                (wheel)="$event.preventDefault()"
+                placeholder="0.00"
+                [disabled]="!waveOffVerified"
+                class="no-spinner"
+              />
             </div>
 
             <!-- NEXT APPOINTMENT -->
@@ -394,7 +393,12 @@
                 <label class="form-label"
                   >Next Appointment Date (Optional)</label
                 >
-                <input type="date" [(ngModel)]="nextAppointmentDate" />
+                <!-- <input type="date" [(ngModel)]="nextAppointmentDate" /> -->
+                <input
+                  type="date"
+                  [(ngModel)]="nextAppointmentDate"
+                  [min]="todayDate"
+                />
               </div>
               <div class="form-group">
                 <label class="form-label"
@@ -433,198 +437,220 @@
           </div>
         </div>
       </div>
-
-      
     </div>
     <!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!-- APPOINTMENT HISTORY SECTION                                            -->
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
-<div class="hist-section">
+    <!-- APPOINTMENT HISTORY SECTION                                            -->
+    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+    <div class="hist-section">
+      <!-- SECTION HEADER -->
+      <div class="hist-head">
+        <div class="hist-head-left">
+          <div class="hist-icon">📋</div>
+          <div>
+            <h2 class="hist-title">Appointment History</h2>
+            <p class="hist-sub">Past visits and treatment records</p>
+          </div>
+        </div>
+        <span class="hist-badge" *ngIf="summaryTotalCount > 0">
+          {{ summaryTotalCount }} visit{{ summaryTotalCount > 1 ? 's' : '' }}
+        </span>
+      </div>
 
-  <!-- SECTION HEADER -->
-  <div class="hist-head">
-    <div class="hist-head-left">
-      <div class="hist-icon">📋</div>
-      <div>
-        <h2 class="hist-title">Appointment History</h2>
-        <p class="hist-sub">Past visits and treatment records</p>
+      <!-- LOADING STATE -->
+      <div class="hist-loading" *ngIf="summaryLoading">
+        <div class="hist-spinner"></div>
+        <span>Loading history...</span>
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div
+        class="hist-empty"
+        *ngIf="!summaryLoading && summaryHistory.length === 0"
+      >
+        <div class="hist-empty-icon">🗂️</div>
+        <p>No past appointments found for this patient.</p>
+      </div>
+
+      <!-- TIMELINE -->
+      <div
+        class="hist-timeline"
+        *ngIf="!summaryLoading && summaryHistory.length > 0"
+      >
+        <div
+          class="hist-item"
+          *ngFor="let appt of summaryHistory; let i = index"
+        >
+          <!-- TIMELINE DOT -->
+          <div class="hist-dot-col">
+            <div class="hist-dot"></div>
+            <div class="hist-line" *ngIf="i < summaryHistory.length - 1"></div>
+          </div>
+
+          <!-- CARD -->
+          <div class="hist-card">
+            <!-- CARD TOP -->
+            <div class="hist-card-top">
+              <div class="hist-date-block">
+                <span class="hist-date">
+                  📅 {{ appt.appointmentDate | date: 'dd MMM yyyy' }}
+                </span>
+                <span class="hist-time" *ngIf="appt.appointmentTime">
+                  ⏰ {{ appt.appointmentTime }}
+                </span>
+              </div>
+              <div class="hist-right-meta">
+                <span
+                  class="hist-status-chip hist-status-{{ appt.status | lowercase }}"
+                >
+                  {{ appt.status }}
+                </span>
+                <span class="hist-remark-tag" *ngIf="appt.remark">
+                  {{ appt.remark }}
+                </span>
+              </div>
+            </div>
+
+            <!-- DIVIDER -->
+            <div
+              class="hist-divider"
+              *ngIf="appt.followUpEntry || appt.prescribedMedicines?.length || appt.payment"
+            ></div>
+
+            <!-- FOLLOW-UP ENTRY -->
+            <div class="hist-followup-block" *ngIf="appt.followUpEntry">
+              <!-- SYMPTOM TABLE -->
+              <div
+                class="hist-block"
+                *ngIf="appt.followUpEntry.statusRecords?.length"
+              >
+                <div class="hist-block-title">
+                  <span class="hist-block-icon">🩺</span> Symptom Status
+                </div>
+                <div class="hist-table-wrap">
+                  <table class="hist-table">
+                    <thead>
+                      <tr>
+                        <th>Symptom</th>
+                        <th>Remarks</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let sr of appt.followUpEntry.statusRecords">
+                        <td>{{ sr.criteriaName }}</td>
+                        <td>
+                          <span class="hist-remark-val"
+                            >{{ sr.remarks || '–' }}</span
+                          >
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- INTERPRETATION + CHARGE ROW -->
+              <div
+                class="hist-meta-row"
+                *ngIf="appt.followUpEntry.interpretation || appt.followUpEntry.charge"
+              >
+                <div
+                  class="hist-meta-item"
+                  *ngIf="appt.followUpEntry.interpretation"
+                >
+                  <span class="hist-meta-label">Interpretation</span>
+                  <span class="hist-meta-value"
+                    >{{ appt.followUpEntry.interpretation }}</span
+                  >
+                </div>
+                <div class="hist-meta-item" *ngIf="appt.followUpEntry.charge">
+                  <span class="hist-meta-label">Charge</span>
+                  <span class="hist-meta-value hist-charge"
+                    >₹ {{ appt.followUpEntry.charge }}</span
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- PRESCRIBED MEDICINES -->
+            <div class="hist-block" *ngIf="appt.prescribedMedicines?.length">
+              <div class="hist-block-title">
+                <span class="hist-block-icon">💊</span> Prescribed Medicines
+              </div>
+              <div class="hist-table-wrap">
+                <table class="hist-table">
+                  <thead>
+                    <tr>
+                      <th>Medicine</th>
+                      <th>Dosage</th>
+                      <th>Frequency</th>
+                      <th>Duration</th>
+                      <th>Instructions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let med of appt.prescribedMedicines">
+                      <td class="hist-med-name">{{ med.medicineName }}</td>
+                      <td>{{ med.dosage || '–' }}</td>
+                      <td>{{ med.frequency || '–' }}</td>
+                      <td>{{ med.duration || '–' }}</td>
+                      <td>{{ med.instructions || '–' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- PAYMENT -->
+            <div class="hist-payment-row" *ngIf="appt.payment">
+              <span class="hist-payment-icon">💰</span>
+              <div class="hist-payment-pills">
+                <span class="hist-pill">
+                  Charges: <b>₹{{ appt.payment.consultationCharges }}</b>
+                </span>
+                <span
+                  class="hist-pill hist-pill--warning"
+                  *ngIf="appt.payment.waveOffAmount"
+                >
+                  Wave Off: <b>₹{{ appt.payment.waveOffAmount }}</b>
+                </span>
+                <span class="hist-pill hist-pill--success">
+                  Paid: <b>₹{{ appt.payment.amountPaid }}</b>
+                </span>
+                <span
+                  class="hist-pill hist-pill--danger"
+                  *ngIf="appt.payment.remainingBalance"
+                >
+                  Balance: <b>₹{{ appt.payment.remainingBalance }}</b>
+                </span>
+              </div>
+            </div>
+          </div>
+          <!-- END CARD -->
+        </div>
+        <!-- END TIMELINE ITEM -->
+      </div>
+      <!-- END TIMELINE -->
+
+      <!-- PAGINATION -->
+      <div class="hist-pagination" *ngIf="summaryTotalPages > 1">
+        <button
+          class="hist-page-btn"
+          [disabled]="summaryPage === 1 || summaryLoading"
+          (click)="onSummaryPageChange(summaryPage - 1)"
+        >
+          ← Prev
+        </button>
+        <span class="hist-page-info">
+          Page {{ summaryPage }} of {{ summaryTotalPages }}
+        </span>
+        <button
+          class="hist-page-btn"
+          [disabled]="summaryPage === summaryTotalPages || summaryLoading"
+          (click)="onSummaryPageChange(summaryPage + 1)"
+        >
+          Next →
+        </button>
       </div>
     </div>
-    <span class="hist-badge" *ngIf="summaryTotalCount > 0">
-      {{ summaryTotalCount }} visit{{ summaryTotalCount > 1 ? 's' : '' }}
-    </span>
-  </div>
-
-  <!-- LOADING STATE -->
-  <div class="hist-loading" *ngIf="summaryLoading">
-    <div class="hist-spinner"></div>
-    <span>Loading history...</span>
-  </div>
-
-  <!-- EMPTY STATE -->
-  <div class="hist-empty" *ngIf="!summaryLoading && summaryHistory.length === 0">
-    <div class="hist-empty-icon">🗂️</div>
-    <p>No past appointments found for this patient.</p>
-  </div>
-
-  <!-- TIMELINE -->
-  <div class="hist-timeline" *ngIf="!summaryLoading && summaryHistory.length > 0">
-
-    <div class="hist-item" *ngFor="let appt of summaryHistory; let i = index">
-
-      <!-- TIMELINE DOT -->
-      <div class="hist-dot-col">
-        <div class="hist-dot"></div>
-        <div class="hist-line" *ngIf="i < summaryHistory.length - 1"></div>
-      </div>
-
-      <!-- CARD -->
-      <div class="hist-card">
-
-        <!-- CARD TOP -->
-        <div class="hist-card-top">
-          <div class="hist-date-block">
-            <span class="hist-date">
-              📅 {{ appt.appointmentDate | date: 'dd MMM yyyy' }}
-            </span>
-            <span class="hist-time" *ngIf="appt.appointmentTime">
-              ⏰ {{ appt.appointmentTime }}
-            </span>
-          </div>
-          <div class="hist-right-meta">
-            <span class="hist-status-chip hist-status-{{ appt.status | lowercase }}">
-              {{ appt.status }}
-            </span>
-            <span class="hist-remark-tag" *ngIf="appt.remark">
-              {{ appt.remark }}
-            </span>
-          </div>
-        </div>
-
-        <!-- DIVIDER -->
-        <div class="hist-divider" *ngIf="appt.followUpEntry || appt.prescribedMedicines?.length || appt.payment"></div>
-
-        <!-- FOLLOW-UP ENTRY -->
-        <div class="hist-followup-block" *ngIf="appt.followUpEntry">
-
-          <!-- SYMPTOM TABLE -->
-          <div class="hist-block" *ngIf="appt.followUpEntry.statusRecords?.length">
-            <div class="hist-block-title">
-              <span class="hist-block-icon">🩺</span> Symptom Status
-            </div>
-            <div class="hist-table-wrap">
-              <table class="hist-table">
-                <thead>
-                  <tr>
-                    <th>Symptom</th>
-                    <th>Remarks</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let sr of appt.followUpEntry.statusRecords">
-                    <td>{{ sr.criteriaName }}</td>
-                    <td>
-                      <span class="hist-remark-val">{{ sr.remarks || '–' }}</span>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- INTERPRETATION + CHARGE ROW -->
-          <div class="hist-meta-row"
-               *ngIf="appt.followUpEntry.interpretation || appt.followUpEntry.charge">
-            <div class="hist-meta-item" *ngIf="appt.followUpEntry.interpretation">
-              <span class="hist-meta-label">Interpretation</span>
-              <span class="hist-meta-value">{{ appt.followUpEntry.interpretation }}</span>
-            </div>
-            <div class="hist-meta-item" *ngIf="appt.followUpEntry.charge">
-              <span class="hist-meta-label">Charge</span>
-              <span class="hist-meta-value hist-charge">₹ {{ appt.followUpEntry.charge }}</span>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- PRESCRIBED MEDICINES -->
-        <div class="hist-block" *ngIf="appt.prescribedMedicines?.length">
-          <div class="hist-block-title">
-            <span class="hist-block-icon">💊</span> Prescribed Medicines
-          </div>
-          <div class="hist-table-wrap">
-            <table class="hist-table">
-              <thead>
-                <tr>
-                  <th>Medicine</th>
-                  <th>Dosage</th>
-                  <th>Frequency</th>
-                  <th>Duration</th>
-                  <th>Instructions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let med of appt.prescribedMedicines">
-                  <td class="hist-med-name">{{ med.medicineName }}</td>
-                  <td>{{ med.dosage || '–' }}</td>
-                  <td>{{ med.frequency || '–' }}</td>
-                  <td>{{ med.duration || '–' }}</td>
-                  <td>{{ med.instructions || '–' }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- PAYMENT -->
-        <div class="hist-payment-row" *ngIf="appt.payment">
-          <span class="hist-payment-icon">💰</span>
-          <div class="hist-payment-pills">
-            <span class="hist-pill">
-              Charges: <b>₹{{ appt.payment.consultationCharges }}</b>
-            </span>
-            <span class="hist-pill hist-pill--warning" *ngIf="appt.payment.waveOffAmount">
-              Wave Off: <b>₹{{ appt.payment.waveOffAmount }}</b>
-            </span>
-            <span class="hist-pill hist-pill--success">
-              Paid: <b>₹{{ appt.payment.amountPaid }}</b>
-            </span>
-            <span class="hist-pill hist-pill--danger" *ngIf="appt.payment.remainingBalance">
-              Balance: <b>₹{{ appt.payment.remainingBalance }}</b>
-            </span>
-          </div>
-        </div>
-
-      </div>
-      <!-- END CARD -->
-
-    </div>
-    <!-- END TIMELINE ITEM -->
-
-  </div>
-  <!-- END TIMELINE -->
-
-  <!-- PAGINATION -->
-  <div class="hist-pagination" *ngIf="summaryTotalPages > 1">
-    <button
-      class="hist-page-btn"
-      [disabled]="summaryPage === 1 || summaryLoading"
-      (click)="onSummaryPageChange(summaryPage - 1)"
-    >
-      ← Prev
-    </button>
-    <span class="hist-page-info">
-      Page {{ summaryPage }} of {{ summaryTotalPages }}
-    </span>
-    <button
-      class="hist-page-btn"
-      [disabled]="summaryPage === summaryTotalPages || summaryLoading"
-      (click)="onSummaryPageChange(summaryPage + 1)"
-    >
-      Next →
-    </button>
-  </div>
-
-</div>
   </div>
 </div>

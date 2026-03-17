@@ -36,14 +36,14 @@
         >
         </ion-icon>
 
-       <ion-badge
-  *ngIf="notificationCount > 0"
-  class="notification-badge"
-  [class.large]="notificationCount > 9"
-  [class.extra-large]="notificationCount > 99"
->
-  {{ notificationCount > 99 ? '99+' : notificationCount }}
-</ion-badge>
+        <ion-badge
+          *ngIf="notificationCount > 0"
+          class="notification-badge"
+          [class.large]="notificationCount > 9"
+          [class.extra-large]="notificationCount > 99"
+        >
+          {{ notificationCount > 99 ? "99+" : notificationCount }}
+        </ion-badge>
       </ion-button>
 
       <!-- PROFILE -->
