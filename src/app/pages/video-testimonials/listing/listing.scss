@@ -1,28 +1,40 @@
+/* =============================
+   BASE BACKGROUND
+============================= */
 .video-bg {
   background: linear-gradient(180deg, #f8fafc, #eef2f7);
+  height: 100vh;
 }
 
+/* =============================
+   CONTAINER
+============================= */
 .video-container {
-  padding: 32px;
   max-width: 1300px;
-  margin: auto;
+  margin: 0 auto;
+  padding: 20px;
 }
 
-/* HEADER */
+@media (min-width: 768px) {
+  .video-container {
+    padding: 28px;
+  }
+}
 
+/* =============================
+   HEADER
+============================= */
 .page-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  gap: 20px;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 28px;
 }
 
 .header-left h1 {
-  margin: 0;
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 600;
+  margin: 0;
 }
 
 .header-left p {
@@ -31,23 +43,54 @@
   color: #6b7280;
 }
 
+/* RIGHT SIDE */
 .header-right {
   display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 10px;
 }
 
-/* SEARCH */
+/* DESKTOP HEADER */
+@media (min-width: 768px) {
+  .page-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
 
+  .header-right {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+/* =============================
+   SEARCH BOX
+============================= */
 .search-box {
   display: flex;
   align-items: center;
-  background: white;
-  height: 44px;
-  padding: 0 16px;
+  background: #ffffff;
   border-radius: 999px;
   border: 1px solid #e5e7eb;
-  width: 260px;
+  padding: 0 14px;
+  height: 42px;
+  width: 100%;
+  transition: 0.2s ease;
+}
+
+.search-box ion-icon {
+  font-size: 18px;
+  color: #6b7280;
+}
+
+.search-box input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 0 8px;
+  font-size: 14px;
+  background: transparent;
 }
 
 .search-box:focus-within {
@@ -55,52 +98,98 @@
   box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.1);
 }
 
-.search-box input {
-  flex: 1;
+.clear-btn {
+  background: none;
   border: none;
-  outline: none;
-  padding-left: 10px;
-}
-
-/* BUTTON */
-
-.btn-primary {
-  padding: 10px 22px;
-  border-radius: 999px;
-  border: none;
-  background: linear-gradient(135deg, #16a34a, #15803d);
-  color: white;
-  font-weight: 600;
   cursor: pointer;
 }
 
-/* GRID */
-
-.video-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
+/* DESKTOP SEARCH WIDTH */
+@media (min-width: 768px) {
+  .search-box {
+    width: 260px;
+  }
 }
 
-/* CARD */
+/* =============================
+   BUTTONS
+============================= */
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  background: linear-gradient(135deg, #16a34a, #15803d);
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: 0.2s ease;
+}
 
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(22, 163, 74, 0.25);
+}
+
+/* =============================
+   GRID
+============================= */
+.video-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 1fr;
+}
+
+/* TABLET */
+@media (min-width: 576px) {
+  .video-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* SMALL LAPTOP */
+@media (min-width: 992px) {
+  .video-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* LARGE SCREEN */
+@media (min-width: 1200px) {
+  .video-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* =============================
+   CARD
+============================= */
 .video-card {
-  background: white;
+  background: #ffffff;
   border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 10px 28px rgba(0,0,0,0.06);
-  transition: 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  transition: all 0.25s ease;
 }
 
 .video-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
 }
 
-/* THUMBNAIL */
-
+/* =============================
+   THUMBNAIL
+============================= */
 .thumbnail {
   position: relative;
-  height: 200px;
+  height: 180px;
   overflow: hidden;
 }
 
@@ -110,85 +199,235 @@
   object-fit: cover;
 }
 
+/* DESKTOP IMAGE */
+@media (min-width: 768px) {
+  .thumbnail {
+    height: 200px;
+  }
+}
+
+/* PLAY OVERLAY */
 .play-overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0, 0, 0, 0.35);
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 40px;
-  color: white;
   opacity: 0;
-  transition: 0.3s ease;
+  transition: 0.25s ease;
 }
 
 .thumbnail:hover .play-overlay {
   opacity: 1;
 }
 
-/* BODY */
-
-.card-body {
-  padding: 18px;
+.play-btn {
+  font-size: 36px;
+  color: #ffffff;
 }
 
-.card-body h3 {
-  margin: 0 0 8px;
-  font-size: 16px;
-}
-
-.card-body p {
-  font-size: 13px;
-  color: #6b7280;
-  margin-bottom: 12px;
-}
-
-/* STATUS */
-
-.status-badge {
-  display: inline-block;
-  padding: 4px 12px;
-  border-radius: 999px;
+/* STATUS BADGE */
+.status-badge-thumb {
+  position: absolute;
+  top: 10px;
+  left: 10px;
   background: #dcfce7;
   color: #15803d;
-  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
   font-weight: 600;
 }
 
-.status-badge.inactive {
+.status-badge-thumb.inactive {
   background: #fee2e2;
   color: #b91c1c;
 }
 
-/* ACTIONS */
-
-.actions {
+/* =============================
+   CARD BODY
+============================= */
+.card-body {
+  padding: 16px;
   display: flex;
-  gap: 10px;
-  margin-top: 14px;
+  flex-direction: column;
+  flex: 1;
 }
 
+.card-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.card-desc {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 12px;
+  flex-grow: 1;
+}
+
+/* =============================
+   ACTION BUTTONS
+============================= */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.actions button {
+  flex: 1;
+  min-width: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  border: none;
+  cursor: pointer;
+  padding:10px;
+}
+
+/* VIEW */
+.btn-view {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+/* EDIT */
 .btn-edit {
   background: #dbeafe;
   color: #1e40af;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 8px;
 }
 
+/* DELETE */
 .btn-delete {
   background: #fee2e2;
   color: #b91c1c;
-  border: none;
-  padding: 6px 14px;
-  border-radius: 8px;
 }
 
-/* EMPTY */
-
+/* =============================
+   STATES (EMPTY / LOADING)
+============================= */
 .state-box {
-  padding: 60px;
+  padding: 50px 20px;
   text-align: center;
   color: #6b7280;
+}
+
+.empty-icon {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+/* =============================
+   PAGINATION
+============================= */
+.pagination {
+  margin-top: 24px;
+  display: flex;
+  justify-content: end;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.page-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.page-btn.active {
+  background: #16a34a;
+  color: white;
+  border-color: #16a34a;
+}
+
+/* =============================
+   PAGE INFO
+============================= */
+.page-info {
+  text-align: center;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+
+.state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 60vh; /* screen fill kare */
+  text-align: center;
+
+  padding: 40px 20px;
+  color: #6b7280;
+}
+
+/* ICON */
+.empty-icon {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+}
+
+.empty-icon ion-icon {
+  font-size: 32px;
+  color: #9ca3af;
+}
+
+/* TITLE */
+.state-box h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 6px;
+}
+
+/* TEXT */
+.state-box p {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 16px;
+  max-width: 320px;
+}
+
+/* HIGHLIGHT SEARCH TEXT */
+.state-box strong {
+  color: #16a34a;
+}
+
+/* BUTTONS */
+.state-box .btn-primary,
+.state-box .btn-outline {
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* OUTLINE BUTTON */
+.btn-outline {
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+}
+
+.btn-outline:hover {
+  background: #f9fafb;
 }

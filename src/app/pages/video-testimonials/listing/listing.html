@@ -41,20 +41,32 @@
     </div>
 
     <!-- ══ EMPTY STATE ══════════════════════════════════════ -->
-    <div *ngIf="!loading && blogs.length === 0" class="state-box empty">
-      <div class="empty-icon">
-        <ion-icon name="videocam-outline"></ion-icon>
-      </div>
-      <h3>No Testimonials Found</h3>
-      <p *ngIf="!search">Start by adding your first patient testimonial video.</p>
-      <p *ngIf="search">No results for "<strong>{{ search }}</strong>". Try a different keyword.</p>
-      <button class="btn-primary" (click)="create()" *ngIf="!search">
-        <ion-icon name="add-outline"></ion-icon> Add First Testimonial
-      </button>
-      <button class="btn-outline" (click)="clearSearch()" *ngIf="search">
-        Clear Search
-      </button>
-    </div>
+ <div *ngIf="!loading && blogs.length === 0" class="state-box">
+
+  <div class="empty-icon">
+    <ion-icon name="videocam-outline"></ion-icon>
+  </div>
+
+  <h3>No Testimonials Found</h3>
+
+  <p *ngIf="!search">
+    Start by adding your first patient testimonial video.
+  </p>
+
+  <p *ngIf="search">
+    No results for "<strong>{{ search }}</strong>"
+  </p>
+
+  <button class="btn-primary" (click)="create()" *ngIf="!search">
+    <ion-icon name="add-outline"></ion-icon>
+    Add Testimonial
+  </button>
+
+  <button class="btn-outline" (click)="clearSearch()" *ngIf="search">
+    Clear Search
+  </button>
+
+</div>
 
     <!-- ══ CARD GRID ════════════════════════════════════════ -->
     <div class="video-grid" *ngIf="!loading && blogs.length > 0">
@@ -150,7 +162,7 @@
     </div>
 
     <!-- ══ COUNT INFO ════════════════════════════════════════ -->
-    <div class="page-info" *ngIf="!loading && totalCount > 0">
+    <!-- <div class="page-info" *ngIf="!loading && totalCount > 0">
       Showing
       <strong>{{ (pageNumber - 1) * pageSize + 1 }}</strong>
       –
@@ -158,7 +170,7 @@
       of
       <strong>{{ totalCount }}</strong>
       testimonials
-    </div>
+    </div> -->
 
   </div>
 </ion-content>

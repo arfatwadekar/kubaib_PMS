@@ -3,20 +3,24 @@
 // ═══════════════════════════════════════════════════════════
 
 :host {
-  --c-bg:        #f7f8fc;
+  --c-bg:        #f8fafc;
   --c-surface:   #ffffff;
-  --c-border:    #e8eaf0;
-  --c-primary:   #3b5bdb;
-  --c-primary-h: #2f4ac7;
-  --c-danger:    #e03131;
-  --c-success:   #2f9e44;
-  --c-text:      #1c1d2b;
-  --c-muted:     #6c7080;
-  --c-subtle:    #f1f3f9;
-  --radius:      10px;
-  --shadow:      0 2px 12px rgba(28,29,43,.07);
-}
+  --c-border:    #e5e7eb;
 
+  --c-primary:   #16a34a;
+  --c-primary-h: #15803d;
+
+  --c-danger:    #dc2626;
+  --c-success:   #16a34a;
+
+  --c-text:      #111827;
+  --c-muted:     #6b7280;
+
+  --c-subtle:    #f1f5f9;
+
+  --radius:      12px;
+  --shadow:      0 8px 24px rgba(0,0,0,0.05);
+}
 .listing-content { --background: var(--c-bg); }
 
 .page-wrap {
@@ -95,7 +99,7 @@
 
   &--active {
     background: var(--c-primary); border-color: var(--c-primary); color: #fff;
-    &:hover { background: var(--c-primary-h); }
+    &:hover { background: var(--c-primary-h);  color: white;}
   }
 }
 
@@ -280,6 +284,35 @@
 .page-info { font-size: 13px; color: var(--c-muted); margin-left: 4px; }
 
 // ─── RESPONSIVE ───────────────────────────────────────────
+@media (max-width: 1024px) {
+  .table-card   { display: none; }
+  .mobile-cards { display: block; }
+
+  .top-bar {
+    flex-direction: column; 
+    align-items: stretch;
+
+    &__left  { justify-content: space-between; }
+    &__right { 
+      flex-direction: column; 
+      align-items: stretch; 
+    }
+  }
+
+  .search-field { min-width: unset; }
+  .btn-create   { justify-content: center; }
+
+  // ✅ buttons column
+  .m-card__actions {
+    // flex-direction: column;
+    gap: 10px;
+
+    .action-btn {
+      width: 100%;
+          padding: 10px;
+    }
+  }
+}
 @media (max-width: 800px) {
   .table-card   { display: none; }
   .mobile-cards { display: block; }
@@ -292,4 +325,28 @@
 
   .search-field { min-width: unset; }
   .btn-create   { justify-content: center; }
+}
+
+@media (max-width: 425px) {
+  .table-card   { display: none; }
+  .mobile-cards { display: block; }
+
+  .top-bar {
+    flex-direction: column; align-items: stretch;
+    &__left  { justify-content: space-between; }
+    &__right { flex-direction: column; align-items: stretch; }
+  }
+
+  .search-field { min-width: unset; }
+  .btn-create   { justify-content: center; }
+
+  // ✅ ADD THIS
+  .m-card__actions {
+    flex-direction: column;
+
+    .action-btn {
+      width: 100%;
+              padding: 10px;
+    }
+  }
 }

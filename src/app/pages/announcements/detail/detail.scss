@@ -3,21 +3,24 @@
 // ═══════════════════════════════════════════════════════════
 
 :host {
-  --c-bg:        #f7f8fc;
+  --c-bg:        #f8fafc;
   --c-surface:   #ffffff;
-  --c-border:    #e8eaf0;
-  --c-primary:   #3b5bdb;
-  --c-primary-h: #2f4ac7;
-  --c-danger:    #e03131;
-  --c-success:   #2f9e44;
-  --c-warning:   #e67700;
-  --c-text:      #1c1d2b;
-  --c-muted:     #6c7080;
-  --c-subtle:    #f1f3f9;
-  --radius:      10px;
-  --shadow:      0 4px 24px rgba(28,29,43,.09);
-}
+  --c-border:    #e5e7eb;
 
+  --c-primary:   #16a34a;
+  --c-primary-h: #15803d;
+
+  --c-danger:    #dc2626;
+  --c-success:   #16a34a;
+
+  --c-text:      #111827;
+  --c-muted:     #6b7280;
+
+  --c-subtle:    #f1f5f9;
+
+  --radius:      12px;
+  --shadow:      0 8px 24px rgba(0,0,0,0.05);
+}
 .detail-content { --background: var(--c-bg); }
 
 .detail-wrap {
@@ -249,4 +252,24 @@ form { padding: 28px; }
     flex-direction: column-reverse;
     .btn-cancel, .btn-save { width: 100%; height: 46px; justify-content: center; }
   }
+}
+
+/* ==============================
+   MOBILE + TABLET ONLY
+============================== */
+@media (max-width: 992px) {
+
+  .m-card__actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .m-card__actions .action-btn {
+    flex: 1;
+    width: auto;
+    height: 42px;
+    padding: 10px;
+    font-size: 13px;
+  }
+
 }
