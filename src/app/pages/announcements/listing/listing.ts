@@ -34,7 +34,7 @@ export class AnnouncementListingPage implements OnInit, OnDestroy {
 
   // ── Pagination ───────────────────────────────────────────────
   pageNumber = 1;
-  pageSize   = 10;
+  pageSize   = 2;
   totalCount = 0;
 
   private destroy$       = new Subject<void>();
@@ -181,16 +181,48 @@ export class AnnouncementListingPage implements OnInit, OnDestroy {
   }
 
   /** Returns page numbers to render, max 5 visible */
-  get pageRange(): number[] {
-    const total  = this.totalPages;
-    const cur    = this.pageNumber;
-    const delta  = 2;
-    const start  = Math.max(1, cur - delta);
-    const end    = Math.min(total, cur + delta);
-    const pages: number[] = [];
-    for (let i = start; i <= end; i++) pages.push(i);
-    return pages;
+get pageRange(): number[] {
+
+  const total = this.totalPages;
+  const cur   = this.pageNumber;
+  const delta = 2;
+
+  const pages: number[] = [];
+
+  if (total <= 7) {
+    // small pages → show all
+    for (let i = 1; i <= total; i++) {
+      pages.push(i);
+    }
+  } else {
+
+    const start = Math.max(2, cur - delta);
+    const end   = Math.min(total - 1, cur + delta);
+
+    // first page
+    pages.push(1);
+
+    // left dots
+    if (start > 2) {
+      pages.push(-1);
+    }
+
+    // middle pages
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+
+    // right dots
+    if (end < total - 1) {
+      pages.push(-2);
+    }
+
+    // last page
+    pages.push(total);
   }
+
+  return pages;
+}
 
   goToPage(p: number): void {
     if (p === this.pageNumber) return;

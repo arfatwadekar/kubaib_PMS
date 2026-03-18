@@ -150,20 +150,54 @@
     </div>
 
     <!-- ================= PAGINATION ================= -->
+<div class="pagination" *ngIf="!loading && totalPages > 1">
 
-    <div *ngIf="!loading && totalPages > 1" class="pagination">
+  <!-- FIRST -->
+  <!-- <button class="page-btn"
+          [disabled]="page === 1"
+          (click)="goToPage(1)">
+    «
+  </button> -->
 
-      <button (click)="prevPage()" [disabled]="page === 1">←</button>
+  <!-- PREV -->
+  <button class="page-btn"
+          [disabled]="page === 1"
+          (click)="prevPage()">
+    ‹ Prev
+  </button>
 
-      <button *ngFor="let p of pageNumbers"
-              [class.active]="p === page"
-              (click)="goToPage(p)">
-        {{ p }}
-      </button>
+  <!-- PAGE NUMBERS -->
+  <ng-container *ngFor="let p of pageNumbers">
 
-      <button (click)="nextPage()" [disabled]="page === totalPages">→</button>
+    <!-- DOTS -->
+    <span *ngIf="p < 0" class="dots">...</span>
 
-    </div>
+    <!-- PAGE -->
+    <button
+      *ngIf="p > 0"
+      class="page-num"
+      [class.active]="p === page"
+      (click)="goToPage(p)">
+      {{ p }}
+    </button>
+
+  </ng-container>
+
+  <!-- NEXT -->
+  <button class="page-btn"
+          [disabled]="page === totalPages"
+          (click)="nextPage()">
+    Next ›
+  </button>
+
+  <!-- LAST
+  <button class="page-btn"
+          [disabled]="page === totalPages"
+          (click)="goToPage(totalPages)">
+    »
+  </button> -->
+
+</div>
 
 
   </div>

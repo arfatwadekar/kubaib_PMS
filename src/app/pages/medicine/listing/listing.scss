@@ -97,10 +97,17 @@
 .table-head,
 .table-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1.5fr 150px 120px 220px;
+  grid-template-columns: 
+    2.5fr   /* NAME */
+    1.2fr   /* STRENGTH */
+    1.2fr   /* FORM */
+    1.2fr   /* STOCK */
+    1.8fr;  /* ACTIONS */
+
   padding: 18px 24px;
   align-items: center;
-  min-width: 900px;
+  justify-content: center;
+  column-gap: 20px; /* 👈 equal spacing */
 }
 
 .table-head {
@@ -302,4 +309,132 @@
     display: none;
   }
 
+}
+
+@media (max-width: 430px) {
+  .page-header[_ngcontent-ng-c2260962983] {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: column;
+    align-items: baseline;
+    margin-bottom: 32px;
+    gap: 20px;
+}
+}
+
+.pagination {
+  margin-top: 30px;
+  display: flex;
+  justify-content: end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pagination button {
+  min-width: 38px;
+  height: 38px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* hover */
+.pagination button:hover:not(:disabled) {
+  background: #eef2f7;
+}
+
+/* active page (green) */
+.pagination button.active {
+  background: #16a34a;
+  color: white;
+  border-color: #16a34a;
+  font-weight: 600;
+}
+
+/* disabled */
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* dots */
+.pagination .dots {
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+@media (max-width:430px){
+  .page-header[_ngcontent-ng-c3625592192] {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-direction: column;
+    margin-bottom: 32px;
+  }
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  gap: 10px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+/* base button */
+.page-btn,
+.page-num {
+  height: 38px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* small number buttons */
+.page-num {
+  min-width: 38px;
+  padding: 0;
+}
+
+/* hover */
+.page-btn:hover:not(:disabled),
+.page-num:hover:not(.active) {
+  background: #e5e7eb;
+}
+
+/* active (green) */
+.page-num.active {
+  background: #16a34a;
+  color: #fff;
+  border-color: #16a34a;
+  font-weight: 600;
+}
+
+/* disabled */
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* dots */
+.dots {
+  padding: 0 6px;
+  color: #9ca3af;
+  font-weight: 600;
 }

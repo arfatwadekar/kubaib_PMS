@@ -350,3 +350,74 @@
     }
   }
 }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+  flex-wrap: wrap;
+}
+
+/* ALL BUTTONS SAME HEIGHT */
+.page-btn,
+.page-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  height: 36px;
+  min-width: 36px;
+  padding: 0 14px;
+
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  color: #374151;
+
+  font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* NUMBER BUTTONS */
+.page-num {
+  padding: 0;
+}
+
+/* HOVER */
+.page-btn:hover:not(:disabled),
+.page-num:hover:not(.active) {
+  background: #e5e7eb;
+}
+
+/* ACTIVE GREEN */
+.page-num.active {
+  background: #16a34a;
+  color: #fff;
+  border-color: #16a34a;
+  font-weight: 600;
+}
+
+/* DISABLED */
+.page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* DOTS */
+.dots {
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  color: #9ca3af;
+  font-weight: 600;
+}
+
+/* REMOVE EXTRA SPACE ISSUE */
+.page-btn ion-icon {
+  font-size: 16px;
+}

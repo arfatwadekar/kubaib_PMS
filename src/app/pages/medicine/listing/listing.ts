@@ -25,7 +25,7 @@ export class ListingPage implements OnInit, OnDestroy {
   medicines: Medicine[] = [];
 
   page = 1;
-  pageSize = 10;
+  pageSize = 5;
   totalCount = 0;
   totalPages = 0;
 

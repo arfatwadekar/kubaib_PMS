@@ -185,27 +185,46 @@
       </div>
     </div>
 
-    <!-- ═══════════════ PAGINATION ═══════════════ -->
-    <div class="pagination" *ngIf="!loading && totalPages > 1">
-      <button class="page-btn" [disabled]="pageNumber === 1" (click)="prevPage()">
-        <ion-icon name="chevron-back-outline"></ion-icon>
-      </button>
+   <div class="pagination" *ngIf="!loading && totalPages > 1">
 
-      <div class="page-numbers">
-        <button
-          *ngFor="let p of pageRange"
-          class="page-num"
-          [class.page-num--active]="p === pageNumber"
-          (click)="goToPage(p)"
-        >{{ p }}</button>
-      </div>
 
-      <button class="page-btn" [disabled]="pageNumber >= totalPages" (click)="nextPage()">
-        <ion-icon name="chevron-forward-outline"></ion-icon>
-      </button>
 
-      <span class="page-info">{{ pageNumber }} / {{ totalPages }}</span>
-    </div>
+  <!-- PREV -->
+  <button class="page-btn"
+          [disabled]="pageNumber === 1"
+          (click)="prevPage()">
+    ‹ Prev
+  </button>
+
+  <!-- PAGE NUMBERS -->
+  <ng-container *ngFor="let p of pageRange">
+
+    <!-- DOTS -->
+    <span *ngIf="p < 0" class="dots">...</span>
+
+    <!-- PAGE -->
+    <button
+      *ngIf="p > 0"
+      class="page-num"
+      [class.active]="p === pageNumber"
+      (click)="goToPage(p)">
+      {{ p }}
+    </button>
+
+  </ng-container>
+
+  <!-- NEXT -->
+  <button class="page-btn"
+          [disabled]="pageNumber === totalPages"
+          (click)="nextPage()">
+    Next ›
+  </button>
+
+
+
+
+
+</div>
 
   </div>
 </ion-content>
