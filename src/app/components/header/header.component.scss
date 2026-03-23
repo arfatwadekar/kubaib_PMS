@@ -158,3 +158,8 @@ ion-popover {
 }
 
 
+@media (max-width: 767px) {
+  .profile-btn {
+    display: none;
+  }
+}

@@ -2,7 +2,7 @@
   title="Mariam Health Care"
   [showProfile]="true"
   (logout)="onLogout()"
-    [showNotification]="true"
+  [showNotification]="true"
   [notificationCount]="unreadCount"
   (notificationClick)="openNotifications()"
 ></app-header>
@@ -13,144 +13,152 @@
   </ion-refresher>
 
   <div class="dash-wrap">
-    <ion-grid class="kpi-grid">
-      <ion-row>
-        <!-- TODAY (ALL) -->
-        <ion-col size="12" sizeMd="6" sizeLg="2.4">
-          <ion-card
-            class="kpi-card"
-            [class.kpi-card--active]="activeCard === 'today'"
-            (click)="onCardClick('today')"
-            role="button"
-            tabindex="0"
-            (keydown.enter)="onCardClick('today')"
-            (keydown.space)="onCardClick('today')"
-          >
-            <ion-card-content>
-              <div class="kpi-label">Today's Appointments</div>
-              <div class="kpi-value">{{ cards.today }}</div>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
+    <!-- ═════════════ GREETING HEADER ═════════════ -->
+<div class="greeting-card">
+  <div class="greeting-left">
+   <div class="greeting-title">
+  <span class="wave animate" style="font-size: 28px;">👋</span>
+  {{ greetingText }}, Doctor
+</div>
+    <div class="greeting-sub">
+      Here's your daily overview
+    </div>
+  </div>
+</div>
 
-        <!-- PENDING -->
-        <ion-col size="12" sizeMd="6" sizeLg="2.4">
-          <ion-card
-            class="kpi-card"
-            [class.kpi-card--active]="activeCard === 'pending'"
-            (click)="onCardClick('pending')"
-            role="button"
-            tabindex="0"
-            (keydown.enter)="onCardClick('pending')"
-            (keydown.space)="onCardClick('pending')"
-          >
-            <ion-card-content>
-              <div class="kpi-label">Pending</div>
-              <div class="kpi-value">{{ cards.pending }}</div>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
+    <!-- ═══════════════════  KPI CARDS  ═══════════════════ -->
+    <!-- ═════════════ KPI CARDS ═════════════ -->
+<div class="kpi-grid">
 
-        <!-- IN PATIENT -->
-        <ion-col size="12" sizeMd="6" sizeLg="2.4">
-          <ion-card
-            class="kpi-card"
-            [class.kpi-card--active]="activeCard === 'inPatient'"
-            (click)="onCardClick('inPatient')"
-            role="button"
-            tabindex="0"
-            (keydown.enter)="onCardClick('inPatient')"
-            (keydown.space)="onCardClick('inPatient')"
-          >
-            <ion-card-content>
-              <div class="kpi-label">In Patient</div>
-              <div class="kpi-value">{{ cards.inPatient }}</div>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
+  <!-- Today -->
+  <ion-card class="kpi-card"
+    [class.kpi-card--active]="activeCard === 'today'"
+    (click)="onCardClick('today')">
 
-        <!-- AWAITING PAYMENT -->
-        <ion-col size="12" sizeMd="6" sizeLg="2.4">
-          <ion-card
-            class="kpi-card"
-            [class.kpi-card--active]="activeCard === 'awaitingPayment'"
-            (click)="onCardClick('awaitingPayment')"
-            role="button"
-            tabindex="0"
-            (keydown.enter)="onCardClick('awaitingPayment')"
-            (keydown.space)="onCardClick('awaitingPayment')"
-          >
-            <ion-card-content>
-              <div class="kpi-label">Awaiting Payment</div>
-              <div class="kpi-value">{{ cards.awaitingPayment }}</div>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
+    <ion-card-content>
+      <div class="kpi-inner">
+        <div class="kpi-icon kpi-icon--blue">
+          <ion-icon name="calendar-outline"></ion-icon>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-label">Today's Appointments</div>
+          <div class="kpi-value">{{ cards.today }}</div>
+        </div>
+      </div>
+    </ion-card-content>
 
-        <!-- OUT PATIENT -->
-        <ion-col size="12" sizeMd="6" sizeLg="2.4">
-          <ion-card
-            class="kpi-card"
-            [class.kpi-card--active]="activeCard === 'outPatient'"
-            (click)="onCardClick('outPatient')"
-            role="button"
-            tabindex="0"
-            (keydown.enter)="onCardClick('outPatient')"
-            (keydown.space)="onCardClick('outPatient')"
-          >
-            <ion-card-content>
-              <div class="kpi-label">Out Patient</div>
-              <div class="kpi-value">{{ cards.outPatient }}</div>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
+  </ion-card>
 
-        <!-- CANCELLED -->
-        <ion-col size="12" sizeMd="6" sizeLg="2.4">
-          <ion-card
-            class="kpi-card kpi-card--cancelled"
-            [class.kpi-card--active]="activeCard === 'cancelled'"
-            (click)="onCardClick('cancelled')"
-            role="button"
-            tabindex="0"
-            (keydown.enter)="onCardClick('cancelled')"
-            (keydown.space)="onCardClick('cancelled')"
-          >
-            <ion-card-content>
-              <div class="kpi-label">
-                <ion-icon name="close-circle-outline"></ion-icon>
-                Cancelled
-              </div>
-              <div class="kpi-value">{{ cards.cancelled }}</div>
-            </ion-card-content>
-          </ion-card>
-        </ion-col>
-      </ion-row>
-    </ion-grid>
+  <!-- Pending -->
+  <ion-card class="kpi-card"
+    [class.kpi-card--active]="activeCard === 'pending'"
+    (click)="onCardClick('pending')">
 
-    <!-- ═══════════════════════════════════════════════════════════════
-     CHARTS ROW — paste inside <div class="dash-wrap">,
-     BELOW the kpi-grid and ABOVE the table-card
-     ═══════════════════════════════════════════════════════════════ -->
+    <ion-card-content>
+      <div class="kpi-inner">
+        <div class="kpi-icon kpi-icon--orange">
+          <ion-icon name="time-outline"></ion-icon>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-label">Pending</div>
+          <div class="kpi-value">{{ cards.pending }}</div>
+        </div>
+      </div>
+    </ion-card-content>
 
+  </ion-card>
+
+  <!-- In Patient -->
+  <ion-card class="kpi-card"
+    [class.kpi-card--active]="activeCard === 'inPatient'"
+    (click)="onCardClick('inPatient')">
+
+    <ion-card-content>
+      <div class="kpi-inner">
+        <div class="kpi-icon kpi-icon--indigo">
+          <ion-icon name="person-outline"></ion-icon>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-label">In Patient</div>
+          <div class="kpi-value">{{ cards.inPatient }}</div>
+        </div>
+      </div>
+    </ion-card-content>
+
+  </ion-card>
+
+  <!-- Awaiting Payment -->
+  <ion-card class="kpi-card"
+    [class.kpi-card--active]="activeCard === 'awaitingPayment'"
+    (click)="onCardClick('awaitingPayment')">
+
+    <ion-card-content>
+      <div class="kpi-inner">
+        <div class="kpi-icon kpi-icon--amber">
+          <ion-icon name="card-outline"></ion-icon>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-label">Awaiting Payment</div>
+          <div class="kpi-value">{{ cards.awaitingPayment }}</div>
+        </div>
+      </div>
+    </ion-card-content>
+
+  </ion-card>
+
+  <!-- Cancelled -->
+  <ion-card class="kpi-card kpi-card--cancelled"
+    [class.kpi-card--active]="activeCard === 'cancelled'"
+    (click)="onCardClick('cancelled')">
+
+    <ion-card-content>
+      <div class="kpi-inner">
+        <div class="kpi-icon kpi-icon--red">
+          <ion-icon name="close-circle-outline"></ion-icon>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-label">Cancelled</div>
+          <div class="kpi-value">{{ cards.cancelled }}</div>
+        </div>
+      </div>
+    </ion-card-content>
+
+  </ion-card>
+
+  <!-- Out Patient -->
+  <ion-card class="kpi-card"
+    [class.kpi-card--active]="activeCard === 'outPatient'"
+    (click)="onCardClick('outPatient')">
+
+    <ion-card-content>
+      <div class="kpi-inner">
+        <div class="kpi-icon kpi-icon--green">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+        </div>
+        <div class="kpi-body">
+          <div class="kpi-label">Out Patient</div>
+          <div class="kpi-value">{{ cards.outPatient }}</div>
+        </div>
+      </div>
+    </ion-card-content>
+
+  </ion-card>
+
+</div>
+
+    <!-- ═══════════════════  CHARTS ROW  ═══════════════════ -->
     <ion-grid class="charts-grid">
       <ion-row>
-        <!-- ── Status Overview (Doughnut) ───────────────────────── -->
+
+        <!-- Status Overview – Doughnut -->
         <ion-col size="12" sizeMd="12" sizeLg="4">
           <ion-card class="chart-card">
             <ion-card-header>
-              <ion-card-title class="chart-title"
-                >Status Overview</ion-card-title
-              >
-              <ion-card-subtitle class="chart-sub"
-                >Distribution of today's patients</ion-card-subtitle
-              >
+              <ion-card-title class="chart-title">Status Overview</ion-card-title>
+              <ion-card-subtitle class="chart-sub">Distribution of today's patients</ion-card-subtitle>
             </ion-card-header>
-
             <ion-card-content>
-              <!-- Doughnut canvas -->
               <div class="donut-container">
-                <!-- centre label rendered over the canvas via CSS -->
                 <div class="donut-center">
                   <span class="donut-num">{{ cards.today }}</span>
                   <span class="donut-lbl">Total</span>
@@ -163,142 +171,99 @@
                   [options]="doughnutChartOptions"
                 ></canvas>
               </div>
-
-              <!-- Legend -->
               <div class="donut-legend">
                 <div class="legend-row">
-                  <span class="legend-dot" style="background: #f97316"></span>
+                  <span class="legend-dot" style="background:#f97316"></span>
                   <span class="legend-name">Pending Consultation</span>
-                  <span class="legend-val"
-                    >{{ cards.pending }} ({{ pct(cards.pending) }})</span
-                  >
+                  <span class="legend-val">{{ cards.pending }} ({{ pct(cards.pending) }})</span>
                 </div>
                 <div class="legend-row">
-                  <span class="legend-dot" style="background: #3b82f6"></span>
+                  <span class="legend-dot" style="background:#3b82f6"></span>
                   <span class="legend-name">In Patient</span>
-                  <span class="legend-val"
-                    >{{ cards.inPatient }} ({{ pct(cards.inPatient) }})</span
-                  >
+                  <span class="legend-val">{{ cards.inPatient }} ({{ pct(cards.inPatient) }})</span>
                 </div>
                 <div class="legend-row">
-                  <span class="legend-dot" style="background: #eab308"></span>
+                  <span class="legend-dot" style="background:#eab308"></span>
                   <span class="legend-name">Awaiting Payment</span>
-                  <span class="legend-val"
-                    >{{ cards.awaitingPayment }} ({{ pct(cards.awaitingPayment)
-                    }})</span
-                  >
+                  <span class="legend-val">{{ cards.awaitingPayment }} ({{ pct(cards.awaitingPayment) }})</span>
                 </div>
                 <div class="legend-row">
-                  <span class="legend-dot" style="background: #22c55e"></span>
+                  <span class="legend-dot" style="background:#22c55e"></span>
                   <span class="legend-name">Out Patient</span>
-                  <span class="legend-val"
-                    >{{ cards.outPatient }} ({{ pct(cards.outPatient) }})</span
-                  >
+                  <span class="legend-val">{{ cards.outPatient }} ({{ pct(cards.outPatient) }})</span>
                 </div>
               </div>
             </ion-card-content>
           </ion-card>
         </ion-col>
 
-        <!-- ── Weekly Overview (Bar) ────────────────────────────── -->
+        <!-- Weekly Overview – Smooth Line -->
         <ion-col size="12" sizeMd="12" sizeLg="8">
           <ion-card class="chart-card">
             <ion-card-header>
               <div class="weekly-header">
                 <div>
-                  <ion-card-title class="chart-title"
-                    >Weekly Overview</ion-card-title
-                  >
-                  <ion-card-subtitle class="chart-sub"
-                    >Total patients per day</ion-card-subtitle
-                  >
+                  <ion-card-title class="chart-title">Weekly Overview</ion-card-title>
+                  <ion-card-subtitle class="chart-sub">Total patients per day</ion-card-subtitle>
                 </div>
                 <div class="week-nav">
                   <ion-button fill="clear" (click)="prevWeek()">
-                    <ion-icon
-                      name="chevron-back-outline"
-                      slot="icon-only"
-                    ></ion-icon>
+                    <ion-icon name="chevron-back-outline" slot="icon-only"></ion-icon>
                   </ion-button>
                   <span class="week-label">{{ weekLabel }}</span>
                   <ion-button fill="clear" (click)="nextWeek()">
-                    <ion-icon
-                      name="chevron-forward-outline"
-                      slot="icon-only"
-                    ></ion-icon>
+                    <ion-icon name="chevron-forward-outline" slot="icon-only"></ion-icon>
                   </ion-button>
                 </div>
               </div>
             </ion-card-header>
-
             <ion-card-content>
-              <div class="bar-container">
+              <div class="line-container">
                 <canvas
-                  #barChartRef="base-chart"
+                  #lineChartRef="base-chart"
                   baseChart
-                  [data]="barChartData"
-                  [type]="barChartType"
-                  [options]="barChartOptions"
+                  [data]="lineChartData"
+                  [type]="lineChartType"
+                  [options]="lineChartOptions"
                 ></canvas>
               </div>
             </ion-card-content>
           </ion-card>
         </ion-col>
+
       </ion-row>
     </ion-grid>
 
-    <!-- TABLE CARD (Like Screenshot) -->
+    <!-- ═══════════════════  TABLE CARD  ═══════════════════ -->
     <ion-card class="table-card">
+
       <!-- Top bar -->
       <div class="table-topbar">
         <div class="table-title">Today's Appointments</div>
-
         <div class="table-tools">
           <div class="searchbox">
             <ion-icon name="search-outline"></ion-icon>
-            <input
-              type="text"
-              placeholder="Search Appointments"
-              [(ngModel)]="search"
-            />
+            <input type="text" placeholder="Search Appointments" [(ngModel)]="search" />
           </div>
-
-          <button
-            class="btn btn--primary"
-            type="button"
-            (click)="onSearchClick()"
-          >
-            Search
-          </button>
-
-          <button class="btn btn--ghost" type="button" (click)="onClearClick()">
+          <button class="btn btn--primary" type="button" (click)="onSearchClick()">Search</button>
+          <button class="btn btn--ghost"   type="button" (click)="onClearClick()">
             <ion-icon name="close-circle-outline"></ion-icon>
             Clear
           </button>
         </div>
       </div>
 
-      <!-- Loading -->
+      <!-- Skeleton -->
       <ion-list *ngIf="isLoading">
         <ion-item *ngFor="let i of [1,2,3,4,5]">
           <ion-label>
-            <h2>
-              <ion-skeleton-text
-                animated
-                style="width: 60%"
-              ></ion-skeleton-text>
-            </h2>
-            <p>
-              <ion-skeleton-text
-                animated
-                style="width: 80%"
-              ></ion-skeleton-text>
-            </p>
+            <h2><ion-skeleton-text animated style="width:60%"></ion-skeleton-text></h2>
+            <p><ion-skeleton-text animated style="width:80%"></ion-skeleton-text></p>
           </ion-label>
         </ion-item>
       </ion-list>
 
-      <!-- Table -->
+      <!-- Table — no inner scroll, page is the only scrollable surface -->
       <div class="appt-table" *ngIf="!isLoading">
         <div class="appt-tr appt-tr--head">
           <div class="appt-th">Patient ID</div>
@@ -309,38 +274,22 @@
           <div class="appt-th appt-th--right">Actions</div>
         </div>
 
+        <!-- appt-body has NO max-height / overflow-y — page scroll only -->
         <div class="appt-body">
-          <div
-            class="appt-tr"
-            *ngFor="let r of visibleRows"
-            (click)="openPatient(r)"
-            role="button"
-            tabindex="0"
-          >
+          <div class="appt-tr" *ngFor="let r of visibleRows"
+            (click)="openPatient(r)" role="button" tabindex="0">
             <div class="appt-td appt-td--strong">{{ r.pid }}</div>
             <div class="appt-td">{{ r.name }}</div>
             <div class="appt-td appt-td--muted">{{ r.phone }}</div>
-
             <div class="appt-td appt-td--time">
               <ion-icon name="time-outline"></ion-icon>
               <span>{{ r.timeText }}</span>
             </div>
-
             <div class="appt-td">
-              <span [class]="statusPillClass(r.statusCode)"
-                >{{ r.statusText }}</span
-              >
+              <span [class]="statusPillClass(r.statusCode)">{{ r.statusText }}</span>
             </div>
-
-            <div
-              class="appt-td appt-td--right"
-              (click)="$event.stopPropagation()"
-            >
-              <ion-button
-                fill="clear"
-                class="gear"
-                (click)="openActions($event, r)"
-              >
+            <div class="appt-td appt-td--right" (click)="$event.stopPropagation()">
+              <ion-button fill="clear" class="gear" (click)="openActions($event, r)">
                 <ion-icon name="settings-outline" slot="icon-only"></ion-icon>
               </ion-button>
             </div>
@@ -358,33 +307,25 @@
       class="mhc-popover"
       [isOpen]="actionOpen"
       [event]="actionEvent"
-      (didDismiss)="closeActions()"
-    >
+      (didDismiss)="closeActions()">
       <ng-template>
         <ion-list lines="none">
           <ion-item lines="none">
             <ion-label><strong>Change Status</strong></ion-label>
           </ion-item>
-
           <ng-container *ngIf="selectedRow as r">
-            <ion-item
-              button
-              lines="none"
+            <ion-item button lines="none"
               *ngFor="let s of allowedNextStatuses(r)"
-              (click)="markStatus(s)"
-            >
+              (click)="markStatus(s)">
               <ion-label>{{ statusLabel(s) }}</ion-label>
             </ion-item>
           </ng-container>
-
-          <ion-item
-            *ngIf="selectedRow && allowedNextStatuses(selectedRow).length === 0"
-            lines="none"
-          >
+          <ion-item *ngIf="selectedRow && allowedNextStatuses(selectedRow).length === 0" lines="none">
             <ion-label color="medium">No actions available</ion-label>
           </ion-item>
         </ion-list>
       </ng-template>
     </ion-popover>
-  </div>
+
+  </div><!-- /dash-wrap -->
 </ion-content>

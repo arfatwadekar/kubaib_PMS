@@ -1,6 +1,6 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, Input, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
-import { AlertController, PopoverController, ToastController } from '@ionic/angular';
+import { PopoverController, ToastController } from '@ionic/angular';
 import { forkJoin, of } from 'rxjs';
 import { catchError, finalize } from 'rxjs/operators';
 import { ChartConfiguration, ChartData, ChartOptions } from 'chart.js';
@@ -52,12 +52,14 @@ type CardFilterKey =
   standalone:  false,
 })
 export class DashboardPage {
-unreadCount = 0;
-notifications: any[] = [];
 
-  @ViewChild('barChartRef')   barChartRef?:   BaseChartDirective;
+  unreadCount   = 0;
+  notifications: any[] = [];
+
+  @ViewChild('lineChartRef')  lineChartRef?:  BaseChartDirective;
   @ViewChild('donutChartRef') donutChartRef?: BaseChartDirective;
-
+ @Input() profileInitial?: string;
+ @Input() profileRole?: string;
   isLoading = false;
 
   // Search UI
@@ -80,41 +82,73 @@ notifications: any[] = [];
   actionEvent: any = null;
   selectedRow: AppointmentRow | null = null;
 
-  // ─── Weekly Bar Chart ──────────────────────────────────────────
-  weekLabel         = '';
+  // ─── Weekly Line Chart ─────────────────────────────────────────
+  weekLabel          = '';
   private weekOffset = 0;
 
-  barChartType: ChartConfiguration<'bar'>['type'] = 'bar';
+  lineChartType: ChartConfiguration<'line'>['type'] = 'line';
 
-  barChartData: ChartData<'bar'> = {
-    labels:   ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    datasets: [{
-      data:            [0, 0, 0, 0, 0, 0, 0],
-      label:           'Patients',
-      backgroundColor: Array(7).fill('#BFDBFE'),
-      hoverBackgroundColor: Array(7).fill('#3B82F6'),
-      borderRadius:    6,
-      borderSkipped:   false,
-    }],
-  };
+lineChartData: ChartData<'line'> = {
+  labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+  datasets: [{
+    data: [0, 0, 0, 0, 0, 0, 0],
+    label: 'Patients',
 
-  barChartOptions: ChartOptions<'bar'> = {
-    responsive:          true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: { label: (ctx) => ` ${ctx.parsed.y} patients` },
-      },
+    borderColor: '#16a34a',              // main green line
+    backgroundColor: 'rgba(34,197,94,0.18)', // light green fill
+
+    pointBackgroundColor: '#22c55e',     // green points
+    pointBorderColor: '#ffffff',
+    pointBorderWidth: 2,
+
+    pointRadius: 5,
+    pointHoverRadius: 7,
+
+    borderWidth: 2,
+    tension: 0.4,
+    fill: true,
+  }],
+};
+
+lineChartOptions: ChartOptions<'line'> = {
+  responsive: true,
+  maintainAspectRatio: false,
+  interaction: { mode: 'index', intersect: false },
+
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      callbacks: { label: (ctx) => ` ${ctx.parsed.y} patients` },
     },
-    scales: {
-      x: {
-        grid:  { display: false },
-        ticks: { color: '#94a3b8', font: { size: 12 } },
+  },
+
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: {
+        color: '#16a34a', // 🔥 green text
+        font: { size: 12 },
+        padding: 4,
       },
-      y: { display: false, beginAtZero: true },
+      border: { display: false },
     },
-  };
+
+    y: {
+      beginAtZero: true,
+      grid: {
+        color: 'rgba(34,197,94,0.15)', // 🔥 light green grid
+      },
+      ticks: {
+        color: '#16a34a', // 🔥 green text
+        font: { size: 11 },
+        maxTicksLimit: 5,
+        padding: 8,
+        callback: (v) => v + '%', // same rakha as per tera code
+      },
+      border: { display: false },
+    },
+  },
+};
 
   // ─── Doughnut Chart ───────────────────────────────────────────
   doughnutChartType: ChartConfiguration<'doughnut'>['type'] = 'doughnut';
@@ -155,31 +189,26 @@ notifications: any[] = [];
   ]);
 
   constructor(
-    private api:       DashboardService,
-    private toastCtrl: ToastController,
-    private router:    Router,
-     private popoverCtrl: PopoverController,
-       private notificationService: NotificationService,
-
+    private api:         DashboardService,
+    private toastCtrl:   ToastController,
+    private router:      Router,
+    private popoverCtrl: PopoverController,
+    private notificationService: NotificationService,
   ) {}
 
-  ngOnInit() {
-  this.loadNotifications();
-}
-
-
-async loadNotifications() {
-  const res: any = await this.notificationService.getNotifications().toPromise();
-
-  this.notifications = res || [];
-
-  this.unreadCount = this.notifications.filter(n => !n.isRead).length;
-}
-
-openNotifications() {
-  this.router.navigate(['/notifications']);
-}
   // ─── Lifecycle ───────────────────────────────────────────────
+greetingText: string = '';
+  ngOnInit(
+
+  ) { this.loadNotifications(); this.setGreeting(); }
+
+  async loadNotifications() {
+    const res: any = await this.notificationService.getNotifications().toPromise();
+    this.notifications = res || [];
+    this.unreadCount   = this.notifications.filter(n => !n.isRead).length;
+  }
+
+  openNotifications() { this.router.navigate(['/notifications']); }
 
   ionViewWillEnter() {
     this.weekOffset = 0;
@@ -201,32 +230,21 @@ openNotifications() {
       forkJoin({
         appointments: this.api.getTodayAppointments().pipe(catchError(() => of(null))),
         stats:        this.api.getDashboardStats().pipe(catchError(() => of(null))),
-        weekly: this.api.getWeeklyOverview(this.weekOffset).pipe(catchError(() => of(null))),
+        weekly:       this.api.getWeeklyOverview(this.weekOffset).pipe(catchError(() => of(null))),
       })
       .pipe(finalize(() => { this.isLoading = false; resolve(); }))
       .subscribe(async ({ appointments, stats, weekly }) => {
 
-        // 1. Rows
         const todayISO = this.todayISO_Local();
         const mapped   = this.mapRows(this.extractList(appointments)).filter((r) =>
           this.toISODate_LocalSafe(r.raw?.appointmentDate) === todayISO);
 
         this.rows = mapped.sort((a, b) => (a.timeText || '').localeCompare(b.timeText || ''));
-
-        // 2. KPI — always build from rows (source of truth for today's filtered list)
-        // Use stats API for individual counts if available, but recompute 'today' from rows
-        const rowCards  = this.buildCards(this.rows);
-        const statsCards = stats ? this.buildCardsFromStats(stats) : null;
-
-        // ✅ Always use row counts only — rows are already filtered to today's local date.
-        // The stats API may include cancelled appointments or other dates, causing mismatch.
-        this.cards = rowCards;
+        this.cards = this.buildCards(this.rows);
 
         this.recomputeVisible();
-
-        // 3. Charts
         this.refreshDoughnut();
-        this.refreshBarChart(weekly);
+        this.refreshLineChart(weekly);
 
         if (!appointments) await this.toast('Failed to load today\'s appointments.');
       });
@@ -241,7 +259,7 @@ openNotifications() {
   private loadWeekOnly() {
     this.api.getWeeklyOverview(this.weekOffset)
       .pipe(catchError(() => of(null)))
-      .subscribe((w) => this.refreshBarChart(w));
+      .subscribe((w) => this.refreshLineChart(w));
   }
 
   // ─── Chart updaters ──────────────────────────────────────────
@@ -262,7 +280,7 @@ openNotifications() {
     this.donutChartRef?.update();
   }
 
-  private refreshBarChart(raw: any) {
+  private refreshLineChart(raw: any) {
     const today  = new Date();
     const monday = this.getMonday(today, this.weekOffset);
     const sunday = new Date(monday);
@@ -272,10 +290,9 @@ openNotifications() {
     const days = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(monday);
       d.setDate(d.getDate() + i);
-      return { iso: this.toLocalISO(d), count: 0, isToday: this.toLocalISO(d) === this.todayISO_Local() };
+      return { iso: this.toLocalISO(d), count: 0 };
     });
 
-    // Debug: log raw weekly shape
     console.log('[DASH][WEEKLY] raw:', JSON.stringify(raw));
 
     const list: any[] = Array.isArray(raw) ? raw
@@ -287,21 +304,17 @@ openNotifications() {
       if (slot) slot.count = Number(item?.count ?? item?.total ?? item?.patients ?? 0);
     }
 
-    this.barChartData = {
+    this.lineChartData = {
       labels:   ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
       datasets: [{
-        data:                days.map(d => d.count),
-        label:               'Patients',
-        backgroundColor:     days.map(d => d.isToday ? '#3B82F6' : '#BFDBFE'),
-        hoverBackgroundColor:days.map(d => d.isToday ? '#2563EB' : '#93C5FD'),
-        borderRadius:        6,
-        borderSkipped:       false,
+        ...this.lineChartData.datasets[0],
+        data: days.map(d => d.count),
       }],
     };
-    this.barChartRef?.update();
+    this.lineChartRef?.update();
   }
 
-  /** Percentage helper for legend labels */
+  /** Percentage helper for legend */
   pct(n: number): string {
     if (!this.cards.today) return '0%';
     return Math.round((n / this.cards.today) * 100) + '%';
@@ -322,58 +335,41 @@ openNotifications() {
   }
 
   onClearClick() {
-    this.search = '';
+    this.search            = '';
     this.lastAppliedSearch = '';
-    this.activeCard = 'today';
+    this.activeCard        = 'today';
     this.recomputeVisible();
   }
 
   // ─── Navigation ──────────────────────────────────────────────
 
-  // openPatient(row: AppointmentRow) {
-  //   if (!row?.patientId) return;
-  //   const role = (localStorage.getItem('mhc_role') || '').trim().toLowerCase();
-  //   const tab  = role === 'doctor'
-  //     ? (row.statusCode === AppointmentStatus.AwaitingPayment ? 'payment' : 'medical')
-  //     : 'prelim';
-  //   this.router.navigate(['/patients'], { queryParams: { patientId: row.patientId, tab } });
-  // }
+  openPatient(row: AppointmentRow) {
+    if (!row?.patientId) return;
 
-openPatient(row: AppointmentRow) {
-  if (!row?.patientId) return;
+    const role  = (localStorage.getItem('mhc_role') || '').trim().toLowerCase();
+    let route   = '/patients/prelim';
+    let tab     = 'prelim';
 
-  const role = (localStorage.getItem('mhc_role') || '').trim().toLowerCase();
+    if (Number(row.statusCode) === AppointmentStatus.AwaitingPayment) {
+      route = '/patients/payment'; tab = 'payment';
+    } else if (role === 'doctor') {
+      route = '/patients/medical'; tab = 'medical';
+    } else if (role === 'receptionist') {
+      route = '/patients/payment'; tab = 'payment';
+    }
 
-  let route  = '/patients/prelim';
-  let tab    = 'prelim';
-
-  if (Number(row.statusCode) === AppointmentStatus.AwaitingPayment) {
-    route = '/patients/payment';
-    tab   = 'payment';
-  } else if (role === 'doctor') {
-    route = '/patients/medical';
-    tab   = 'medical';
-  } else if (role === 'receptionist') {
-    route = '/patients/payment';
-    tab   = 'payment';
+    this.router.navigate([route], {
+      queryParams: { patientId: row.patientId, appointmentId: row.appointmentId, from: 'dashboard', tab },
+    });
   }
 
-  this.router.navigate([route], {
-    queryParams: {
-      patientId:     row.patientId,
-      appointmentId: row.appointmentId,
-      from:          'dashboard',
-      tab:           tab            // ← this was missing
-    }
-  });
-}
   // ─── Popover / actions ───────────────────────────────────────
 
   openActions(ev: any, row: AppointmentRow) {
     ev?.stopPropagation();
-    this.selectedRow  = row;
-    this.actionEvent  = ev;
-    this.actionOpen   = true;
+    this.selectedRow = row;
+    this.actionEvent = ev;
+    this.actionOpen  = true;
   }
 
   closeActions() {
@@ -382,29 +378,12 @@ openPatient(row: AppointmentRow) {
     this.selectedRow = null;
   }
 
-  // allowedNextStatuses(row: AppointmentRow): number[] {
-  //   const s = row?.statusCode;
-  //   if (s === AppointmentStatus.Pending)
-  //     return [AppointmentStatus.InPatient, AppointmentStatus.Cancelled];
-  //   if (s === AppointmentStatus.InPatient)
-  //     return [AppointmentStatus.AwaitingPayment, AppointmentStatus.Cancelled];
-  //   if (s === AppointmentStatus.AwaitingPayment)
-  //     return [AppointmentStatus.OutPatient];
-  //   return [];
-  // }
-
   allowedNextStatuses(row: AppointmentRow): number[] {
-
-  const s = row?.statusCode;
-
-  if (s === AppointmentStatus.Pending)
-    return [AppointmentStatus.InPatient, AppointmentStatus.Cancelled];
-
-  if (s === AppointmentStatus.InPatient)
-    return [AppointmentStatus.OutPatient, AppointmentStatus.Cancelled];
-
-  return [];
-}
+    const s = row?.statusCode;
+    if (s === AppointmentStatus.Pending)   return [AppointmentStatus.InPatient, AppointmentStatus.Cancelled];
+    if (s === AppointmentStatus.InPatient) return [AppointmentStatus.OutPatient, AppointmentStatus.Cancelled];
+    return [];
+  }
 
   async markStatus(nextStatus: number) {
     if (!this.VALID_STATUS.has(nextStatus)) { await this.toast(`Invalid status: ${nextStatus}`); return; }
@@ -449,20 +428,22 @@ openPatient(row: AppointmentRow) {
 
   private applyCardFilter(list: AppointmentRow[], key: CardFilterKey): AppointmentRow[] {
     if (key === 'today') return list;
-    const map: Record<Exclude<CardFilterKey,'today'>, number> = {
-      pending: AppointmentStatus.Pending, inPatient: AppointmentStatus.InPatient,
-      awaitingPayment: AppointmentStatus.AwaitingPayment,
-      outPatient: AppointmentStatus.OutPatient, cancelled: AppointmentStatus.Cancelled,
+    const map: Record<Exclude<CardFilterKey, 'today'>, number> = {
+      pending:        AppointmentStatus.Pending,
+      inPatient:      AppointmentStatus.InPatient,
+      awaitingPayment:AppointmentStatus.AwaitingPayment,
+      outPatient:     AppointmentStatus.OutPatient,
+      cancelled:      AppointmentStatus.Cancelled,
     };
-    return list.filter(r => Number(r.statusCode) === map[key as Exclude<CardFilterKey,'today'>]);
+    return list.filter(r => Number(r.statusCode) === map[key as Exclude<CardFilterKey, 'today'>]);
   }
 
   private applySearchOnList(list: AppointmentRow[], qRaw: string): AppointmentRow[] {
     const q = (qRaw || '').trim().toLowerCase();
     if (!q) return list;
     return list.filter(r =>
-      (r.pid || '').toLowerCase().includes(q) ||
-      (r.name || '').toLowerCase().includes(q) ||
+      (r.pid   || '').toLowerCase().includes(q) ||
+      (r.name  || '').toLowerCase().includes(q) ||
       (r.phone || '').toLowerCase().includes(q));
   }
 
@@ -471,7 +452,7 @@ openPatient(row: AppointmentRow) {
   statusLabel(code: number): string {
     if (code === AppointmentStatus.Pending)         return 'Pending';
     if (code === AppointmentStatus.InPatient)       return 'In Patient';
-    // if (code === AppointmentStatus.AwaitingPayment) return 'Awaiting Payment';
+    if (code === AppointmentStatus.AwaitingPayment) return 'Awaiting Payment';
     if (code === AppointmentStatus.OutPatient)      return 'Out Patient';
     if (code === AppointmentStatus.Cancelled)       return 'Cancelled';
     return 'Unknown';
@@ -502,7 +483,7 @@ openPatient(row: AppointmentRow) {
     if (!s) return '';
     if (/^p-\d+$/i.test(s))  return s.toUpperCase();
     if (/^pid\d+$/i.test(s)) return s.toUpperCase();
-    if (/^\d+$/.test(s))     return `PID${String(s).padStart(3,'0')}`;
+    if (/^\d+$/.test(s))     return `PID${String(s).padStart(3, '0')}`;
     return s;
   }
 
@@ -514,7 +495,7 @@ openPatient(row: AppointmentRow) {
       const pidRaw        = x?.pid ?? x?.patientPid ?? patient?.pid ?? patient?.patientPid ??
                             patient?.patientCode ?? x?.patientCode ?? x?.patientUID ?? '';
       const pid           = this.normalizePid(pidRaw) ||
-                            (patientId ? `PID${String(patientId).padStart(3,'0')}` : '-');
+                            (patientId ? `PID${String(patientId).padStart(3, '0')}` : '-');
       const name          = String(patient?.fullName ?? x?.fullName ?? x?.patientName ?? 'NA').trim();
       const phone         = String(patient?.phoneNumber ?? x?.phoneNumber ?? x?.mobile ?? '-').trim();
       const timeText      = String(x?.appointmentTimeFormatted ?? '').trim() ||
@@ -523,19 +504,6 @@ openPatient(row: AppointmentRow) {
       const statusText    = String(x?.statusText ?? '').trim() || this.statusLabel(statusCode);
       return { appointmentId, patientId, pid, name, phone, timeText, statusCode, statusText, raw: x };
     });
-  }
-
-  private buildCardsFromStats(stats: any): DashboardCards {
-    // Debug: log raw stats shape to find exact field names from your API
-    console.log('[DASH][STATS] raw:', JSON.stringify(stats));
-    return {
-      today:           this.toNum(stats?.todayAppointments ?? stats?.todayCount ?? stats?.today ?? stats?.total ?? stats?.totalAppointments),
-      pending:         this.toNum(stats?.pending           ?? stats?.pendingCount ?? stats?.pendingAppointments),
-      inPatient:       this.toNum(stats?.inPatient         ?? stats?.inPatientCount ?? stats?.in_patient ?? stats?.inpatient),
-      awaitingPayment: this.toNum(stats?.awaitingPayment   ?? stats?.awaitingPaymentCount ?? stats?.awaiting_payment),
-      outPatient:      this.toNum(stats?.outPatient        ?? stats?.outPatientCount ?? stats?.out_patient ?? stats?.outpatient),
-      cancelled:       this.toNum(stats?.cancelled         ?? stats?.cancelledCount ?? stats?.canceled),
-    };
   }
 
   private buildCards(rows: AppointmentRow[]): DashboardCards {
@@ -558,7 +526,7 @@ openPatient(row: AppointmentRow) {
   private todayISO_Local() { return this.toLocalISO(new Date()); }
 
   private toLocalISO(d: Date): string {
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }
 
   private toISODate_LocalSafe(v: any): string {
@@ -581,7 +549,7 @@ openPatient(row: AppointmentRow) {
 
   private timeFromRaw(v: any): string {
     const s = String(v ?? '').trim();
-    if (!s)              return '-';
+    if (!s) return '-';
     if (s.includes(':')) return s.slice(0, 5);
     return s;
   }
@@ -596,27 +564,43 @@ openPatient(row: AppointmentRow) {
     t.present();
   }
 
-//   onEditProfile() {
-//   console.log('Navigate to profile page');
-// }
+  async onLogout() {
+    localStorage.clear();
+    sessionStorage.clear();
+    try { await this.popoverCtrl.dismiss(); } catch {}
+    this.router.navigate(['/login']);
+  }
 
 
+setGreeting() {
+  const hour = new Date().getHours();
 
-
-async onLogout() {
-  console.log('Logging out...');
-  
-  // Clear storage
-  localStorage.clear();
-  sessionStorage.clear();
-  
-  // Close popover/modal
-  await this.popoverCtrl.dismiss();
-  
-  // Navigate to login
-  this.router.navigate(['/login']);
-  
-  console.log('Logged out successfully');
+  if (hour < 12) {
+    this.greetingText = 'Good Morning';
+  } else if (hour < 18) {
+    this.greetingText = 'Good Afternoon';
+  } else {
+    this.greetingText = 'Good Evening';
+  }
 }
+
+
+  get resolvedRole(): string {
+    return (
+      this.profileRole ||
+      localStorage.getItem('mhc_role') ||
+      'Doctor'
+    );
+  }
+
+  get resolvedInitial(): string {
+    const name =
+      this.profileInitial ||
+      localStorage.getItem('mhc_user_name') ||
+      this.resolvedRole ||
+      'U';
+
+    return name.substring(0, 1).toUpperCase();
+  }
 
 }
