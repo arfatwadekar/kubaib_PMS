@@ -1,13 +1,25 @@
+$primary: #22c55e;
+$primary-dark: #15803d;
+$secondary: #0ea5e9;
+
+$text-dark: #111827;
+$text-light: #6b7280;
+$border: #e5e7eb;
+$bg-soft: #f9fafb;
+
 /* ================= BACKGROUND ================= */
 
 .medicine-bg {
-  background: linear-gradient(180deg, #f8fafc, #eef2f7);
+  --background: linear-gradient(180deg, #f8fafc, #eef2f7);
 }
 
 .medicine-container {
   padding: 32px;
   max-width: 1400px;
   margin: auto;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px 16px;
 }
 
 /* ================= HEADER ================= */
@@ -90,20 +102,14 @@
 .table-wrapper {
   background: white;
   border-radius: 18px;
-  box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
   overflow-x: auto;
 }
 
 .table-head,
 .table-row {
   display: grid;
-  grid-template-columns: 
-    2.5fr   /* NAME */
-    1.2fr   /* STRENGTH */
-    1.2fr   /* FORM */
-    1.2fr   /* STOCK */
-    1.8fr;  /* ACTIONS */
-
+  grid-template-columns: repeat(5, 1fr);
   padding: 18px 24px;
   align-items: center;
   justify-content: center;
@@ -137,28 +143,6 @@
   font-weight: 700;
 }
 
-/* ================= ACTION BUTTONS ================= */
-
-.actions {
-  display: flex;
-  gap: 8px;
-}
-
-.btn-view,
-.btn-edit,
-.btn-delete {
-  padding: 6px 12px;
-  border-radius: 8px;
-  border: none;
-  font-size: 13px;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.btn-view { background: #e0f2fe; color: #0369a1; }
-.btn-edit { background: #dbeafe; color: #1e40af; }
-.btn-delete { background: #fee2e2; color: #b91c1c; }
-
 /* ================= MOBILE CARDS ================= */
 
 .mobile-view {
@@ -170,13 +154,14 @@
   border-radius: 18px;
   padding: 18px;
   margin-bottom: 18px;
-  box-shadow: 0 8px 22px rgba(0,0,0,0.06);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   margin-bottom: 16px;
+  align-items: center;
 }
 
 .card-title {
@@ -230,35 +215,11 @@
   color: #dc2626;
 }
 
-/* ================= PAGINATION ================= */
-
-.pagination {
-  margin-top: 30px;
-  display: flex;
-  justify-content: end;
-  gap: 8px;
-}
-
-.pagination button {
-  padding: 6px 12px;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
-  background: white;
-  cursor: pointer;
-}
-
-.pagination button.active {
-  background: #16a34a;
-  color: white;
-}
-
-/* ================= RESPONSIVE ================= */
 /* ================= RESPONSIVE ================= */
 
 /* MOBILE ONLY */
 
 @media (max-width: 576px) {
-
   .desktop-view {
     display: none;
   }
@@ -294,13 +255,12 @@
     margin-bottom: 32px;
     gap: 20px;
     flex-wrap: wrap;
-}
+  }
 }
 
 /* TABLET + DESKTOP */
 
 @media (min-width: 577px) {
-
   .desktop-view {
     display: block;
   }
@@ -308,7 +268,6 @@
   .mobile-view {
     display: none;
   }
-
 }
 
 @media (max-width: 430px) {
@@ -319,122 +278,388 @@
     align-items: baseline;
     margin-bottom: 32px;
     gap: 20px;
-}
-}
-
-.pagination {
-  margin-top: 30px;
-  display: flex;
-  justify-content: end;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.pagination button {
-  min-width: 38px;
-  height: 38px;
-  padding: 0 12px;
-  border-radius: 10px;
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
-  color: #374151;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-/* hover */
-.pagination button:hover:not(:disabled) {
-  background: #eef2f7;
-}
-
-/* active page (green) */
-.pagination button.active {
-  background: #16a34a;
-  color: white;
-  border-color: #16a34a;
-  font-weight: 600;
-}
-
-/* disabled */
-.pagination button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
-/* dots */
-.pagination .dots {
-  display: flex;
-  align-items: center;
-  padding: 0 6px;
-  color: #9ca3af;
-  font-weight: 600;
-}
-
-@media (max-width:430px){
-  .page-header[_ngcontent-ng-c3625592192] {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    flex-direction: column;
-    margin-bottom: 32px;
   }
 }
 
+/* ================= MODERN PAGINATION ================= */
+
 .pagination {
+  margin-top: auto; /* 🔥 pushes to bottom */
+  margin-top: auto;
+  margin-top: auto;
+  padding: 14px 18px;
   display: flex;
   align-items: center;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  margin-bottom: 4%;
+  gap: 14px;
   justify-content: end;
-  gap: 10px;
-  margin-top: 24px;
-  flex-wrap: wrap;
 }
 
-/* base button */
-.page-btn,
-.page-num {
-  height: 38px;
-  padding: 0 14px;
-  border-radius: 12px;
+/* BUTTON */
+
+.page-btn {
+  padding: 8px 16px;
+  border-radius: 4px;
   border: 1px solid #e5e7eb;
-  background: #f3f4f6;
-  color: #374151;
-  font-size: 13px;
-  font-weight: 500;
+  background: #fff;
   cursor: pointer;
+  font-weight: 500;
   transition: all 0.2s ease;
+  font-size: 16px;
 }
 
-/* small number buttons */
-.page-num {
-  min-width: 38px;
-  padding: 0;
-}
-
-/* hover */
-.page-btn:hover:not(:disabled),
-.page-num:hover:not(.active) {
-  background: #e5e7eb;
-}
-
-/* active (green) */
-.page-num.active {
-  background: #16a34a;
+.page-btn:hover:not(:disabled) {
+  background: $primary;
   color: #fff;
-  border-color: #16a34a;
-  font-weight: 600;
+  border-color: $primary;
+  transform: translateY(-1px);
 }
 
-/* disabled */
 .page-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-/* dots */
-.dots {
-  padding: 0 6px;
-  color: #9ca3af;
+/* PAGE INFO */
+
+.page-info {
+  font-size: 13px;
+  font-weight: 500;
+  color: $text-light;
+}
+
+@media (max-width: 767px) {
+  .pagination[_ngcontent-ng-c3661322712] {
+    margin-top: auto;
+    margin-top: auto;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    margin-bottom: 4%;
+    gap: 10px;
+  }
+
+  .page-btn[_ngcontent-ng-c3661322712] {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    font-size: 12px;
+  }
+}
+
+.page-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid $border;
+  background: #fff;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.page-btn:hover:not(:disabled) {
+  background: $primary;
+  color: #fff;
+  border-color: $primary;
+}
+
+.page-btn:disabled {
+  opacity: 0.5;
+}
+
+@media (max-width: 767px) {
+  .pagination[_ngcontent-ng-c3661322712] {
+    margin-top: auto;
+    margin-top: auto;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    margin-bottom: 4%;
+    gap: 10px;
+  }
+
+  .page-btn {
+    padding: 8px 16px;
+    border-radius: 4px;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 767px) {
+  .page-header[_ngcontent-ng-c4129739712] {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* ================= TABLE ================= */
+
+.table-wrapper {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid $border;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+/* HEADER */
+
+.table-head {
+  display: grid;
+  /* 5 columns hain, sabko 1fr dene se space barabar divide ho jayegi */
+  grid-template-columns: repeat(5, 1fr);
+
+  padding: 16px 20px;
+  font-size: 12px;
   font-weight: 600;
+  text-transform: uppercase;
+
+  background: $bg-soft;
+  color: #9ca3af;
+}
+
+/* ROW */
+
+.table-row {
+  display: grid;
+  /* 5 columns hain, sabko 1fr dene se space barabar divide ho jayegi */
+  grid-template-columns: repeat(5, 1fr);
+
+  align-items: center;
+  padding: 18px 20px;
+  column-gap: 15px; /* Columns ke beech thoda gap rakhein */
+}
+
+.table-row:not(:last-child) {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+/* 🔥 HOVER SAME AS PATIENT TABLE */
+.table-row:hover {
+  background: linear-gradient(90deg, #f9fafb, #f3f4f6);
+  transform: scale(1.002);
+}
+
+.table-row:hover::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 10px;
+  bottom: 10px;
+  width: 4px;
+  border-radius: 4px;
+  background: $primary;
+}
+
+/* ================= CELLS ================= */
+
+.name {
+  font-weight: 600;
+  color: $text-dark;
+}
+
+/* STOCK BADGE */
+
+.stock {
+  font-weight: 600;
+}
+
+.stock.low {
+  color: #dc2626;
+}
+
+/* ================= ACTION ================= */
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ICON STYLE (same feel as patient action) */
+
+.actions button {
+  height: 36px;
+  width: 36px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  transition: 0.2s;
+}
+
+.actions button:hover {
+  background: #f3f4f6;
+}
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 767px) {
+  /* ❌ TABLE HIDE SAME AS PATIENT */
+
+  .table-wrapper {
+    display: none !important;
+  }
+}
+
+/* ================= ACTION ================= */
+
+.card-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* BASE STYLE */
+
+.card-actions button {
+  position: relative;
+  padding: 6px 14px;
+  border-radius: 999px; /* 🔥 pill look */
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  // background: #f9fafb;
+}
+
+/* VIEW */
+
+.btn-view {
+  color: #0369a1;
+  background: rgba(14, 165, 233, 0.08);
+}
+
+.btn-view:hover {
+  background: rgba(14, 165, 233, 0.15);
+  transform: translateY(-1px);
+}
+
+/* EDIT */
+
+.btn-edit {
+  color: #1e40af;
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.btn-edit:hover {
+  background: rgba(59, 130, 246, 0.15);
+  transform: translateY(-1px);
+}
+
+/* DELETE */
+
+.btn-delete {
+  color: #dc2626;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.btn-delete:hover {
+  background: rgba(239, 68, 68, 0.15);
+  transform: translateY(-1px);
+}
+
+/* 🔥 CLICK EFFECT */
+
+.card-actions button:active {
+  transform: scale(0.96);
+}
+
+/* 🔥 SPACING FIX FOR MOBILE */
+
+@media (max-width: 767px) {
+  .card-actions {
+    justify-content: space-between;
+  }
+
+  .card-actions button {
+    flex: 1;
+    text-align: center;
+    padding: 8px 0;
+    font-size: 13px;
+  }
+}
+
+/* Table Action Container */
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* Base button style for Table */
+.actions button {
+  height: 30px;
+  width: 100%;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  transition: 0.2s;
+  padding: 0 11px;
+}
+
+/* View Pill */
+.btn-view {
+  color: #0369a1 !important;
+  background: rgba(14, 165, 233, 0.1) !important;
+}
+.btn-view:hover {
+  background: rgba(14, 165, 233, 0.2) !important;
+  transform: translateY(-1px);
+}
+
+/* Edit Pill */
+.btn-edit {
+  color: #1e40af !important;
+  background: rgba(59, 130, 246, 0.1) !important;
+}
+.btn-edit:hover {
+  background: rgba(59, 130, 246, 0.2) !important;
+  transform: translateY(-1px);
+}
+
+/* Delete Pill */
+.btn-delete {
+  color: #dc2626 !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+.btn-delete:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  transform: translateY(-1px);
+}
+
+.name {
+  font-weight: 600;
+  color: $text-dark;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* 🔥 only 2 lines */
+  -webkit-box-orient: vertical;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  word-break: break-word;
+  line-height: 1.4;
+  max-height: calc(1.4em * 2); /* safety */
+  max-width: 85%;
 }

@@ -1,18 +1,21 @@
-<app-header [title]="pageTitle"   [showNotification]="true"
+<app-header
+  [title]="pageTitle"
+  [showNotification]="true"
   [notificationCount]="unreadCount"
-  (notificationClick)="openNotifications()"></app-header>
+  (notificationClick)="openNotifications()"
+></app-header>
 
-<ion-content class="detail-bg">
-  <div class="video-detail-wrapper">
+<ion-content class="detail-bg" >
+  <div class="video-detail-wrapper" style=" background: linear-gradient(180deg, #f8fafc, #eef2f7) !important;">
     <div class="video-detail-card">
-
       <!-- BACK -->
       <div class="card-top">
         <a class="back-link" (click)="cancel()">
           <ion-icon name="arrow-back-outline"></ion-icon> Back to Listing
         </a>
         <span class="mode-badge" [class]="mode">
-          {{ mode === 'create' ? 'New' : mode === 'edit' ? 'Editing' : 'Viewing' }}
+          {{ mode === 'create' ? 'New' : mode === 'edit' ? 'Editing' : 'Viewing'
+          }}
         </span>
       </div>
 
@@ -23,14 +26,16 @@
       </div>
 
       <form [formGroup]="form" (ngSubmit)="save()" *ngIf="!loading">
-
         <!-- ── TITLE ─────────────────────────────── -->
         <div class="form-group">
           <label>Title <span class="req">*</span></label>
           <input
             formControlName="title"
-            placeholder="Enter testimonial title" />
-          <span class="error" *ngIf="isInvalid('title')">Title is required.</span>
+            placeholder="Enter testimonial title"
+          />
+          <span class="error" *ngIf="isInvalid('title')"
+            >Title is required.</span
+          >
         </div>
 
         <!-- ── DESCRIPTION ──────────────────────── -->
@@ -39,8 +44,11 @@
           <textarea
             rows="10"
             formControlName="description"
-            placeholder="Enter description"></textarea>
-          <span class="error" *ngIf="isInvalid('description')">Description is required.</span>
+            placeholder="Enter description"
+          ></textarea>
+          <span class="error" *ngIf="isInvalid('description')"
+            >Description is required.</span
+          >
         </div>
 
         <!-- ── YOUTUBE URL ───────────────────────── -->
@@ -48,32 +56,26 @@
           <label>YouTube Video URL <span class="req">*</span></label>
           <input
             formControlName="videoUrl"
-            placeholder="https://www.youtube.com/watch?v=..." />
-          <span class="error" *ngIf="isInvalid('videoUrl')">YouTube URL is required.</span>
+            placeholder="https://www.youtube.com/watch?v=..."
+          />
+          <span class="error" *ngIf="isInvalid('videoUrl')"
+            >YouTube URL is required.</span
+          >
         </div>
 
         <!-- ── YOUTUBE EMBED PREVIEW ─────────────── -->
         <div class="form-group" *ngIf="safeEmbedUrl">
           <label>Video Preview</label>
           <div class="embed-wrapper">
-            <iframe
-              [src]="safeEmbedUrl"
-              frameborder="0"
-              allowfullscreen>
+            <iframe [src]="safeEmbedUrl" frameborder="0" allowfullscreen>
             </iframe>
           </div>
         </div>
 
         <!-- ── IMAGE UPLOAD (create / edit) ──────── -->
         <div class="form-group" *ngIf="mode !== 'view'">
-          <label>
-            Images
-            <span class="hint">(Max {{ 4 }}, JPG / PNG / PDF, max 10 MB each)</span>
-          </label>
-
-          <label
-            class="file-label"
-            [class.disabled]="totalImageCount >= 4">
+          <label>Choose Thumnail</label>
+          <label class="file-label" [class.disabled]="totalImageCount >= 4"   style="width: 100%; padding: 12px 14px">
             <ion-icon name="cloud-upload-outline"></ion-icon>
             Choose Files
             <input
@@ -82,7 +84,14 @@
               accept=".jpg,.jpeg,.png,.pdf"
               (change)="onImagesSelected($event)"
               [disabled]="totalImageCount >= 4"
-              hidden />
+              hidden
+            />
+          </label>
+          <label>
+            Images
+            <span class="hint"
+              >(Max {{ 4 }}, JPG / PNG / PDF, max 10 MB each)</span
+            >
           </label>
 
           <span class="error" *ngIf="imageError">{{ imageError }}</span>
@@ -94,14 +103,18 @@
           <label>{{ mode === 'view' ? 'Images' : 'Existing Images' }}</label>
           <div class="image-grid">
             <div class="img-thumb" *ngFor="let img of existingImages">
-              <img [src]="img.src" alt="testimonial image"
-                (error)="img.src = 'assets/default-thumbnail.jpg'" />
+              <img
+                [src]="img.src"
+                alt="testimonial image"
+                (error)="img.src = 'assets/default-thumbnail.jpg'"
+              />
               <button
                 *ngIf="mode === 'edit'"
                 type="button"
                 class="img-remove"
                 (click)="removeExistingImage(img)"
-                title="Delete image">
+                title="Delete image"
+              >
                 <ion-icon name="close-outline"></ion-icon>
               </button>
             </div>
@@ -114,13 +127,15 @@
           <div class="image-grid">
             <div
               class="img-thumb new"
-              *ngFor="let preview of newPreviews; let i = index">
+              *ngFor="let preview of newPreviews; let i = index"
+            >
               <img [src]="preview" alt="preview" />
               <button
                 type="button"
                 class="img-remove"
                 (click)="removeNewImage(i)"
-                title="Remove">
+                title="Remove"
+              >
                 <ion-icon name="close-outline"></ion-icon>
               </button>
             </div>
@@ -159,15 +174,14 @@
             type="button"
             class="btn-cancel"
             (click)="cancel()"
-            [disabled]="saving">
+            [disabled]="saving"
+          >
             Cancel
           </button>
-          <button
-            type="submit"
-            class="btn-save"
-            [disabled]="saving">
+          <button type="submit" class="btn-save" [disabled]="saving">
             <ion-spinner name="lines-small" *ngIf="saving"></ion-spinner>
-            {{ saving ? 'Saving...' : (mode === 'create' ? 'Create' : 'Save Changes') }}
+            {{ saving ? 'Saving...' : (mode === 'create' ? 'Create' : 'Save
+            Changes') }}
           </button>
         </div>
 
@@ -176,14 +190,10 @@
           <button type="button" class="btn-cancel" (click)="cancel()">
             ← Back
           </button>
-          <button
-            type="button"
-            class="btn-save"
-            (click)="edit(id)">
+          <button type="button" class="btn-save" (click)="edit(id)">
             Edit This Testimonial
           </button>
         </div>
-
       </form>
     </div>
   </div>

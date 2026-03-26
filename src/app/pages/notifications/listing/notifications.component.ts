@@ -12,10 +12,24 @@ import { Subject, takeUntil } from 'rxjs';
   standalone: false
 })
 export class ListingComponent implements OnInit, OnDestroy {
-isDoctor = false;
-  notifications: Notification[] = [];
-  unreadCount = 0;
+
+  // ==========================
+  // STATE
+  // ==========================
+  isDoctor = false;
   loading = false;
+
+  notifications: Notification[] = [];      // paginated data
+  allNotifications: Notification[] = [];   // full data
+
+  unreadCount = 0;
+
+  // ==========================
+  // PAGINATION
+  // ==========================
+  page = 1;
+  pageSize = 10;
+  totalPages = 0;
 
   private destroy$ = new Subject<void>();
 
@@ -28,67 +42,51 @@ isDoctor = false;
   // ==========================
   // INIT
   // ==========================
-  // ngOnInit(): void {
-
-  //   this.loadNotifications();
-
-  //   // Listen to real-time updates from service
-  //   this.notificationService.notifications$
-  //     .pipe(takeUntil(this.destroy$))
-  //     .subscribe((data: Notification[]) => {
-
-  //       this.notifications = data.sort(
-  //         (a, b) =>
-  //           new Date(b.createdOn).getTime() -
-  //           new Date(a.createdOn).getTime()
-  //       );
-
-  //       this.unreadCount = this.notifications.filter(n => !n.isRead).length;
-  //     });
-  // }
-  
-
   ngOnInit(): void {
 
-  // Check user role
-  const role = localStorage.getItem('mhc_role');
-  this.isDoctor = role === 'Doctor';
+    // Role check
+    const role = localStorage.getItem('mhc_role');
+    this.isDoctor = role === 'Doctor';
 
-  // Load initial notifications
-  this.loadNotifications();
+    // Load initial data
+    this.loadNotifications();
 
-  // Listen to realtime notification updates
-  this.notificationService.notifications$
-    .pipe(takeUntil(this.destroy$))
-    .subscribe((data: Notification[]) => {
+    // Subscribe to realtime updates (ONLY ONCE ✅)
+    this.notificationService.notifications$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((data: Notification[]) => {
 
-      if (!data) return;
+        if (!data) return;
 
-      // Sort latest first
-      this.notifications = [...data].sort(
-        (a, b) =>
-          new Date(b.createdOn).getTime() -
-          new Date(a.createdOn).getTime()
-      );
+        // Sort latest first
+        this.allNotifications = [...data].sort(
+          (a, b) =>
+            new Date(b.createdOn).getTime() -
+            new Date(a.createdOn).getTime()
+        );
 
-      // Calculate unread count
-      this.unreadCount = this.notifications
-        .filter(n => !n.isRead)
-        .length;
-    });
+        // Pagination calc
+        this.totalPages = Math.ceil(
+          this.allNotifications.length / this.pageSize
+        );
 
-     this.notificationService.notifications$.subscribe(data => {
-    this.unreadCount = data.filter(n => !n.isRead).length;
-  });
-}
+        // Fix page overflow (edge case)
+        if (this.page > this.totalPages) {
+          this.page = this.totalPages || 1;
+        }
 
+        // Apply pagination
+        this.updatePagedData();
 
-openNotifications() {
-  console.log('Already on notifications page');
-}
+        // Unread count
+        this.unreadCount = this.allNotifications.filter(
+          n => !n.isRead
+        ).length;
+      });
+  }
 
   // ==========================
-  // LOAD INITIAL DATA
+  // LOAD DATA
   // ==========================
   loadNotifications(): void {
 
@@ -109,6 +107,31 @@ openNotifications() {
   }
 
   // ==========================
+  // PAGINATION LOGIC
+  // ==========================
+  updatePagedData(): void {
+
+    const start = (this.page - 1) * this.pageSize;
+    const end = start + this.pageSize;
+
+    this.notifications = this.allNotifications.slice(start, end);
+  }
+
+  nextPage(): void {
+    if (this.page < this.totalPages) {
+      this.page++;
+      this.updatePagedData();
+    }
+  }
+
+  prevPage(): void {
+    if (this.page > 1) {
+      this.page--;
+      this.updatePagedData();
+    }
+  }
+
+  // ==========================
   // MARK AS READ
   // ==========================
   markAsRead(notification: Notification, event?: Event): void {
@@ -122,7 +145,16 @@ openNotifications() {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
+
           notification.isRead = true;
+
+          // Update global data
+          const item = this.allNotifications.find(
+            n => n.webNotificationId === notification.webNotificationId
+          );
+
+          if (item) item.isRead = true;
+
           this.unreadCount--;
         },
         error: (err) => {
@@ -132,39 +164,39 @@ openNotifications() {
   }
 
   // ==========================
-  // DELETE NOTIFICATION
+  // DELETE (ENTRY POINT)
   // ==========================
-  // deleteNotification(notification: Notification, event?: Event): void {
+  deleteNotification(notification: Notification, event?: Event): void {
 
-  //   event?.stopPropagation();
+    event?.stopPropagation();
 
-  //   if (!notification.webNotificationId) return;
+    if (!this.isDoctor) {
+      console.warn('Only doctor can delete notifications');
+      return;
+    }
 
-  //   // Show confirmation dialog
-  //   this.showDeleteConfirmation(notification);
-  // }
+    if (!notification.webNotificationId) return;
 
-  /**
-   * Show Ionic alert dialog for delete confirmation
-   */
+    this.showDeleteConfirmation(notification);
+  }
+
+  // ==========================
+  // CONFIRMATION DIALOG
+  // ==========================
   private async showDeleteConfirmation(notification: Notification): Promise<void> {
+
     const alert = await this.alertController.create({
       header: 'Delete Notification',
       message: `Are you sure you want to delete the notification from <strong>${notification.name}</strong>?`,
       buttons: [
         {
           text: 'Cancel',
-          role: 'cancel',
-          handler: () => {
-            console.log('Delete cancelled');
-          }
+          role: 'cancel'
         },
         {
           text: 'Delete',
           role: 'destructive',
-          handler: () => {
-            this.confirmDelete(notification);
-          }
+          handler: () => this.confirmDelete(notification)
         }
       ]
     });
@@ -172,9 +204,9 @@ openNotifications() {
     await alert.present();
   }
 
-  /**
-   * Perform the actual deletion
-   */
+  // ==========================
+  // DELETE LOGIC
+  // ==========================
   private confirmDelete(notification: Notification): void {
 
     notification.isDeleting = true;
@@ -184,33 +216,46 @@ openNotifications() {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          // Remove from local array
-          this.notifications = this.notifications.filter(
+
+          // Remove from master list
+          this.allNotifications = this.allNotifications.filter(
             n => n.webNotificationId !== notification.webNotificationId
           );
 
-          // Update unread count
-          this.unreadCount = this.notifications.filter(n => !n.isRead).length;
+          // Recalculate pagination
+          this.totalPages = Math.ceil(
+            this.allNotifications.length / this.pageSize
+          );
 
-          console.log('Notification deleted successfully');
+          if (this.page > this.totalPages) {
+            this.page = this.totalPages || 1;
+          }
+
+          this.updatePagedData();
+
+          // Update unread count
+          this.unreadCount = this.allNotifications.filter(
+            n => !n.isRead
+          ).length;
+
+          console.log('Notification deleted');
         },
         error: (err) => {
           console.error('Delete Error:', err);
           notification.isDeleting = false;
-
-          // Show error alert
-          this.showErrorAlert('Failed to delete notification. Please try again.');
+          this.showErrorAlert('Failed to delete notification.');
         }
       });
   }
 
-  /**
-   * Show error alert
-   */
+  // ==========================
+  // ERROR ALERT
+  // ==========================
   private async showErrorAlert(message: string): Promise<void> {
+
     const alert = await this.alertController.create({
       header: 'Error',
-      message: message,
+      message,
       buttons: ['OK']
     });
 
@@ -218,7 +263,7 @@ openNotifications() {
   }
 
   // ==========================
-  // OPEN DETAIL
+  // NAVIGATION
   // ==========================
   openDetail(notification: Notification): void {
 
@@ -230,10 +275,15 @@ openNotifications() {
     ]);
   }
 
+  openNotifications(): void {
+    console.log('Already on notifications page');
+  }
+
   // ==========================
-  // MANUAL REFRESH
+  // REFRESH
   // ==========================
   refresh(): void {
+    this.page = 1;
     this.loadNotifications();
   }
 
@@ -244,18 +294,4 @@ openNotifications() {
     this.destroy$.next();
     this.destroy$.complete();
   }
-
-  deleteNotification(notification: Notification, event?: Event): void {
-
-  event?.stopPropagation();
-
-  if (!this.isDoctor) {
-    console.warn('Only doctor can delete notifications');
-    return;
-  }
-
-  if (!notification.webNotificationId) return;
-
-  this.showDeleteConfirmation(notification);
-}
 }

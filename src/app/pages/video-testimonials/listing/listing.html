@@ -124,43 +124,25 @@
     </div>
 
     <!-- ══ PAGINATION ═══════════════════════════════════════ -->
-    <div class="pagination" *ngIf="!loading && totalPages > 1">
-      <button
-        class="page-btn nav-btn"
-        [disabled]="pageNumber === 1"
-        (click)="goToPage(1)">
-        «
-      </button>
-      <button
-        class="page-btn nav-btn"
-        [disabled]="pageNumber === 1"
-        (click)="goToPage(pageNumber - 1)">
-        ‹ Prev
-      </button>
+   <div class="pagination" *ngIf="!loading && totalPages > 1" >
 
-      <ng-container *ngFor="let p of pages">
-        <button
-          class="page-btn"
-          [class.active]="p === pageNumber"
-          (click)="goToPage(p)">
-          {{ p }}
-        </button>
-      </ng-container>
+  <button class="page-btn" 
+          [disabled]="pageNumber === 1" 
+          (click)="goToPage(pageNumber - 1)">
+    ← Prev
+  </button>
 
-      <button
-        class="page-btn nav-btn"
-        [disabled]="pageNumber === totalPages"
-        (click)="goToPage(pageNumber + 1)">
-        Next ›
-      </button>
-      <button
-        class="page-btn nav-btn"
-        [disabled]="pageNumber === totalPages"
-        (click)="goToPage(totalPages)">
-        »
-      </button>
-    </div>
+  <span class="page-info">
+    Page {{ pageNumber }} of {{ totalPages }}
+  </span>
 
+  <button class="page-btn" 
+          [disabled]="pageNumber === totalPages" 
+          (click)="goToPage(pageNumber + 1)">
+    Next →
+  </button>
+
+</div>
     <!-- ══ COUNT INFO ════════════════════════════════════════ -->
     <!-- <div class="page-info" *ngIf="!loading && totalCount > 0">
       Showing

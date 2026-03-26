@@ -9,7 +9,7 @@
     <div class="top-bar">
       <div class="top-bar__left">
         <h1 class="page-title">Announcements</h1>
-        <span class="page-subtitle">{{ totalCount }} total</span>
+        <!-- <span class="page-subtitle">{{ totalCount }} total</span> -->
       </div>
 
       <div class="top-bar__right">
@@ -185,44 +185,23 @@
       </div>
     </div>
 
-   <div class="pagination" *ngIf="!loading && totalPages > 1">
+  <div class="pagination" *ngIf="!loading && totalPages > 1">
 
-
-
-  <!-- PREV -->
-  <button class="page-btn"
-          [disabled]="pageNumber === 1"
+  <button class="page-btn" 
+          [disabled]="pageNumber === 1" 
           (click)="prevPage()">
-    ‹ Prev
+    ← Prev
   </button>
 
-  <!-- PAGE NUMBERS -->
-  <ng-container *ngFor="let p of pageRange">
+  <span class="page-info">
+    Page {{ pageNumber }} of {{ totalPages }}
+  </span>
 
-    <!-- DOTS -->
-    <span *ngIf="p < 0" class="dots">...</span>
-
-    <!-- PAGE -->
-    <button
-      *ngIf="p > 0"
-      class="page-num"
-      [class.active]="p === pageNumber"
-      (click)="goToPage(p)">
-      {{ p }}
-    </button>
-
-  </ng-container>
-
-  <!-- NEXT -->
-  <button class="page-btn"
-          [disabled]="pageNumber === totalPages"
+  <button class="page-btn next" 
+          [disabled]="pageNumber === totalPages" 
           (click)="nextPage()">
-    Next ›
+    Next →
   </button>
-
-
-
-
 
 </div>
 

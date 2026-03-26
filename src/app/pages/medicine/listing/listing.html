@@ -1,25 +1,21 @@
 <app-header
   title="Medicine List"
-   [showNotification]="true"
+  [showNotification]="true"
   [notificationCount]="unreadCount"
   (notificationClick)="openNotifications()"
 ></app-header>
 
 <ion-content class="medicine-bg">
-
   <div class="medicine-container">
-
     <!-- ================= HEADER ================= -->
 
     <div class="page-header">
-
       <div class="header-left">
         <h1>Medicine Directory</h1>
         <p>Manage and monitor medicine inventory</p>
       </div>
 
       <div class="header-right">
-
         <div class="search-box">
           <ion-icon name="search-outline"></ion-icon>
           <input
@@ -30,12 +26,8 @@
           />
         </div>
 
-        <button class="btn-primary" (click)="create()">
-          Add Medicine
-        </button>
-
+        <button class="btn-primary" (click)="create()">Add Medicine</button>
       </div>
-
     </div>
 
     <!-- ================= STATES ================= -->
@@ -49,15 +41,19 @@
       {{ errorMessage }}
     </div>
 
-    <div *ngIf="!loading && medicines.length === 0 && !errorMessage" class="state-box">
+    <div
+      *ngIf="!loading && medicines.length === 0 && !errorMessage"
+      class="state-box"
+    >
       No medicines found.
     </div>
 
     <!-- ================= TABLE (DESKTOP + TABLET) ================= -->
 
-    <div class="table-wrapper desktop-view"
-         *ngIf="!loading && medicines.length > 0">
-
+    <div
+      class="table-wrapper desktop-view"
+      *ngIf="!loading && medicines.length > 0"
+    >
       <div class="table-head">
         <div>Name</div>
         <div>Strength</div>
@@ -67,23 +63,14 @@
         <div>Actions</div>
       </div>
 
-      <div class="table-row"
-           *ngFor="let m of medicines">
+      <div class="table-row" *ngFor="let m of medicines">
+        <div class="cell name">{{ m.name }}</div>
 
-        <div class="cell name">
-          {{ m.name }}
-        </div>
+        <div class="cell">{{ m.strength }}</div>
 
-        <div class="cell">
-          {{ m.strength }}
-        </div>
+        <div class="cell">{{ m.dosageForm }}</div>
 
-        <div class="cell">
-          {{ m.dosageForm }}
-        </div>
-
-        <div class="cell stock"
-             [class.low]="m.stockQuantity < 10">
+        <div class="cell stock" [class.low]="m.stockQuantity < 10">
           {{ m.stockQuantity }} in stock
         </div>
 
@@ -94,34 +81,26 @@
         <div class="cell actions">
           <button class="btn-view" (click)="view(m.medicineId)">View</button>
           <button class="btn-edit" (click)="edit(m.medicineId)">Edit</button>
-          <button class="btn-delete" (click)="delete(m.medicineId)">Delete</button>
+          <button class="btn-delete" (click)="delete(m.medicineId)">
+            Delete
+          </button>
         </div>
-
       </div>
-
     </div>
 
     <!-- ================= MOBILE CARDS ================= -->
 
-    <div class="mobile-view"
-         *ngIf="!loading && medicines.length > 0">
-
-      <div class="medicine-card"
-           *ngFor="let m of medicines">
-
+    <div class="mobile-view" *ngIf="!loading && medicines.length > 0">
+      <div class="medicine-card" *ngFor="let m of medicines">
         <div class="card-header">
-          <div class="card-title">
-            {{ m.name }}
-          </div>
+          <div class="card-title">{{ m.name }}</div>
 
-          <div class="stock-badge"
-               [class.low]="m.stockQuantity < 10">
+          <div class="stock-badge" [class.low]="m.stockQuantity < 10">
             {{ m.stockQuantity }} in stock
           </div>
         </div>
 
         <div class="card-body">
-
           <div class="info-row">
             <span class="label">Strength</span>
             <span class="value">{{ m.strength }}</span>
@@ -131,75 +110,36 @@
             <span class="label">Form</span>
             <span class="value">{{ m.dosageForm }}</span>
           </div>
-
-          <div class="info-row">
-            <span class="label">Unit</span>
-            <span class="value">{{ m.unit }}</span>
-          </div>
-
         </div>
 
         <div class="card-actions">
           <button class="btn-view" (click)="view(m.medicineId)">View</button>
           <button class="btn-edit" (click)="edit(m.medicineId)">Edit</button>
-          <button class="btn-delete" (click)="delete(m.medicineId)">Delete</button>
+          <button class="btn-delete" (click)="delete(m.medicineId)">
+            Delete
+          </button>
         </div>
-
       </div>
-
     </div>
 
-    <!-- ================= PAGINATION ================= -->
-<div class="pagination" *ngIf="!loading && totalPages > 1">
+    <div class="pagination" *ngIf="!loading && totalPages > 1">
+      <button
+        class="page-btn"
+        (click)="prevPage()"
+        [disabled]="page === 1 || loading"
+      >
+        ← Prev
+      </button>
 
-  <!-- FIRST -->
-  <!-- <button class="page-btn"
-          [disabled]="page === 1"
-          (click)="goToPage(1)">
-    «
-  </button> -->
+      <div class="page-info">Page {{ page }} of {{ totalPages }}</div>
 
-  <!-- PREV -->
-  <button class="page-btn"
-          [disabled]="page === 1"
-          (click)="prevPage()">
-    ‹ Prev
-  </button>
-
-  <!-- PAGE NUMBERS -->
-  <ng-container *ngFor="let p of pageNumbers">
-
-    <!-- DOTS -->
-    <span *ngIf="p < 0" class="dots">...</span>
-
-    <!-- PAGE -->
-    <button
-      *ngIf="p > 0"
-      class="page-num"
-      [class.active]="p === page"
-      (click)="goToPage(p)">
-      {{ p }}
-    </button>
-
-  </ng-container>
-
-  <!-- NEXT -->
-  <button class="page-btn"
-          [disabled]="page === totalPages"
-          (click)="nextPage()">
-    Next ›
-  </button>
-
-  <!-- LAST
-  <button class="page-btn"
-          [disabled]="page === totalPages"
-          (click)="goToPage(totalPages)">
-    »
-  </button> -->
-
-</div>
-
-
+      <button
+        class="page-btn"
+        (click)="nextPage()"
+        [disabled]="page === totalPages || loading"
+      >
+        Next →
+      </button>
+    </div>
   </div>
-
 </ion-content>

@@ -1,35 +1,64 @@
-/* ================= BACKGROUND ================= */
+:host {
+  display: block;
+  height: 100%;
+}
+
+/* ================= TOKENS ================= */
+
+$primary: #16a34a;
+$primary-dark: #15803d;
+
+$text-dark: #111827;
+$text-light: #6b7280;
+
+$border: #e5e7eb;
+$bg-soft: #fafafa;
+$bg-page: linear-gradient(180deg, #f8fafc, #eef2f7);
+
+/* ================= ION CONTENT ================= */
+
+ion-content {
+  --background: #f8fafc;
+}
+
+/* ================= PAGE ================= */
 
 .detail-bg {
-  padding: 40px 20px;
-  background: linear-gradient(180deg, #f8fafc, #eef2f7);
-  min-height: 100%;
+  padding: 24px 16px;
+  padding-bottom: calc(100px + env(safe-area-inset-bottom)); /* 🔥 prevent crop */
+  background: $bg-page;
 }
 
 /* ================= WRAPPER ================= */
 
 .medicine-wrapper {
-  display: flex;
-  justify-content: center;
-  padding-bottom: 60px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto; /* ✅ center fix */
+  
 }
 
 /* ================= CARD ================= */
 
 .medicine-card {
   width: 100%;
-  max-width: 900px;
-  background: #ffffff;
-  border-radius: 20px;
-  padding: 40px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-  animation: fadeIn 0.3s ease;
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+
+  overflow: visible; /* ❌ no internal scroll */
+
+  animation: fadeIn 0.25s ease;
 }
+
+/* ================= ANIMATION ================= */
 
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(15px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
@@ -37,79 +66,60 @@
   }
 }
 
-/* ================= TOP ================= */
-
-.card-top {
-  margin-bottom: 20px;
-}
-
-.back-link {
-  font-size: 14px;
-  color: #16a34a;
-  font-weight: 500;
-  cursor: pointer;
-  transition: 0.2s;
-}
-
-.back-link:hover {
-  text-decoration: underline;
-}
-
 /* ================= SECTION ================= */
 
 .section-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  margin: 30px 0 15px;
-  color: #111827;
+  color: $text-dark;
+
+  margin: 24px 0 12px;
+  padding-bottom: 6px;
+
   border-bottom: 1px solid #f1f5f9;
-  padding-bottom: 8px;
 }
 
 /* ================= FORM ================= */
 
-form {
-  width: 100%;
-}
-
 .form-group {
   display: flex;
   flex-direction: column;
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .form-group label {
   font-size: 13px;
-  font-weight: 500;
-  color: #6b7280;
-    margin-bottom: 16px;
+  color: $text-light;
+  margin-bottom: 6px;
 }
 
 .form-group input,
 .form-group select,
 .form-group textarea {
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  background: #fafafa;
+  padding: 12px;
   font-size: 14px;
+
+  border-radius: 10px;
+  border: 1px solid $border;
+  background: $bg-soft;
+
   transition: 0.2s ease;
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
-  border-color: #16a34a;
+  border-color: $primary;
   box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
-  background: white;
+  background: #fff;
   outline: none;
 }
 
-/* ================= ROW LAYOUT ================= */
+/* ================= ROW ================= */
 
 .form-row {
   display: flex;
-  gap: 20px;
+  gap: 16px;
 }
 
 .form-row .form-group {
@@ -125,15 +135,17 @@ form {
 }
 
 .qty-btn {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
+  width: 40px;
+  height: 40px;
+
+  border-radius: 8px;
   border: none;
-  font-size: 20px;
-  font-weight: 600;
-  cursor: pointer;
+
   background: #f1f5f9;
-  transition: 0.2s ease;
+  font-size: 18px;
+
+  cursor: pointer;
+  transition: 0.2s;
 }
 
 .qty-btn:hover {
@@ -142,60 +154,65 @@ form {
 
 .qty-btn:disabled {
   opacity: 0.4;
-  cursor: not-allowed;
 }
 
 .qty-input {
-  width: 90px;
+  width: 80px;
   text-align: center;
-  font-size: 16px;
-  border-radius: 10px;
-  padding: 8px;
 }
 
-/* ================= ACTION BUTTONS ================= */
+/* ================= ACTIONS ================= */
 
 .form-actions {
-  margin-top: 40px;
+  margin-top: 32px;
   display: flex;
   justify-content: flex-end;
-  gap: 15px;
+  gap: 12px;
 }
 
 .btn-cancel {
-  background: #f3f4f6;
+  padding: 10px 18px;
+  border-radius: 10px;
   border: none;
-  padding: 12px 24px;
-  border-radius: 12px;
-  cursor: pointer;
-  font-weight: 500;
+  background: #f3f4f6;
 }
 
 .btn-save {
-  background: linear-gradient(135deg, #16a34a, #15803d);
-  color: white;
+  padding: 10px 22px;
+  border-radius: 10px;
   border: none;
-  padding: 12px 28px;
-  border-radius: 12px;
+
+  background: linear-gradient(135deg, $primary, $primary-dark);
+  color: #fff;
+
   font-weight: 600;
-  cursor: pointer;
-  transition: 0.2s ease;
+  transition: 0.2s;
 }
 
 .btn-save:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.25);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(22, 163, 74, 0.25);
 }
 
 .btn-save:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
+}
+
+/* ================= SELECT ================= */
+
+.form-group select {
+  appearance: none;
+  padding-right: 40px;
+
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%236b7280' height='20' viewBox='0 0 24 24' width='20'><path d='M7 10l5 5 5-5z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
 }
 
 /* ================= LOADING ================= */
 
 .loading-state {
-  padding: 60px;
+  padding: 50px;
   text-align: center;
 }
 
@@ -205,13 +222,15 @@ form {
 
 @media (max-width: 992px) {
 
-  .medicine-card {
-    padding: 30px;
+  .detail-bg {
+    padding: 16px;
+    padding-bottom: calc(90px + env(safe-area-inset-bottom));
   }
 
-  .form-row {
-    gap: 16px;
+  .medicine-card {
+    padding: 24px;
   }
+
 }
 
 /* MOBILE */
@@ -219,12 +238,14 @@ form {
 @media (max-width: 576px) {
 
   .detail-bg {
-    padding: 20px 12px;
+    padding: 12px;
+    padding-bottom: calc(70px + env(safe-area-inset-bottom));
   }
 
   .medicine-card {
-    padding: 22px;
-    border-radius: 16px;
+    padding: 16px;
+    border-radius: 12px;
+    box-shadow: none;
   }
 
   .form-row {
@@ -242,43 +263,16 @@ form {
 
   .form-actions {
     flex-direction: column-reverse;
-    gap: 12px;
+    gap: 10px;
   }
 
-  .btn-cancel,
-  .btn-save {
+  .btn-save,
+  .btn-cancel {
     width: 100%;
   }
 
 }
 
-/* ================= SELECT FIX ================= */
-
-.form-group select {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-
-  width: 100%;
-  padding: 12px 45px 12px 14px; /* extra space for arrow */
-  border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  background: #fafafa;
-  font-size: 14px;
-  cursor: pointer;
-
-  /* Custom Arrow */
-  background-image: url("data:image/svg+xml;utf8,<svg fill='%236b7280' height='20' viewBox='0 0 24 24' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-  background-size: 18px;
-}
-
-/* Focus State */
-
-.form-group select:focus {
-  border-color: #16a34a;
-  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
-  background-color: #ffffff;
-  outline: none;
+.back-link{
+  color: $primary;
 }

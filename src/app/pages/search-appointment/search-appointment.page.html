@@ -33,26 +33,15 @@
         />
 
         <!-- STATUS FILTER -->
-        <select
-          class="status-filter"
-          [(ngModel)]="statusFilter"
-          (change)="onStatusChange()"
-          style="
-            display: flex;
-            align-items: center;
-            background: white;
-            height: 44px;
-            padding: 0 16px;
-            border-radius: 999px;
-            border: 1px solid #e5e7eb;
-            width: 320px;
-            transition: 0.2s ease;
-          "
-        >
-          <option *ngFor="let s of statusOptions" [value]="s.value">
-            {{ s.label }}
-          </option>
-        </select>
+      <select
+  class="status-filter"
+  [(ngModel)]="statusFilter"
+  (change)="onStatusChange()"
+>
+  <option *ngFor="let s of statusOptions" [value]="s.value">
+    {{ s.label }}
+  </option>
+</select>
       </div>
     </div>
 

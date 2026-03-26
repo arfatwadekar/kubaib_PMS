@@ -27,13 +27,22 @@
 ============================= */
 .video-detail-card {
   width: 100%;
-  max-width: 720px;
+  // max-width: 720px;
   background: #ffffff;
   border-radius: 18px;
   padding: 20px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
   position: relative;
       margin: 30px 10px;
+          width: 100%;
+    max-width: 1400px;
+    margin: 20px auto;
+}
+
+@media (max-width: 768px) {
+  .video-detail-card[_ngcontent-ng-c355787587] {
+    margin: 0 auto; /* top & bottom = 0 */
+  }
 }
 
 /* DESKTOP */
@@ -51,7 +60,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 18px;
+  margin-bottom: 28px;
 }
 
 /* BACK */
@@ -333,3 +342,4 @@
   border-radius: 20px;
   z-index: 10;
 }
+

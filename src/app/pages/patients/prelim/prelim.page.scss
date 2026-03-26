@@ -56,9 +56,9 @@ ion-content {
    SECTION STRUCTURE
 ===================================================== */
 
-.section {
-  margin-bottom: 36px;
-}
+// .section {
+//   // margin-bottom: 36px;
+// }
 
 .section:last-child {
   margin-bottom: 0;
@@ -162,7 +162,7 @@ select.inp {
 .actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: 30px;
+  // margin-top: 30px;
   padding-top: 20px;
   border-top: 1px solid var(--border);
 }
@@ -196,14 +196,37 @@ select.inp {
    SUCCESS MODAL
 ===================================================== */
 
+// .success-backdrop {
+//   position: fixed;
+//   inset: 0;
+//   background: rgba(0, 0, 0, 0.35);
+//   display: flex;
+//   align-items: center;
+//   justify-content: center;
+//   z-index: 9999;
+// }
+
 .success-backdrop {
   position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+
+  top: 0;
+  left: 0;
+  width: 100vw;   /* 🔥 important */
+  height: 100vh;  /* 🔥 important */
+
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.65),
+    rgba(0, 0, 0, 0.45)
+  );
+
+  backdrop-filter: blur(5px);
+
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
+
+  z-index: 999999; /* 🔥 sabke upar */
 }
 
 .success-modal {
@@ -287,16 +310,6 @@ select.inp {
   }
 }
 
-.success-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-
 .success-modal {
   background: #ffffff;
   width: 420px;
@@ -340,7 +353,7 @@ select.inp {
   width: 100%;
   padding: 12px;
   border-radius: 8px;
-  background: #2563eb;
+  background: linear-gradient(135deg, #16a34a, #15803d);
   color: #fff;
   border: none;
   font-weight: 600;
@@ -348,10 +361,16 @@ select.inp {
 }
 
 .dashboard-btn:hover {
-  background: #1d4ed8;
+  background: #86efac;
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

@@ -7,26 +7,26 @@
 
 <ion-content class="notification-page">
   <div class="container">
-    <!-- LOADING -->
+    <!-- ================= LOADING ================= -->
     <div *ngIf="loading" class="loading-state">
       <ion-spinner name="crescent"></ion-spinner>
     </div>
 
-    <!-- EMPTY -->
+    <!-- ================= EMPTY ================= -->
     <div *ngIf="!loading && notifications.length === 0" class="empty-state">
       <ion-icon name="notifications-off-outline"></ion-icon>
       <h2>No Notifications</h2>
       <p>You're all caught up!</p>
     </div>
 
-    <!-- LIST -->
+    <!-- ================= LIST ================= -->
     <div *ngIf="!loading && notifications.length > 0" class="notification-list">
       <div
-        *ngFor="let n of notifications"
-        class="notification-card"
-        [class.unread]="!n.isRead"
-        [class.read]="n.isRead"
-        [class.deleting]="n.isDeleting"
+      *ngFor="let n of notifications"
+  class="notification-card"
+  [class.unread]="!n.isRead"
+  [class.read]="n.isRead"
+  [class.deleting]="n.isDeleting"
       >
         <!-- ICON -->
         <div class="icon-box">
@@ -35,32 +35,36 @@
 
         <!-- CONTENT -->
         <div class="content">
+          <!-- TOP ROW -->
           <div class="top-row">
-            <!-- USER -->
+            <!-- USER INFO -->
             <div class="user-info">
-              <h3 class="name">
-                {{ n.name }}
-              </h3>
+              <h3 class="name">{{ n.name }}</h3>
 
-              <p *ngIf="n.email" class="sub-info">
-                {{ n.email }}
-              </p>
+              <!-- EMAIL | PHONE -->
+              <p *ngIf="n.email || n.phone || n.phoneNumber" class="sub-info">
+                <span *ngIf="n.email">{{ n.email }}</span>
 
-              <p *ngIf="n.phone || n.phoneNumber" class="sub-info">
-                {{ n.phone || n.phoneNumber }}
+                <span *ngIf="n.email && (n.phone || n.phoneNumber)">
+                  &nbsp;|&nbsp;
+                </span>
+
+                <span *ngIf="n.phone || n.phoneNumber">
+                  {{ n.phone || n.phoneNumber }}
+                </span>
               </p>
             </div>
 
             <!-- META -->
             <div class="right-meta">
+              <!-- DATE -->
               <span class="date">
                 {{ n.createdOn | date: "dd MMM yyyy, hh:mm a" }}
               </span>
 
-              <span *ngIf="n.isRead" class="read-badge"> Read </span>
-
               <!-- ACTIONS -->
               <div class="action-buttons">
+                <!-- MARK READ -->
                 <button
                   *ngIf="!n.isRead"
                   class="mark-btn"
@@ -70,16 +74,23 @@
                   Mark Read
                 </button>
 
+                <!-- READ BADGE -->
+                <span
+                  *ngIf="n.isRead"
+                  class="read-badge"
+                  (click)="$event.stopPropagation()"
+                >
+                  Read
+                </span>
+
+                <!-- DELETE -->
                 <button
                   class="delete-btn"
                   (click)="deleteNotification(n, $event)"
-                  [disabled]="n?.isDeleting"
+                  [disabled]="n.isDeleting"
                 >
-                  <!-- Normal state -->
-                  <span *ngIf="!n?.isDeleting"> Delete </span>
-
-                  <!-- Loading state -->
-                  <span *ngIf="n?.isDeleting"> Deleting... </span>
+                  <span *ngIf="!n.isDeleting">Delete</span>
+                  <span *ngIf="n.isDeleting">Deleting...</span>
                 </button>
               </div>
             </div>
@@ -91,6 +102,27 @@
           </p>
         </div>
       </div>
+    </div>
+
+    <!-- ================= PAGINATION ================= -->
+    <div class="pagination" *ngIf="!loading && totalPages > 1">
+      <button
+        class="page-btn"
+        (click)="prevPage()"
+        [disabled]="page === 1 || loading"
+      >
+        ← Prev
+      </button>
+
+      <div class="page-info">Page {{ page }} of {{ totalPages }}</div>
+
+      <button
+        class="page-btn"
+        (click)="nextPage()"
+        [disabled]="page === totalPages || loading"
+      >
+        Next →
+      </button>
     </div>
   </div>
 </ion-content>

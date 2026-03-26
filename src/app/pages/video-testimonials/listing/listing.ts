@@ -30,7 +30,7 @@ export class VideoListingPage implements OnInit, OnDestroy {
 
   // ── Pagination ──────────────────────────
   pageNumber = 1;
-  pageSize = 2;
+  pageSize = 10;
   totalPages = 1;
   totalCount = 0;
 

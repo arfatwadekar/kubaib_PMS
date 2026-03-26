@@ -572,15 +572,29 @@ greetingText: string = '';
   }
 
 
+// setGreeting() {
+//   const hour = new Date().getHours();
+
+//   if (hour < 12) {
+//     this.greetingText = 'Good Morning';
+//   } else if (hour < 18) {
+//     this.greetingText = 'Good Afternoon';
+//   } else {
+//     this.greetingText = 'Good Evening';
+//   }
+// }
+
 setGreeting() {
   const hour = new Date().getHours();
 
-  if (hour < 12) {
+  if (hour >= 5 && hour < 12) {
     this.greetingText = 'Good Morning';
-  } else if (hour < 18) {
+  } else if (hour >= 12 && hour < 17) {
     this.greetingText = 'Good Afternoon';
-  } else {
+  } else if (hour >= 17 && hour < 21) {
     this.greetingText = 'Good Evening';
+  } else {
+    this.greetingText = 'Good Night'; // 👈 ye missing tha
   }
 }
 

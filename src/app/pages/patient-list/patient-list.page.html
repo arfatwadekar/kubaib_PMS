@@ -102,7 +102,9 @@
           </div>
 
           <button (click)="openActions($event, r)">
-            <ion-icon name="ellipsis-vertical"></ion-icon>
+            <ion-icon name="ellipsis-vertical" style="    padding: 8px 5px;
+    border-radius: 28px;
+"></ion-icon>
           </button>
         </div>
 
@@ -115,7 +117,7 @@
           </div>
 
           <div>
-            <div class="meta-label">Gender</div>
+            <div class="meta-label" style="margin-bottom: 10px;">Gender</div>
             <span
               class="gender-pill"
               [ngClass]="{
@@ -131,7 +133,7 @@
     </div>
 
     <!-- ================= PAGINATION (Desktop/Tablet Only) ================= -->
-    <div class="pagination" *ngIf="!isSearching && totalPages > 0">
+    <!-- <div class="pagination" *ngIf="!isSearching && totalPages > 0">
       <button
         class="page-btn"
         (click)="prevPage()"
@@ -149,6 +151,28 @@
       >
         Next →
       </button>
+    </div> -->
+
+      <div class="pagination" *ngIf="!isSearching && totalPages > 0">
+      <button
+        class="page-btn"
+        (click)="prevPage()"
+        [disabled]="page === 1 || loading"
+      >
+        ← Prev
+      </button>
+ 
+      <div class="page-info">Page {{ page }} of {{ totalPages }}</div>
+ 
+      <button
+        class="page-btn"
+        (click)="nextPage()"
+        [disabled]="page === totalPages || loading"
+      >
+        Next →
+      </button>
     </div>
   </div>
 </ion-content>
+
+
