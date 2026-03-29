@@ -1,448 +1,287 @@
 <div class="ion-padding fu-container">
+
+  <!-- ═══════════════════════════════════════════════════
+       PAGE TITLE
+  ═══════════════════════════════════════════════════ -->
+  <div class="page-topbar">
+    <div class="page-topbar-left">
+      <div class="page-title-text">Follow-Up Criteria</div>
+      <div class="page-subtitle">Add and manage patient symptoms for follow-up tracking</div>
+    </div>
+    <div class="topbar-badge-wrap">
+      <span class="visit-badge visit-badge--first" *ngIf="isFirstVisit">
+        <span class="badge-dot"></span> First Visit
+      </span>
+      <span class="visit-badge visit-badge--followup" *ngIf="!isFirstVisit">
+        <span class="badge-dot"></span> Follow-Up Visit
+      </span>
+    </div>
+  </div>
+
   <div class="fu-wrap">
+
+    <!-- ═══════════════════════════════════════════════════
+         CARD 1 — INITIAL SYMPTOMS (CRITERIA)
+    ═══════════════════════════════════════════════════ -->
     <div class="fu-card">
-      <!-- ═════════════════════════════════════════════════════════════════ -->
-      <!-- HEADER SECTION -->
-      <!-- ═════════════════════════════════════════════════════════════════ -->
 
-      <div class="fu-header">
-        <div class="header-content">
-          <h1 class="fu-title">Follow-Up Criteria</h1>
-          <p class="fu-subtitle">
-            Add and manage patient symptoms for follow-up tracking
-          </p>
+      <!-- Card Header -->
+      <div class="card-header">
+        <div class="card-header-left">
+          <div class="card-icon card-icon--green">🩺</div>
+          <div>
+            <div class="card-header-title">Initial Symptoms</div>
+            <div class="card-header-sub">Criteria saved at first visit</div>
+          </div>
         </div>
-
-        <div class="header-badge">
-          <span class="visit-badge first" *ngIf="isFirstVisit">
-            🆕 First Visit
-          </span>
-
-          <span class="visit-badge followup" *ngIf="!isFirstVisit">
-            🔁 Follow-Up Visit
-          </span>
+        <div class="card-header-right">
+          <span *ngIf="isSaved && !isEditMode" class="status-chip status-chip--saved">✓ Saved</span>
+          <span *ngIf="isSaved && isEditMode"  class="status-chip status-chip--editing">✎ Editing</span>
+          <span *ngIf="!isSaved"               class="status-chip status-chip--new">● New</span>
+          <span class="count-chip">{{ fuSymptomsArr.length }} entries</span>
         </div>
       </div>
 
-      <!-- ═════════════════════════════════════════════════════════════════ -->
-      <!-- SYMPTOMS PANEL (CRITERIA MANAGEMENT) -->
-      <!-- ═════════════════════════════════════════════════════════════════ -->
-
-      <div class="panel">
-        <!-- PANEL HEADER -->
-        <div class="panel-header">
-          <div class="panel-title-group">
-            <h2 class="panel-title">Initial Symptoms</h2>
-
-            <!-- STATUS BADGE -->
-            <span *ngIf="isSaved && !isEditMode" class="status-badge saved">
-              ✓ Saved
-            </span>
-
-            <span *ngIf="isSaved && isEditMode" class="status-badge editing">
-              ✎ Editing
-            </span>
-
-            <span *ngIf="!isSaved" class="status-badge new"> ● New </span>
-          </div>
-
-          <div class="row-count">{{ fuSymptomsArr.length }} entries</div>
-        </div>
-
-        <!-- FORM -->
+      <!-- Symptoms Table -->
+      <div class="card-body">
         <form [formGroup]="fuCriteriaForm">
-          <!-- SYMPTOMS TABLE -->
-          <div class="symptoms-table" formArrayName="symptoms">
-            <!-- TABLE HEADER -->
-            <div class="table-header">
-              <div class="col-no">SR</div>
-              <div class="col-desc">DESCRIPTION</div>
+          <div class="sym-table" formArrayName="symptoms">
+
+            <div class="sym-table-head">
+              <span class="col-sr">SR</span>
+              <span class="col-desc">Description</span>
             </div>
 
-            <!-- TABLE ROWS -->
             <div
-              class="table-row"
-              *ngFor="
-                let ctrl of fuSymptomsArr.controls;
-                let i = index;
-                trackBy: trackByIndex;
-              "
-              [class.has-value]="ctrl.value"
+              class="sym-row"
+              *ngFor="let ctrl of fuSymptomsArr.controls; let i = index; trackBy: trackByIndex"
+              [class.sym-row--filled]="ctrl.value"
             >
-              <!-- SR NO -->
-              <div class="col-no">
-                <span class="sr-text">{{ i + 1 }}</span>
+              <div class="col-sr">
+                <span class="sr-num">{{ i + 1 }}</span>
               </div>
 
-              <!-- DESCRIPTION -->
               <div class="col-desc">
-                <!-- READONLY MODE (Revisit - Saved criteria) -->
                 <span *ngIf="isSaved && !isEditMode" class="readonly-text">
                   {{ ctrl.value || '–' }}
                 </span>
-
-                <!-- EDIT/NEW MODE -->
                 <input
                   *ngIf="!isSaved || isEditMode"
-                  class="symptom-input"
+                  class="sym-input"
                   type="text"
                   [formControlName]="i"
-                  [placeholder]="'Symptom ' + (i + 1)"
+                  [placeholder]="'Enter symptom ' + (i + 1)"
                 />
               </div>
+
+              <div class="col-act">
+                <button type="button" class="icon-btn icon-btn--danger" *ngIf="!isSaved || isEditMode">✕</button>
+              </div>
             </div>
+
           </div>
         </form>
+      </div>
 
-        <!-- ACTION BUTTONS FOR CRITERIA -->
-        <div class="criteria-actions">
-          <!-- SAVE BUTTON (First time - New Visit) -->
-          <button
-            type="button"
-            class="btn btn-primary"
-            *ngIf="!isSaved"
-            (click)="saveCriteria()"
-            [disabled]="criteriaLoading"
-          >
+      <!-- Card Footer -->
+      <div class="card-footer">
+        <p class="info-hint">
+          <span class="info-icon">ℹ</span>
+          Rows auto-expand as you fill them. Maximum of 10 entries allowed.
+        </p>
+        <div class="footer-actions">
+          <button type="button" class="btn btn--primary" *ngIf="!isSaved" (click)="saveCriteria()" [disabled]="criteriaLoading">
             <span *ngIf="!criteriaLoading">💾 Save Criteria</span>
-            <span *ngIf="criteriaLoading">
-              <span class="spinner"></span> Saving...
-            </span>
+            <span *ngIf="criteriaLoading"><span class="spinner"></span> Saving…</span>
           </button>
-
-          <!-- EDIT BUTTON (Revisit - Saved criteria) -->
-          <button
-            type="button"
-            class="btn btn-secondary"
-            *ngIf="isSaved && !isEditMode"
-            (click)="enableEdit()"
-          >
-            ✎ Edit
-          </button>
-
-          <!-- UPDATE BUTTON (After edit - Revisit) -->
-          <button
-            type="button"
-            class="btn btn-primary"
-            *ngIf="isSaved && isEditMode"
-            (click)="saveCriteria()"
-            [disabled]="criteriaLoading"
-          >
+          <button type="button" class="btn btn--outline" *ngIf="isSaved && !isEditMode" (click)="enableEdit()">✎ Edit</button>
+          <button type="button" class="btn btn--primary" *ngIf="isSaved && isEditMode" (click)="saveCriteria()" [disabled]="criteriaLoading">
             <span *ngIf="!criteriaLoading">💾 Update Criteria</span>
-            <span *ngIf="criteriaLoading">
-              <span class="spinner"></span> Updating...
-            </span>
+            <span *ngIf="criteriaLoading"><span class="spinner"></span> Updating…</span>
           </button>
         </div>
+      </div>
 
-        <!-- INFO TEXT -->
-        <div class="panel-footer">
-          <p class="info-text">
-            <span class="info-icon">ℹ</span>
-            Rows auto-expand as you fill them. Maximum of 10 entries allowed.
-          </p>
+    </div><!-- /fu-card -->
+
+
+    <!-- ═══════════════════════════════════════════════════
+         CARD 2 — FOLLOW-UP RECORD
+    ═══════════════════════════════════════════════════ -->
+    <div class="fu-card" *ngIf="!isFollowUpAlreadySaved">
+
+      <!-- Gradient header -->
+      <div class="record-header">
+        <div class="record-header-left">
+          <div class="record-header-title">Follow-Up Record</div>
+          <div class="record-header-sub">Today's consultation entry</div>
+        </div>
+        <div class="record-header-right">
+          <span class="date-pill">{{ today | date:'hh:mm a' }}</span>
+          <span class="date-pill date-pill--highlight">{{ today | date:'dd/MM/yyyy' }}</span>
         </div>
       </div>
 
-      <!-- ═════════════════════════════════════════════════════════════════ -->
-      <!-- FOLLOW-UP RECORD CARD -->
-      <!-- ═════════════════════════════════════════════════════════════════ -->
+      <div class="card-body">
 
-      <div class="container" *ngIf="!isFollowUpAlreadySaved">
-        <!-- HEADER -->
-        <!-- <div class="header">
-          <h1>Follow-Up Record - 08:10 PM</h1>
-          <span class="header-date">08/03/2026</span>
-        </div> -->
-        <div class="header">
-          <h1>Follow-Up Record - {{ today | date:'hh:mm a' }}</h1>
-          <span class="header-date highlight-date">
-            {{ today | date:'dd/MM/yyyy' }}
-          </span>
-        </div>
-
-        <!-- MAIN CARD -->
-        <div class="card">
-          <div class="card-body">
-            <!-- FOLLOW-UP SYMPTOMS (Rating table for revisit) -->
-            <div class="symptoms-section" *ngIf="!isFirstVisit">
-              <label class="form-label">Follow-Up Symptoms (1-10)</label>
-
-              <div class="table-wrapper">
-                <table>
-                  <!-- HEADER -->
-                  <thead>
-                    <tr>
-                      <th>SR No</th>
-                      <th *ngFor="let sym of symptomsArray; let i = index">
-                        {{ i + 1 }}
-                      </th>
-                    </tr>
-                  </thead>
-
-                  <!-- BODY -->
-                  <tbody>
-                    <tr>
-                      <td><strong>Status</strong></td>
-
-                      <td
-                        *ngFor="
-                          let ctrl of fuSymptomsArr.controls;
-                          let i = index
-                        "
-                      >
-                        <!-- <input
-                            type="text"
-                          min="1"
-                          max="10"
-                          step="1"
-                          placeholder="1-10"
-                          [(ngModel)]="symptomStatus[i]"
-                          (input)="validateSymptom($event, i)"
-                        /> -->
-
-                        <input
-                          type="text"
-                          placeholder="Enter status"
-                          [(ngModel)]="symptomStatus[i]"
-                          (input)="validateSymptom($event, i)"
-                        />
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- INTERPRETATION -->
-            <div class="form-group" *ngIf="!isFirstVisit">
-              <label class="form-label">Interpretation</label>
-              <textarea
-                [(ngModel)]="interpretation"
-                placeholder="Enter interpretation..."
-              ></textarea>
-            </div>
-
-            <!-- TEMPORARY PROBLEMS
-            <div class="form-group" *ngIf="!isFirstVisit">
-              <label class="form-label">Temporary Problems</label>
-              <textarea
-                [(ngModel)]="temporaryProblems"
-                placeholder="Enter temporary problems..."
-              ></textarea>
-            </div> -->
-
-            <!-- PRESCRIBED MEDICINES -->
-            <div class="medicines-section">
-              <label class="form-label">Prescribed Medicines</label>
-              <div
-                style="
-                  overflow-x: auto;
-                  border: 1px solid #e0e0e0;
-                  border-radius: 4px;
-                "
-              >
-                <table class="medicine-table">
-                  <thead>
-                    <tr>
-                      <th>Medicine Name</th>
-                      <th>Dosage</th>
-                      <th>Frequency</th>
-                      <th>Duration</th>
-                      <th>Type</th>
-                      <th>Instructions</th>
-                      <th>Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr *ngFor="let med of prescriptions; let i = index">
-                      <td>
-                        <select
-                          [(ngModel)]="med.medicineId"
-                          (change)="onMedicineChange($event, i)"
-                          name="medicine{{ i }}"
-                        >
-                          <option value="">Select Medicine</option>
-
-                          <option
-                            *ngFor="let m of medicines"
-                            [value]="m.medicineId"
-                          >
-                            {{ m.name }}
-                          </option>
-
-                          <option value="add_new">➕ Add New Medicine</option>
-                        </select>
-                      </td>
-
-                      <td>
-                        <input type="text" [(ngModel)]="med.dosage" />
-                      </td>
-
-                      <td>
-                        <input type="text" [(ngModel)]="med.frequency" />
-                      </td>
-
-                      <td>
-                        <input type="text" [(ngModel)]="med.duration" />
-                      </td>
-
-                      <td>
-                        <select [(ngModel)]="med.type">
-                          <option>Tablet</option>
-                          <option>Capsule</option>
-                          <option>Syrup</option>
-                          <option>Injection</option>
-                        </select>
-                      </td>
-
-                      <td>
-                        <input type="text" [(ngModel)]="med.instructions" />
-                      </td>
-
-                      <td>
-                        <button
-                          class="delete-btn"
-                          (click)="removeMedicineRow(i)"
-                        >
-                          ✕
-                        </button>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <button class="add-btn" (click)="addMedicineRow()">
-                + Add Medicine
-              </button>
-            </div>
-
-            <!-- CONSULTATION CHARGES & WAVE OFF -->
-            <div class="row">
-              <div class="form-group">
-                <label class="form-label">Consultation Charges</label>
-                <!-- <input
-  type="number"
-  [(ngModel)]="consultationCharge"
-  step="1"
-  min="0"
-  (ngModelChange)="onConsultationChange($event)"
-/> -->
-                <input
-                  type="number"
-                  [ngModel]="consultationCharge"
-                  (ngModelChange)="onConsultationChange($event)"
-                  (wheel)="$event.preventDefault()"
-                  min="0"
-                  class="no-spinner"
-                />
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Wave off charges?</label>
-
-                <div class="radio-group">
-                  <div class="radio-option">
+        <!-- ── Follow-Up Symptoms Rating ── -->
+        <div class="form-section" *ngIf="!isFirstVisit">
+          <label class="field-label">Follow-Up Symptom Status (1 – 10)</label>
+          <div class="table-scroll-wrap">
+            <table class="rating-table">
+              <thead>
+                <tr>
+                  <th class="th-left">Symptom</th>
+                  <th *ngFor="let sym of symptomsArray; let i = index">
+                    {{ i + 1 }}<br>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="td-label">Status</td>
+                  <td *ngFor="let ctrl of fuSymptomsArr.controls; let i = index">
                     <input
-                      type="radio"
-                      name="waveoff"
-                      value="no"
-                      checked
-                      (change)="onWaveOffChange('no')"
+                      class="rating-input"
+                      type="text"
+                      placeholder="1–10"
+                      [(ngModel)]="symptomStatus[i]"
+                      (input)="validateSymptom($event, i)"
                     />
-                    <label>No</label>
-                  </div>
-
-                  <div class="radio-option">
-                    <input
-                      type="radio"
-                      name="waveoff"
-                      value="yes"
-                      (change)="onWaveOffChange('yes')"
-                    />
-                    <label>Yes</label>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- WAVE OFF AMOUNT -->
-            <div class="form-group">
-              <label class="form-label">Wave off Amount</label>
-              <!-- <input
-                type="number"
-                [(ngModel)]="waveOffAmount"
-                placeholder="0.00"
-                [disabled]="!waveOffVerified"
-              /> -->
-
-              <input
-                type="number"
-                [ngModel]="waveOffAmount"
-                (ngModelChange)="onWaveOffAmountChange($event)"
-                (wheel)="$event.preventDefault()"
-                placeholder="0.00"
-                [disabled]="!waveOffVerified"
-                class="no-spinner"
-              />
-            </div>
-
-            <!-- NEXT APPOINTMENT -->
-            <div class="row">
-              <div class="form-group">
-                <label class="form-label"
-                  >Next Appointment Date (Optional)</label
-                >
-                <!-- <input type="date" [(ngModel)]="nextAppointmentDate" /> -->
-                <input
-                  type="date"
-                  [(ngModel)]="nextAppointmentDate"
-                  [min]="todayDate"
-                />
-              </div>
-              <div class="form-group">
-                <label class="form-label"
-                  >Next Appointment Time (Optional)</label
-                >
-                <input type="time" [(ngModel)]="nextAppointmentTime" />
-              </div>
-            </div>
-          </div>
-
-          <!-- FOOTER -->
-          <div class="footer">
-            <button class="btn btn-secondary">Cancel</button>
-            <button class="btn btn-primary" (click)="saveFollowUp()">
-              💾 Save Follow-Up
-            </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
-        <!-- ADMIN PASSWORD VERIFY MODAL -->
-        <div class="modal-backdrop" *ngIf="showPasswordModal">
-          <div class="password-modal">
-            <h3>Admin Verification</h3>
+        <!-- ── Interpretation ── -->
+        <div class="form-section" *ngIf="!isFirstVisit">
+          <label class="field-label">Interpretation</label>
+          <textarea
+            class="fu-textarea"
+            [(ngModel)]="interpretation"
+            placeholder="Enter clinical interpretation…"
+          ></textarea>
+        </div>
 
+        <!-- ── Prescribed Medicines ── -->
+        <div class="form-section">
+          <label class="field-label">Prescribed Medicines</label>
+          <div class="table-scroll-wrap">
+            <table class="med-table">
+              <thead>
+                <tr>
+                  <th>Medicine Name</th>
+                  <th>Dosage</th>
+                  <th>Frequency</th>
+                  <th>Duration</th>
+                  <th>Type</th>
+                  <th>Instructions</th>
+                  <th class="th-center">Del</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let med of prescriptions; let i = index">
+                  <td>
+                    <select [(ngModel)]="med.medicineId" (change)="onMedicineChange($event, i)" [name]="'medicine' + i">
+                      <option value="">Select Medicine</option>
+                      <option *ngFor="let m of medicines" [value]="m.medicineId">{{ m.name }}</option>
+                      <option value="add_new">➕ Add New Medicine</option>
+                    </select>
+                  </td>
+                  <td><input type="text" [(ngModel)]="med.dosage" placeholder="e.g. 500mg" /></td>
+                  <td><input type="text" [(ngModel)]="med.frequency" placeholder="e.g. 1-0-1" /></td>
+                  <td><input type="text" [(ngModel)]="med.duration" placeholder="e.g. 5 days" /></td>
+                  <td>
+                    <select [(ngModel)]="med.type">
+                      <option>Tablet</option>
+                      <option>Capsule</option>
+                      <option>Syrup</option>
+                      <option>Injection</option>
+                    </select>
+                  </td>
+                  <td><input type="text" [(ngModel)]="med.instructions" placeholder="After meals…" /></td>
+                  <td class="td-center">
+                    <button class="icon-btn icon-btn--danger" (click)="removeMedicineRow(i)">✕</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <button class="btn-add-row" (click)="addMedicineRow()">＋ Add Medicine</button>
+        </div>
+
+        <!-- ── Charges ── -->
+        <div class="form-grid form-grid--2">
+          <div class="form-section mb-0">
+            <label class="field-label">Consultation Charges (₹)</label>
             <input
-              type="password"
-              placeholder="Enter password"
-              [(ngModel)]="adminPassword"
+              type="number"
+              class="fu-input no-spinner"
+              [ngModel]="consultationCharge"
+              (ngModelChange)="onConsultationChange($event)"
+              (wheel)="$event.preventDefault()"
+              min="0"
+              placeholder="0"
             />
-
-            <div class="modal-actions">
-              <button (click)="closePasswordModal()">Cancel</button>
-
-              <button (click)="verifyAdminPassword()">Verify</button>
+          </div>
+          <div class="form-section mb-0">
+            <label class="field-label">Wave Off Charges?</label>
+            <div class="radio-group">
+              <label class="radio-opt">
+                <input type="radio" name="waveoff" value="no" checked (change)="onWaveOffChange('no')" />
+                No
+              </label>
+              <label class="radio-opt">
+                <input type="radio" name="waveoff" value="yes" (change)="onWaveOffChange('yes')" />
+                Yes
+              </label>
             </div>
           </div>
         </div>
+
+        <div class="form-section">
+          <label class="field-label">Wave Off Amount (₹)</label>
+          <input
+            type="number"
+            class="fu-input no-spinner"
+            [ngModel]="waveOffAmount"
+            (ngModelChange)="onWaveOffAmountChange($event)"
+            (wheel)="$event.preventDefault()"
+            placeholder="0.00"
+            [disabled]="!waveOffVerified"
+          />
+        </div>
+
+        <!-- ── Next Appointment ── -->
+        <div class="form-grid form-grid--2">
+          <div class="form-section mb-0">
+            <label class="field-label">Next Appointment Date <span class="field-optional">(Optional)</span></label>
+            <input type="date" class="fu-input" [(ngModel)]="nextAppointmentDate" [min]="todayDate" />
+          </div>
+          <div class="form-section mb-0">
+            <label class="field-label">Next Appointment Time <span class="field-optional">(Optional)</span></label>
+            <input type="time" class="fu-input" [(ngModel)]="nextAppointmentTime" />
+          </div>
+        </div>
+
+      </div><!-- /card-body -->
+
+      <!-- Card Footer -->
+      <div class="card-footer card-footer--right">
+        <button class="btn btn--ghost">Cancel</button>
+        <button class="btn btn--primary" (click)="saveFollowUp()">💾 Save Follow-Up</button>
       </div>
-    </div>
-    <!-- ═══════════════════════════════════════════════════════════════════════ -->
-    <!-- APPOINTMENT HISTORY SECTION                                            -->
-    <!-- ═══════════════════════════════════════════════════════════════════════ -->
+
+    </div><!-- /fu-card record -->
+
+
+    <!-- ═══════════════════════════════════════════════════
+         APPOINTMENT HISTORY
+    ═══════════════════════════════════════════════════ -->
     <div class="hist-section">
-      <!-- SECTION HEADER -->
+
       <div class="hist-head">
         <div class="hist-head-left">
           <div class="hist-icon">📋</div>
@@ -451,142 +290,78 @@
             <p class="hist-sub">Past visits and treatment records</p>
           </div>
         </div>
-        <span class="hist-badge" *ngIf="summaryTotalCount > 0">
+        <span class="count-chip" *ngIf="summaryTotalCount > 0">
           {{ summaryTotalCount }} visit{{ summaryTotalCount > 1 ? 's' : '' }}
         </span>
       </div>
 
-      <!-- LOADING STATE -->
+      <!-- Loading -->
       <div class="hist-loading" *ngIf="summaryLoading">
         <div class="hist-spinner"></div>
-        <span>Loading history...</span>
+        <span>Loading history…</span>
       </div>
 
-      <!-- EMPTY STATE -->
-      <div
-        class="hist-empty"
-        *ngIf="!summaryLoading && summaryHistory.length === 0"
-      >
+      <!-- Empty -->
+      <div class="hist-empty" *ngIf="!summaryLoading && summaryHistory.length === 0">
         <div class="hist-empty-icon">🗂️</div>
         <p>No past appointments found for this patient.</p>
       </div>
 
-      <!-- TIMELINE -->
-      <div
-        class="hist-timeline"
-        *ngIf="!summaryLoading && summaryHistory.length > 0"
-      >
-        <div
-          class="hist-item"
-          *ngFor="let appt of summaryHistory; let i = index"
-        >
-          <!-- TIMELINE DOT -->
-          <div class="hist-dot-col">
-            <div class="hist-dot"></div>
-            <div class="hist-line" *ngIf="i < summaryHistory.length - 1"></div>
-          </div>
+      <!-- Timeline -->
+      <div class="hist-timeline" *ngIf="!summaryLoading && summaryHistory.length > 0">
+        <div class="hist-item" *ngFor="let appt of summaryHistory; let i = index">
 
-          <!-- CARD -->
           <div class="hist-card">
-            <!-- CARD TOP -->
+
+            <!-- Top row -->
             <div class="hist-card-top">
-              <div class="hist-date-block">
-                <span class="hist-date">
-                  📅 {{ appt.appointmentDate | date: 'dd MMM yyyy' }}
-                </span>
-                <span class="hist-time" *ngIf="appt.appointmentTime">
-                  ⏰ {{ appt.appointmentTime }}
-                </span>
+              <div class="hist-date-row">
+                <span class="hist-date">📅 {{ appt.appointmentDate | date: 'dd MMM yyyy' }}</span>
+                <span class="hist-time" *ngIf="appt.appointmentTime">⏰ {{ appt.appointmentTime }}</span>
               </div>
-              <div class="hist-right-meta">
-                <span
-                  class="hist-status-chip hist-status-{{ appt.status | lowercase }}"
-                >
-                  {{ appt.status }}
-                </span>
-                <span class="hist-remark-tag" *ngIf="appt.remark">
-                  {{ appt.remark }}
-                </span>
+              <div class="hist-meta-right">
+                <span class="hist-status hist-status--{{ appt.status | lowercase }}">{{ appt.status }}</span>
+                <span class="hist-remark-tag" *ngIf="appt.remark">{{ appt.remark }}</span>
               </div>
             </div>
 
-            <!-- DIVIDER -->
-            <div
-              class="hist-divider"
-              *ngIf="appt.followUpEntry || appt.prescribedMedicines?.length || appt.payment"
-            ></div>
+            <div class="hist-divider" *ngIf="appt.followUpEntry || appt.prescribedMedicines?.length || appt.payment"></div>
 
-            <!-- FOLLOW-UP ENTRY -->
-            <div class="hist-followup-block" *ngIf="appt.followUpEntry">
-              <!-- SYMPTOM TABLE -->
-              <div
-                class="hist-block"
-                *ngIf="appt.followUpEntry.statusRecords?.length"
-              >
-                <div class="hist-block-title">
-                  <span class="hist-block-icon">🩺</span> Symptom Status
-                </div>
-                <div class="hist-table-wrap">
-                  <table class="hist-table">
-                    <thead>
-                      <tr>
-                        <th>Symptom</th>
-                        <th>Remarks</th>
-                      </tr>
-                    </thead>
+            <!-- Follow-up entry -->
+            <div *ngIf="appt.followUpEntry">
+              <div class="hist-block" *ngIf="appt.followUpEntry.statusRecords?.length">
+                <div class="hist-block-label"><span>🩺</span> Symptom Status</div>
+                <div class="hist-tbl-wrap">
+                  <table class="hist-tbl">
+                    <thead><tr><th>Symptom</th><th>Remarks</th></tr></thead>
                     <tbody>
                       <tr *ngFor="let sr of appt.followUpEntry.statusRecords">
                         <td>{{ sr.criteriaName }}</td>
-                        <td>
-                          <span class="hist-remark-val"
-                            >{{ sr.remarks || '–' }}</span
-                          >
-                        </td>
+                        <td><span class="remark-val">{{ sr.remarks || '–' }}</span></td>
                       </tr>
                     </tbody>
                   </table>
                 </div>
               </div>
 
-              <!-- INTERPRETATION + CHARGE ROW -->
-              <div
-                class="hist-meta-row"
-                *ngIf="appt.followUpEntry.interpretation || appt.followUpEntry.charge"
-              >
-                <div
-                  class="hist-meta-item"
-                  *ngIf="appt.followUpEntry.interpretation"
-                >
-                  <span class="hist-meta-label">Interpretation</span>
-                  <span class="hist-meta-value"
-                    >{{ appt.followUpEntry.interpretation }}</span
-                  >
+              <div class="hist-meta-row" *ngIf="appt.followUpEntry.interpretation || appt.followUpEntry.charge">
+                <div class="hist-meta-item" *ngIf="appt.followUpEntry.interpretation">
+                  <span class="hist-meta-lbl">Interpretation</span>
+                  <span class="hist-meta-val">{{ appt.followUpEntry.interpretation }}</span>
                 </div>
                 <div class="hist-meta-item" *ngIf="appt.followUpEntry.charge">
-                  <span class="hist-meta-label">Charge</span>
-                  <span class="hist-meta-value hist-charge"
-                    >₹ {{ appt.followUpEntry.charge }}</span
-                  >
+                  <span class="hist-meta-lbl">Charge</span>
+                  <span class="hist-meta-val hist-charge">₹ {{ appt.followUpEntry.charge }}</span>
                 </div>
               </div>
             </div>
 
-            <!-- PRESCRIBED MEDICINES -->
+            <!-- Medicines -->
             <div class="hist-block" *ngIf="appt.prescribedMedicines?.length">
-              <div class="hist-block-title">
-                <span class="hist-block-icon">💊</span> Prescribed Medicines
-              </div>
-              <div class="hist-table-wrap">
-                <table class="hist-table">
-                  <thead>
-                    <tr>
-                      <th>Medicine</th>
-                      <th>Dosage</th>
-                      <th>Frequency</th>
-                      <th>Duration</th>
-                      <th>Instructions</th>
-                    </tr>
-                  </thead>
+              <div class="hist-block-label"><span>💊</span> Prescribed Medicines</div>
+              <div class="hist-tbl-wrap">
+                <table class="hist-tbl">
+                  <thead><tr><th>Medicine</th><th>Dosage</th><th>Frequency</th><th>Duration</th><th>Instructions</th></tr></thead>
                   <tbody>
                     <tr *ngFor="let med of appt.prescribedMedicines">
                       <td class="hist-med-name">{{ med.medicineName }}</td>
@@ -600,57 +375,47 @@
               </div>
             </div>
 
-            <!-- PAYMENT -->
+            <!-- Payment -->
             <div class="hist-payment-row" *ngIf="appt.payment">
-              <span class="hist-payment-icon">💰</span>
-              <div class="hist-payment-pills">
-                <span class="hist-pill">
-                  Charges: <b>₹{{ appt.payment.consultationCharges }}</b>
-                </span>
-                <span
-                  class="hist-pill hist-pill--warning"
-                  *ngIf="appt.payment.waveOffAmount"
-                >
-                  Wave Off: <b>₹{{ appt.payment.waveOffAmount }}</b>
-                </span>
-                <span class="hist-pill hist-pill--success">
-                  Paid: <b>₹{{ appt.payment.amountPaid }}</b>
-                </span>
-                <span
-                  class="hist-pill hist-pill--danger"
-                  *ngIf="appt.payment.remainingBalance"
-                >
-                  Balance: <b>₹{{ appt.payment.remainingBalance }}</b>
-                </span>
+              <span>💰</span>
+              <div class="hist-pills">
+                <span class="hist-pill">Charges: <b>₹{{ appt.payment.consultationCharges }}</b></span>
+                <span class="hist-pill hist-pill--warning" *ngIf="appt.payment.waveOffAmount">Wave Off: <b>₹{{ appt.payment.waveOffAmount }}</b></span>
+                <span class="hist-pill hist-pill--success">Paid: <b>₹{{ appt.payment.amountPaid }}</b></span>
+                <span class="hist-pill hist-pill--danger" *ngIf="appt.payment.remainingBalance">Balance: <b>₹{{ appt.payment.remainingBalance }}</b></span>
               </div>
             </div>
-          </div>
-          <!-- END CARD -->
-        </div>
-        <!-- END TIMELINE ITEM -->
-      </div>
-      <!-- END TIMELINE -->
 
-      <!-- PAGINATION -->
+          </div><!-- /hist-card -->
+        </div><!-- /hist-item -->
+      </div><!-- /timeline -->
+
+      <!-- Pagination -->
       <div class="hist-pagination" *ngIf="summaryTotalPages > 1">
-        <button
-          class="hist-page-btn"
-          [disabled]="summaryPage === 1 || summaryLoading"
-          (click)="onSummaryPageChange(summaryPage - 1)"
-        >
-          ← Prev
-        </button>
-        <span class="hist-page-info">
-          Page {{ summaryPage }} of {{ summaryTotalPages }}
-        </span>
-        <button
-          class="hist-page-btn"
-          [disabled]="summaryPage === summaryTotalPages || summaryLoading"
-          (click)="onSummaryPageChange(summaryPage + 1)"
-        >
-          Next →
-        </button>
+        <button class="pg-btn" [disabled]="summaryPage === 1 || summaryLoading" (click)="onSummaryPageChange(summaryPage - 1)">← Prev</button>
+        <span class="pg-info">Page {{ summaryPage }} of {{ summaryTotalPages }}</span>
+        <button class="pg-btn" [disabled]="summaryPage === summaryTotalPages || summaryLoading" (click)="onSummaryPageChange(summaryPage + 1)">Next →</button>
       </div>
+
+    </div><!-- /hist-section -->
+
+  </div><!-- /fu-wrap -->
+
+</div><!-- /fu-container -->
+
+
+<!-- ═══════════════════════════════════════════════════
+     ADMIN PASSWORD MODAL
+═══════════════════════════════════════════════════ -->
+<div class="modal-overlay" *ngIf="showPasswordModal">
+  <div class="modal-box">
+    <div class="modal-icon">🔐</div>
+    <h3 class="modal-title">Admin Verification</h3>
+    <p class="modal-sub">Enter admin password to apply the wave-off amount.</p>
+    <input type="password" class="fu-input" placeholder="Enter password" [(ngModel)]="adminPassword" />
+    <div class="modal-actions">
+      <button class="btn btn--ghost" (click)="closePasswordModal()">Cancel</button>
+      <button class="btn btn--primary" (click)="verifyAdminPassword()">Verify</button>
     </div>
   </div>
 </div>

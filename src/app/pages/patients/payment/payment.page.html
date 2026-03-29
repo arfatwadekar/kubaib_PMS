@@ -1,9 +1,16 @@
 <div class="billing-container" *ngIf="!loading">
+  <div class="page-title">
+    <div>
+      <div class="h1">Payments & Closure</div>
+      <div class="sub-text">
+        Manage billing details, payment status, and case closure.
+      </div>
+    </div>
+  </div>
 
   <!-- ================= SUMMARY ================= -->
 
   <div class="summary-grid">
-
     <div class="summary-card">
       <div class="summary-label">Consultation Charges (This Visit)</div>
       <div class="summary-value">₹ {{ consultationCharges }}</div>
@@ -13,80 +20,91 @@
       <div class="summary-label">Pending Balance</div>
       <div class="summary-value">₹ {{ pendingBalance }}</div>
     </div>
-    
 
     <div class="summary-card">
       <div class="summary-label">Wave Off</div>
       <div class="summary-value">₹ {{ waveOffAmount }}</div>
     </div>
-    
+
     <div class="summary-card highlight">
       <div class="summary-label">Total Amount</div>
       <div class="summary-value">₹ {{ totalPayable }}</div>
     </div>
-
   </div>
-
 
   <!-- ================= PRESCRIBED MEDICINES ================= -->
-
-<div class="billing-card" *ngIf="!isPaymentDone">
-
+  <div class="billing-card" *ngIf="!isPaymentDone">
     <div class="card-title">Prescribed Medicines</div>
 
-    <table class="medicine-table">
+    <!-- ================= DESKTOP TABLE ================= -->
+    <div class="table-wrapper desktop-only">
+      <table class="medicine-table">
+        <thead>
+          <tr>
+            <th>Medicine</th>
+            <th>Dosage</th>
+            <th>Frequency</th>
+            <th>Duration</th>
+          </tr>
+        </thead>
 
-      <thead>
-        <tr>
-          <th>Medicine</th>
-          <th>Dosage</th>
-          <th>Frequency</th>
-          <th>Duration</th>
-        </tr>
-      </thead>
+        <tbody>
+          <tr *ngFor="let med of prescriptions">
+            <td>{{ med.medicineName }}</td>
+            <td>{{ med.dosage }}</td>
+            <td>{{ med.frequency }}</td>
+            <td>{{ med.duration }}</td>
+          </tr>
 
-      <tbody>
+          <tr *ngIf="prescriptions.length === 0">
+            <td colspan="4" class="empty">No medicines prescribed</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-        <tr *ngFor="let med of prescriptions">
-          <td>{{ med.medicineName }}</td>
-          <td>{{ med.dosage }}</td>
-          <td>{{ med.frequency }}</td>
-          <td>{{ med.duration }}</td>
-        </tr>
+    <!-- ================= MOBILE CARDS ================= -->
+    <!-- <div class="mobile-only">
+    <div
+      class="medicine-card"
+      *ngFor="let med of prescriptions"
+    >
+      <div class="med-name">{{ med.medicineName }}</div>
 
-        <tr *ngIf="prescriptions.length === 0">
-          <td colspan="4" class="empty">No medicines prescribed</td>
-        </tr>
+      <div class="med-row">
+        <span>Dosage</span>
+        <strong>{{ med.dosage }}</strong>
+      </div>
 
-      </tbody>
+      <div class="med-row">
+        <span>Frequency</span>
+        <strong>{{ med.frequency }}</strong>
+      </div>
 
-    </table>
+      <div class="med-row">
+        <span>Duration</span>
+        <strong>{{ med.duration }}</strong>
+      </div>
+    </div>
 
+    <div *ngIf="prescriptions.length === 0" class="empty">
+      No medicines prescribed
+    </div>
+  </div> -->
   </div>
-
 
   <!-- ================= ADD PAYMENT BUTTON ================= -->
 
-<div class="add-payment-section" *ngIf="!isPaymentDone">
-
-    <button
-      class="btn-add-payment"
-      (click)="addPayment()"
-    >
-      Add Payment
-    </button>
-
-  </div>
-
+  <!-- <div class="add-payment-section" *ngIf="!isPaymentDone">
+    <button class="btn-add-payment" (click)="addPayment()">Add Payment</button>
+  </div> -->
 
   <!-- ================= PAYMENT FORM ================= -->
 
-<div class="billing-card" *ngIf="!isPaymentDone">
-
+  <div class="billing-card" *ngIf="!isPaymentDone">
     <div class="card-title">New Payment</div>
 
     <div class="form-grid">
-
       <div class="form-group">
         <label>Date</label>
         <input type="date" [(ngModel)]="paymentDate" />
@@ -103,55 +121,39 @@
         /> -->
 
         <input
-  type="number"
-  [(ngModel)]="amountPaid"
-  (input)="recalculateBalance()"
-  (keydown.arrowup)="$event.preventDefault()"
-  (keydown.arrowdown)="$event.preventDefault()"
-  (wheel)="$event.preventDefault()"
-  placeholder="Enter amount"
-/>
+          type="number"
+          [(ngModel)]="amountPaid"
+          (input)="recalculateBalance()"
+          (keydown.arrowup)="$event.preventDefault()"
+          (keydown.arrowdown)="$event.preventDefault()"
+          (wheel)="$event.preventDefault()"
+          placeholder="Enter amount"
+        />
       </div>
 
       <div class="form-group">
-
         <label>Payment Mode</label>
 
         <select [(ngModel)]="paymentMode">
           <option value="Cash">Cash</option>
           <option value="Online">Online</option>
         </select>
-
       </div>
-
     </div>
-
   </div>
-
 
   <!-- ================= BALANCE ================= -->
 
   <div class="balance-preview" *ngIf="!isPaymentDone">
-
     <span>New Pending Balance</span>
 
-    <span class="balance-value">
-      ₹ {{ newPendingBalance }}
-    </span>
-
+    <span class="balance-value"> ₹ {{ newPendingBalance }} </span>
   </div>
-
 
   <!-- ================= FOOTER ================= -->
 
   <div class="billing-footer" *ngIf="!isPaymentDone">
-
-    <button
-      class="btn-outline"
-      (click)="goBack()"
-    >
-      Previous: Follow Up
-    </button>
+    <button class="btn-outline" (click)="goBack()">Previous: Follow Up</button>
 
     <button
       class="btn-success"
@@ -160,20 +162,16 @@
     >
       Save Payment
     </button>
-
   </div>
-
 
   <!-- ================= PAYMENT HISTORY ================= -->
 
   <div class="payment-history" *ngIf="paymentHistory.length">
-
-    <h3 class="history-title">
+    <h3 class="history-title" style="margin-bottom: 25px; margin-top: 25px">
       Payment History
     </h3>
 
     <div class="table-wrapper">
-
       <table class="payment-table">
         <thead>
           <tr>
@@ -201,14 +199,11 @@
           </tr>
         </tbody>
       </table>
-
     </div>
-
 
     <!-- ================= PAGINATION ================= -->
 
-    <div class="pagination">
-
+    <div class="pagination" style="justify-content: end; align-items: center">
       <button
         class="page-btn"
         (click)="prevPage()"
@@ -217,9 +212,7 @@
         Prev
       </button>
 
-      <span class="page-info">
-        Page {{ currentPage }} / {{ totalPages }}
-      </span>
+      <span class="page-info"> Page {{ currentPage }} / {{ totalPages }} </span>
 
       <button
         class="page-btn"
@@ -228,16 +221,10 @@
       >
         Next
       </button>
-
     </div>
-
   </div>
-
 </div>
-
 
 <!-- ================= LOADER ================= -->
 
-<div class="loading" *ngIf="loading">
-  Loading payment data...
-</div>
+<div class="loading" *ngIf="loading">Loading payment data...</div>

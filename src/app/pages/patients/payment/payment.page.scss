@@ -1,221 +1,350 @@
-.billing-container{
-  max-width:1100px;
-  margin:auto;
-  padding:20px;
+:host {
+  --primary: #16a34a;
+  --primary-dark: #15803d;
+  --bg: #f6f8fb;
+  --card: #ffffff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #e5e7eb;
 }
 
-/* SUCCESS BANNER */
+/* ================= BASE ================= */
 
-.payment-success{
-  background:#e8f7ee;
-  color:#1b8f4b;
-  padding:12px 16px;
-  border-radius:8px;
-  margin-bottom:16px;
-  font-weight:600;
+.billing-container {
+  max-width: 1400px;
+  margin: auto;
+  padding: 24px;
 }
 
-/* SUMMARY */
+/* ================= HEADER ================= */
 
-.summary-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:16px;
-  margin-bottom:20px;
+.page-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-.summary-card{
-  background:#fff;
-  padding:18px;
-  border-radius:10px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.08);
+.page-title .h1 {
+  font-size: 26px;
+  font-weight: 700;
 }
 
-.summary-card.total{
-  background:#1b8f4b;
-  color:white;
+.sub-text {
+  color: var(--muted);
+  font-size: 14px;
 }
 
-.summary-label{
-  font-size:14px;
-  opacity:.8;
+/* ================= SUMMARY ================= */
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin: 24px 0;
 }
 
-.summary-value{
-  font-size:22px;
-  font-weight:600;
+.summary-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+  transition: 0.3s ease;
 }
 
-/* CARDS */
-
-.billing-card{
-  background:white;
-  border-radius:10px;
-  padding:20px;
-  margin-bottom:20px;
-  box-shadow:0 2px 6px rgba(0,0,0,0.08);
+.summary-card:hover {
+  transform: translateY(-3px);
 }
 
-.card-title{
-  font-size:18px;
-  font-weight:600;
-  margin-bottom:12px;
+.summary-card.highlight {
+  background: linear-gradient(135deg, #16a34a, #22c55e);
+  color: white;
 }
 
-/* TABLE */
-
-.table-wrapper{
-  overflow-x:auto;
+.summary-label {
+  font-size: 13px;
+  color: var(--muted);
 }
 
-.medicine-table,
-.payment-table{
-  width:100%;
-  border-collapse:collapse;
+.summary-card.highlight .summary-label {
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.medicine-table th,
-.payment-table th{
-  background:#f6f8fb;
+.summary-value {
+  font-size: 24px;
+  font-weight: 700;
+  margin-top: 6px;
 }
 
-.medicine-table th,
-.payment-table th,
-.medicine-table td,
-.payment-table td{
-  padding:12px;
-  border-bottom:1px solid #eee;
+/* ================= CARD ================= */
+
+.billing-card {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 22px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
 }
 
-/* FORM */
-
-.form-grid{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:16px;
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
 }
 
-.form-group{
-  display:flex;
-  flex-direction:column;
+/* ================= TABLE (IMPROVED MOBILE SCROLL) ================= */
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
 }
 
-input,select{
-  padding:10px;
-  border:1px solid #ddd;
-  border-radius:6px;
+/* Scroll hint effect (pro feel) */
+.table-wrapper::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 30px;
+  height: 100%;
+  pointer-events: none;
+  // background: linear-gradient(to left, rgba(255,255,255,0.9), transparent);
 }
 
-/* BALANCE */
-
-.balance-preview{
-  display:flex;
-  justify-content:space-between;
-  background:#f7f9fc;
-  padding:14px;
-  border-radius:8px;
-  margin-bottom:20px;
+table {
+  width: 100%;
+  min-width: 600px; /* 👈 KEY for mobile scroll */
+  border-collapse: collapse;
 }
 
-.balance-value{
-  font-weight:600;
-  color:#d32f2f;
+th {
+  text-align: left;
+  font-size: 13px;
+  // color: var(--muted);
+  padding: 12px;
+  background: #f1f5f9;
+  white-space: nowrap;
 }
 
-.balance-value.zero{
-  color:#1b8f4b;
+td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  white-space: nowrap;
 }
 
-/* FOOTER */
-
-.billing-footer{
-  display:flex;
-  justify-content:space-between;
-  margin-bottom:20px;
+tr:hover {
+  background: #f9fafb;
 }
 
-.btn-outline{
-  padding:10px 20px;
-  border:1px solid #1b8f4b;
-  background:white;
-  color:#1b8f4b;
-  border-radius:6px;
+.empty {
+  text-align: center;
+  color: var(--muted);
 }
 
-.btn-success{
-  padding:10px 22px;
-  background:#1b8f4b;
-  color:white;
-  border:none;
-  border-radius:6px;
+/* ================= FORM ================= */
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
 }
 
-/* MODE BADGE */
-
-.mode-badge{
-  padding:4px 10px;
-  border-radius:20px;
-  font-size:12px;
+.form-group {
+  display: flex;
+  flex-direction: column;
 }
 
-.mode-badge.cash{
-  background:#e8f7ee;
-  color:#1b8f4b;
+.form-group label {
+  font-size: 13px;
+  margin-bottom: 6px;
+  color: var(--muted);
 }
 
-.mode-badge.online{
-  background:#e6f0ff;
-  color:#2962ff;
+/* Better Inputs */
+input,
+select {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 14px;
+  background: #fff;
+  transition: 0.2s;
 }
 
-/* PAGINATION */
-
-.pagination{
-  display:flex;
-  justify-content:center;
-  gap:10px;
-  margin-top:12px;
+input:focus,
+select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.15);
+  outline: none;
 }
 
-.pagination button{
-  background:#1b8f4b;
-  border:none;
-  color:white;
-  padding:6px 12px;
-  border-radius:6px;
-}
-
-.pagination button:disabled{
-  background:#ccc;
-}
-
-/* MOBILE */
-
-@media(max-width:900px){
-
-.summary-grid{
-  grid-template-columns:1fr;
-}
-
-.form-grid{
-  grid-template-columns:1fr;
-}
-
-.billing-footer{
-  flex-direction:column;
-  gap:10px;
-}
-
-}
-
-/* Chrome, Safari, Edge */
+/* Remove number arrows */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-/* Firefox */
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+/* ================= BALANCE ================= */
+
+.balance-preview {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  border-radius: 12px;
+  background: white;
+  margin-bottom: 20px;
+  font-weight: 500;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.balance-value {
+  font-weight: 700;
+  color: #dc2626;
+}
+
+.balance-value.zero {
+  color: var(--primary);
+}
+
+/* ================= BUTTONS ================= */
+
+.billing-footer {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+button {
+  cursor: pointer;
+}
+
+.btn-outline {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--primary);
+  background: white;
+  color: var(--primary);
+}
+
+.btn-outline:hover {
+  background: #f0fdf4;
+}
+
+.btn-success {
+  padding: 12px 22px;
+  border-radius: 10px;
+  border: none;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+}
+
+.btn-success:hover {
+  background: var(--primary-dark);
+}
+
+.btn-success:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+/* ================= MOBILE ================= */
+
+@media (max-width: 768px) {
+  .billing-container {
+    padding: 16px;
+  }
+
+  .page-title {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .page-title .h1 {
+    font-size: 20px;
+  }
+
+  .summary-value {
+    font-size: 20px;
+  }
+
+  .billing-card {
+    padding: 16px;
+  }
+
+  /* FORM FULL WIDTH */
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* BUTTON FULL WIDTH */
+  .billing-footer {
+    flex-direction: column;
+  }
+
+  .btn-success,
+  .btn-outline {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+
+/* ================= PAGINATION ================= */
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.page-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: var(--primary);
+  color: white;
+  border: none;
+}
+
+.page-btn:disabled {
+  background: #cbd5e1;
+}
+
+/* ================= FIXED TABLE SCROLL ================= */
+
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  position: relative; /* IMPORTANT for gradient */
+}
+
+/* remove width:100% conflict */
+.medicine-table {
+  border-collapse: collapse;
+  min-width: 650px; /* 👈 FORCE SCROLL */
+}
+
+/* prevent shrinking */
+.medicine-table th,
+.medicine-table td {
+  white-space: nowrap;
+}
+

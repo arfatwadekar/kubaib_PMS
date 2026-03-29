@@ -687,6 +687,15 @@ export class MedicalPage implements OnInit, OnDestroy {
           remarkAngerSadness: ms?.angerSadnessTriangles_Remark || '',
           remarkFearAnxiety: ms?.fearAnxietyTriangles_Remark || '',
         },
+          // ✅ Added intellectualState restoration
+    intellectualState: {
+      capacityPerformanceRatio: safeNum(ms?.intellect_Value ?? 0),
+      perception: this.s(ms?.intellect_Perception),
+      memory: this.s(ms?.intellect_Memory),
+      thinking: this.s(ms?.intellect_Thinking),
+      decision: this.s(ms?.intellect_Decision),
+      confidence: this.s(ms?.intellect_Confidence),
+    },
         behavioralEvaluation: api?.behavioralEvaluation || {},
       },
       { emitEvent: false },
