@@ -276,6 +276,7 @@
                     <button
                       class="icon-btn icon-btn--danger"
                       (click)="removeMedicineRow(i)"
+                      style="background: #dc2626; color: white"
                     >
                       ✕
                     </button>
@@ -381,6 +382,7 @@
         <button
           class="btn btn--primary"
           (click)="saveFollowUp()"
+          [disabled]="!isFollowUpFormValid()"
         >
           💾 Save Follow-Up
         </button>

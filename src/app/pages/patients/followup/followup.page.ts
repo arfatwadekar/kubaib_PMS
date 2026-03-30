@@ -669,6 +669,38 @@ export class FollowupPage implements OnInit, OnDestroy {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
+  // CHECK IF FOLLOW-UP FORM IS VALID
+  // Used to enable/disable save button
+  // ─────────────────────────────────────────────────────────────────────────
+
+  isFollowUpFormValid(): boolean {
+    // Check if at least one symptom exists
+    if (this.symptomsArray.length === 0) {
+      return false;
+    }
+
+    // Check if all symptoms have a status rating (1-10)
+    let hasEmptyStatus = false;
+    this.symptomsArray.forEach((sym) => {
+      const status = this.symptomStatus[sym.index];
+      if (!status || status.toString().trim() === '') {
+        hasEmptyStatus = true;
+      }
+    });
+
+    if (hasEmptyStatus) {
+      return false;
+    }
+
+    // Check if interpretation is filled
+    if (!this.interpretation || this.interpretation.trim() === '') {
+      return false;
+    }
+
+    return true;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // SAVE FOLLOW-UP (Main save function)
   // Orchestrates the entire follow-up flow:
   // 1. Save/Update criteria (symptoms)
@@ -683,6 +715,22 @@ export class FollowupPage implements OnInit, OnDestroy {
     console.log('===== SAVE FOLLOW-UP STARTED =====');
     console.log('PATIENT ID:', this.patientId);
     console.log('APPOINTMENT ID:', this.currentAppointmentId);
+
+    // ═════════════════════════════════════════════════════════════════════
+    // VALIDATION: Check that all required fields are filled
+    // ═════════════════════════════════════════════════════════════════════
+    if (!this.isFollowUpFormValid()) {
+      console.log('❌ VALIDATION FAILED - Form incomplete');
+      if (this.symptomsArray.length === 0) {
+        this.showToast('Please add at least one symptom');
+      } else if (this.symptomStatus.some((status, idx) => 
+        this.symptomsArray.some(s => s.index === idx) && (!status || status.toString().trim() === ''))) {
+        this.showToast('Please rate all symptoms (1-10)');
+      } else if (!this.interpretation || this.interpretation.trim() === '') {
+        this.showToast('Please provide interpretation');
+      }
+      return;
+    }
 
     try {
       // ═════════════════════════════════════════════════════════════════════
