@@ -366,18 +366,15 @@ async loadPaymentData() {
   /* ================================================= */
   /* NAVIGATION */
   /* ================================================= */
-
-  goBack() {
-
-    this.router.navigate(['/patients/followup'], {
-      queryParams: {
-        patientId: this.patientId,
-        appointmentId: this.appointmentId
-      }
-    });
-
-  }
-
+goBack() {
+  this.router.navigate(['/patients/followup'], {
+    queryParams: {
+      patientId: this.patientId,
+      appointmentId: this.appointmentId,
+      tab: 'followup' // ✅ IMPORTANT
+    }
+  });
+}
   /* ================================================= */
   /* TOAST */
   /* ================================================= */

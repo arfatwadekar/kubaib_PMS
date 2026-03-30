@@ -57,12 +57,12 @@ export class FollowupPage implements OnInit, OnDestroy {
 
   summaryList: any[] = [];
   // ─── Patient Summary / History ───────────────────────────────────────────
-  summaryHistory: any[]  = [];
-  summaryPage         = 1;
-  summaryPageSize     = 10;
-  summaryTotalPages   = 0;
-  summaryTotalCount   = 0;
-  summaryLoading      = false;
+  summaryHistory: any[] = [];
+  summaryPage = 1;
+  summaryPageSize = 10;
+  summaryTotalPages = 0;
+  summaryTotalCount = 0;
+  summaryLoading = false;
 
   private destroy$ = new Subject<void>();
 
@@ -148,10 +148,10 @@ export class FollowupPage implements OnInit, OnDestroy {
     // 6️⃣ Add default medicine row
     this.addMedicineRow();
 
-     const today = new Date();
+    const today = new Date();
 
-  // format: yyyy-MM-dd (IMPORTANT ⚠️)
-  this.todayDate = today.toISOString().split('T')[0];
+    // format: yyyy-MM-dd (IMPORTANT ⚠️)
+    this.todayDate = today.toISOString().split('T')[0];
   }
 
   ngOnDestroy() {
@@ -571,6 +571,16 @@ export class FollowupPage implements OnInit, OnDestroy {
     this.prescriptions.splice(index, 1);
   }
 
+  goToMedical() {
+    this.router.navigate(['/patients/medical'], {
+      queryParams: {
+        patientId: this.patientId,
+        appointmentId: this.currentAppointmentId,
+        tab: 'medical',
+      },
+    });
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // BUILD STATUS RECORDS FOR FOLLOW-UP ENTRY
   // Maps symptom values to their status ratings
@@ -849,9 +859,9 @@ export class FollowupPage implements OnInit, OnDestroy {
       console.log('\n🔔 STEP 5: SCHEDULE NEXT APPOINTMENT');
       if (this.nextAppointmentDate) {
         const appointmentPayload: any = {
-          patientId:       this.patientId,
+          patientId: this.patientId,
           appointmentDate: this.nextAppointmentDate,
-          remark:          'Follow up',
+          remark: 'Follow up',
         };
 
         if (this.nextAppointmentTime) {
@@ -915,42 +925,45 @@ export class FollowupPage implements OnInit, OnDestroy {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-// LOAD PATIENT APPOINTMENT SUMMARY (History list with pagination)
-// GET /api/Appointment/patient/{patientId}/summary
-// ─────────────────────────────────────────────────────────────────────────
+  // LOAD PATIENT APPOINTMENT SUMMARY (History list with pagination)
+  // GET /api/Appointment/patient/{patientId}/summary
+  // ─────────────────────────────────────────────────────────────────────────
 
-async loadPatientSummary(page: number = 1) {
-  this.summaryLoading = true;
-  try {
-    const res: any = await firstValueFrom(
-      this.api.getPatientAppointmentSummary(this.patientId, page, this.summaryPageSize)
-    );
+  async loadPatientSummary(page: number = 1) {
+    this.summaryLoading = true;
+    try {
+      const res: any = await firstValueFrom(
+        this.api.getPatientAppointmentSummary(
+          this.patientId,
+          page,
+          this.summaryPageSize,
+        ),
+      );
 
-    console.log('PATIENT SUMMARY HISTORY:', res);
+      console.log('PATIENT SUMMARY HISTORY:', res);
 
-    this.summaryHistory    = res?.appointments  || [];
-    this.summaryPage       = res?.page          || 1;
-    this.summaryTotalPages = res?.totalPages    || 0;
-    this.summaryTotalCount = res?.totalCount    || 0;
+      this.summaryHistory = res?.appointments || [];
+      this.summaryPage = res?.page || 1;
+      this.summaryTotalPages = res?.totalPages || 0;
+      this.summaryTotalCount = res?.totalCount || 0;
 
-
-    // ── Check if current appointment already has a follow-up saved ──────────
-    this.isFollowUpAlreadySaved = this.summaryHistory.some(
-      (appt: any) => appt.appointmentId === this.currentAppointmentId
-    );
-console.log(this.currentAppointmentId)
-console.log(this.summaryHistory)
-    console.log('Follow-up already saved:', this.isFollowUpAlreadySaved);
-  } catch (err) {
-    console.error('Patient summary load error:', err);
-    this.showToast('Failed to load appointment history');
-  } finally {
-    this.summaryLoading = false;
+      // ── Check if current appointment already has a follow-up saved ──────────
+      this.isFollowUpAlreadySaved = this.summaryHistory.some(
+        (appt: any) => appt.appointmentId === this.currentAppointmentId,
+      );
+      console.log(this.currentAppointmentId);
+      console.log(this.summaryHistory);
+      console.log('Follow-up already saved:', this.isFollowUpAlreadySaved);
+    } catch (err) {
+      console.error('Patient summary load error:', err);
+      this.showToast('Failed to load appointment history');
+    } finally {
+      this.summaryLoading = false;
+    }
   }
-}
 
-onSummaryPageChange(page: number) {
-  if (page < 1 || page > this.summaryTotalPages) return;
-  this.loadPatientSummary(page);
-}
+  onSummaryPageChange(page: number) {
+    if (page < 1 || page > this.summaryTotalPages) return;
+    this.loadPatientSummary(page);
+  }
 }

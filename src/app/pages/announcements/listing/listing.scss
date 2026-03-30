@@ -256,7 +256,7 @@
   border-radius: 14px;
   border: 1px solid var(--c-border);
   box-shadow: var(--shadow);
-  overflow: hidden;
+      overflow-x: auto;
 }
 
 .ann-table {

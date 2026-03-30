@@ -705,13 +705,17 @@ export class MedicalPage implements OnInit, OnDestroy {
   // ============================================================
   // NAVIGATION
   // ============================================================
-  goPrevIdentity() {
-    this.router.navigate([], {
-      queryParams: { tab: 'prelim', patientId: this.patientId },
-      queryParamsHandling: 'merge',
-    });
-  }
-
+goPrevIdentity() {
+  this.router.navigate(['../prelim'], {
+    relativeTo: this.route,
+    queryParams: {
+      patientId: this.patientId,
+      appointmentId: this.route.snapshot.queryParamMap.get('appointmentId'),
+      tab: 'prelim'
+    },
+    queryParamsHandling: 'merge'
+  });
+}
   goNextFollowUp() {
     this.router.navigate(['../followup'], {
       relativeTo: this.route,

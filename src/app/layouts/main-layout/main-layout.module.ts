@@ -106,7 +106,7 @@ const routes: Routes = [
     import('../../pages/notifications/notification.module')
       .then(m => m.NotificationsModule),
   canActivate: [RoleGuard],
-  data: { roles: ['Doctor'] },
+    data: { roles: ['Doctor', 'Receptionist'] },
 },
 
       {
@@ -123,7 +123,7 @@ const routes: Routes = [
           import('../../pages/video-testimonials/video-testimonials.module')
             .then(m => m.VideoTestimonialsModule),
         canActivate: [RoleGuard],
-        data: { roles: ['Doctor'] },
+           data: { roles: ['Doctor', 'Receptionist'] },
       },
     ],
   },
