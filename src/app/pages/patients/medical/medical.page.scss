@@ -201,7 +201,7 @@
 
 // Field card
 .field {
-  border: 1px solid #dfe7f5;
+  // border: 1px solid #dfe7f5;
   border-radius: 10px;
   padding: 10px;
   background: #fff;
@@ -651,7 +651,7 @@
 // =========================== Accordian section 1 ==========================
 
 .page-title {
-  max-width: 1100px;
+  max-width: 1400px;
   margin: 0 auto 24px;
   display: flex;
   justify-content: space-between;
@@ -669,3 +669,476 @@
   font-size: 14px;
   color: var(--muted);
 }
+
+
+/* HEADER */
+.modern-header {
+  --background: transparent;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  ion-label {
+    font-weight: 600;
+    font-size: 16px;
+    color: #1f2937;
+  }
+
+  ion-icon {
+    font-size: 24px;
+    color: #16a34a;
+    margin-right: 10px;
+  }
+}
+
+/* BODY */
+.modern-body {
+  padding: 12px;
+}
+
+/* CARD */
+.modern-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  border: 1px solid #eef2f7;
+  transition: all 0.25s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* CARD TITLE */
+.card-title {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #16a34a, #4ade80);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* TABLE WRAP */
+.table-wrap {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+}
+
+/* HEADER ROW */
+.table-head {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  background: #f1f5f9;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+
+  div {
+    padding: 10px;
+    text-align: center;
+  }
+}
+.table-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+
+  textarea {
+    border: none;
+    border-top: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb;
+
+    padding: 14px;
+    font-size: 14px;
+
+    min-height: 140px;   // 🔥 BIG HEIGHT
+    max-height: 300px;   // optional limit
+
+    resize: vertical;    // 🔥 ENABLE RESIZE (important)
+    overflow: auto;
+
+    outline: none;
+    background: #ffffff;
+    transition: all 0.2s ease;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+}
+
+
+/* GRID */
+.fh-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-top: 10px;
+}
+
+/* FIELD */
+.fh-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+  }
+}
+
+/* INPUT */
+.fh-input {
+  height: 40px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 13px;
+  background: #ffffff;
+  transition: 0.2s;
+
+  &:focus {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+  }
+}
+
+/* REMARKS */
+.fh-remarks {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+  }
+}
+
+/* BIG TEXTAREA */
+.fh-textarea {
+  width: 100%;
+  min-height: 140px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  resize: vertical;
+  font-size: 14px;
+  transition: 0.2s;
+
+  &:focus {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+    background: #f0fdf4;
+  }
+}
+
+// ================ s3 
+/* GROUP */
+.ps-group {
+  margin-bottom: 20px;
+}
+
+/* GROUP TITLE */
+.group-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #16a34a;
+  margin-bottom: 10px;
+}
+
+/* GRID */
+.ps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+/* FIELD */
+.ps-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+  }
+}
+
+/* INPUT */
+.ps-input {
+  height: 42px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  font-size: 13px;
+  background: #ffffff;
+  transition: all 0.2s ease;
+
+  &:focus {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+  }
+}
+
+// ================ s4
+/* GROUP */
+.mh-group {
+  margin-bottom: 20px;
+}
+
+/* TITLE */
+.group-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #16a34a;
+  margin-bottom: 10px;
+}
+
+/* GRID */
+.mh-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+/* FIELD */
+.mh-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+  }
+}
+
+/* INPUT */
+.mh-input {
+  height: 42px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  font-size: 13px;
+  background: #ffffff;
+  transition: all 0.2s ease;
+
+  &:focus {
+    border-color: #16a34a;
+    box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+  }
+}
+
+
+
+/* ===============================
+   S6 MODERN TABLE UI
+================================ */
+
+ion-accordion[value="s6"] {
+
+  .modern-card {
+    border-radius: 18px;
+    padding: 16px;
+    background: linear-gradient(180deg, #ffffff, #f9fafb);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+    border: 1px solid #eef2f7;
+  }
+
+  /* TABLE */
+  .modern-table {
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+  }
+
+  .rf-row {
+    display: grid;
+    grid-template-columns: 110px repeat(5, 1fr);
+  }
+
+  .rf-head {
+    background: #f0fdf4;
+
+    .rf-cell {
+      font-weight: 700;
+      font-size: 12px;
+      color: #166534;
+    }
+  }
+
+  .rf-cell {
+    padding: 10px;
+    border-right: 1px solid #e5e7eb;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: center;
+    background: #fff;
+
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  .rf-left {
+    text-align: left;
+    font-weight: 600;
+    color: #374151;
+    background: #f9fafb;
+  }
+
+  /* INPUT */
+  .modern-inp {
+    width: 100%;
+    height: 34px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    padding: 0 8px;
+    font-size: 12px;
+    background: #f9fafb;
+    transition: all 0.2s ease;
+
+    &:focus {
+      background: #fff;
+      border-color: #16a34a;
+      box-shadow: 0 0 0 2px rgba(22,163,74,0.15);
+    }
+  }
+
+  /* GRID BELOW */
+  .modern-grid .field {
+    background: #fff;
+    border-radius: 12px;
+    padding: 10px;
+    border: 1px solid #e5e7eb;
+    transition: 0.2s;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+    }
+  }
+}
+
+/* ===============================
+   RESPONSIVE (IMPORTANT 🔥)
+================================ */
+
+@media (max-width: 1024px) {
+  ion-accordion[value="s6"] .rf-row {
+    grid-template-columns: 90px repeat(5, 1fr);
+  }
+
+  ion-accordion[value="s6"] .grid-6 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* MOBILE FIX (VERY IMPORTANT) */
+@media (max-width: 768px) {
+
+  /* SCROLL TABLE */
+  ion-accordion[value="s6"] .modern-table {
+    overflow-x: auto;
+  }
+
+  ion-accordion[value="s6"] .rf-row {
+    min-width: 600px; /* horizontal scroll */
+  }
+
+  ion-accordion[value="s6"] .grid-6 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* INPUT WITH ICON */
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  ion-icon {
+    position: absolute;
+    left: 10px;
+    font-size: 16px;
+    color: #9ca3af;
+  }
+
+  .ps-input {
+    padding-left: 34px;
+  }
+}
+
+
+/* ============================
+   SECTION 9 - BEHAVIORAL UI
+============================ */
+
+/* TEXTAREA */
+.textarea {
+  min-height: 90px;
+  resize: vertical;
+  padding-top: 10px;
+}
+
+/* TOGGLE GRID */
+.toggle-grid {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+/* TOGGLE CARD */
+.toggle-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  font-size: 13px;
+  font-weight: 500;
+  transition: 0.2s;
+
+  &:hover {
+    background: #f0fdf4;
+    border-color: #16a34a;
+  }
+
+  span {
+    color: #374151;
+  }
+
+  ion-toggle {
+    --handle-background: #16a34a;
+    --background-checked: #bbf7d0;
+  }
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .toggle-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .toggle-grid {
+    grid-template-columns: repeat(1, 1fr);
+  }
+}
+
+

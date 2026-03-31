@@ -745,4 +745,8 @@ goPrevIdentity() {
     const a = await this.alertCtrl.create({ header, message, buttons: ['OK'] });
     await a.present();
   }
+
+  onAccordionChange(event: any) {
+  event.preventDefault();
+}
 }
