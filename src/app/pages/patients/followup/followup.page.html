@@ -193,14 +193,47 @@
         </div>
 
         <!-- ── Interpretation ── -->
-        <div class="form-section" *ngIf="!isFirstVisit">
+        <!-- <div class="form-section" *ngIf="!isFirstVisit">
           <label class="field-label">Interpretation</label>
           <textarea
             class="fu-textarea"
             [(ngModel)]="interpretation"
             placeholder="Enter clinical interpretation…"
           ></textarea>
-        </div>
+        </div> -->
+        
+        
+        <div class="form-section" *ngIf="!isFirstVisit">
+
+  <div style="display: flex; justify-content: space-between; align-items: center;">
+    
+    <label style="font-weight: 600; font-size: 14px;">
+      Interpretation
+    </label>
+
+    <span style="font-size: 12px; color: #6c757d;">
+      (Max 1000 characters)
+    </span>
+
+  </div>
+
+  <textarea
+  [(ngModel)]="interpretation"
+  (ngModelChange)="onInterpretationChange($event)"
+  maxlength="1000"
+  placeholder="Enter clinical interpretation…"
+  style="
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-top: 6px;
+    outline: none;
+  "
+></textarea>
+
+</div>
 
         <!-- ── Prescribed Medicines ── -->
         <div class="form-section">

@@ -673,32 +673,56 @@ export class FollowupPage implements OnInit, OnDestroy {
   // Used to enable/disable save button
   // ─────────────────────────────────────────────────────────────────────────
 
+  // isFollowUpFormValid(): boolean {
+  //   // Check if at least one symptom exists
+  //   if (this.symptomsArray.length === 0) {
+  //     return false;
+  //   }
+
+  //   // Check if all symptoms have a status rating (1-10)
+  //   let hasEmptyStatus = false;
+  //   this.symptomsArray.forEach((sym) => {
+  //     const status = this.symptomStatus[sym.index];
+  //     if (!status || status.toString().trim() === '') {
+  //       hasEmptyStatus = true;
+  //     }
+  //   });
+
+  //   if (hasEmptyStatus) {
+  //     return false;
+  //   }
+
+  //   // Check if interpretation is filled
+  //   if (!this.interpretation || this.interpretation.trim() === '') {
+  //     return false;
+  //   }
+
+  //   return true;
+  // }
+
   isFollowUpFormValid(): boolean {
-    // Check if at least one symptom exists
-    if (this.symptomsArray.length === 0) {
-      return false;
-    }
-
-    // Check if all symptoms have a status rating (1-10)
-    let hasEmptyStatus = false;
-    this.symptomsArray.forEach((sym) => {
-      const status = this.symptomStatus[sym.index];
-      if (!status || status.toString().trim() === '') {
-        hasEmptyStatus = true;
-      }
-    });
-
-    if (hasEmptyStatus) {
-      return false;
-    }
-
-    // Check if interpretation is filled
-    if (!this.interpretation || this.interpretation.trim() === '') {
-      return false;
-    }
-
-    return true;
+  // ❌ No symptom at all
+  if (this.symptomsArray.length === 0) {
+    return false;
   }
+
+  // ✅ Check if at least ONE symptom has status
+  const hasAtLeastOneStatus = this.symptomsArray.some((sym) => {
+    const status = this.symptomStatus[sym.index];
+    return status && status.toString().trim() !== '';
+  });
+
+  if (!hasAtLeastOneStatus) {
+    return false;
+  }
+
+  // ✅ Interpretation required
+  if (!this.interpretation || this.interpretation.trim() === '') {
+    return false;
+  }
+
+  return true;
+}
 
   // ─────────────────────────────────────────────────────────────────────────
   // SAVE FOLLOW-UP (Main save function)
@@ -719,18 +743,24 @@ export class FollowupPage implements OnInit, OnDestroy {
     // ═════════════════════════════════════════════════════════════════════
     // VALIDATION: Check that all required fields are filled
     // ═════════════════════════════════════════════════════════════════════
-    if (!this.isFollowUpFormValid()) {
-      console.log('❌ VALIDATION FAILED - Form incomplete');
-      if (this.symptomsArray.length === 0) {
-        this.showToast('Please add at least one symptom');
-      } else if (this.symptomStatus.some((status, idx) => 
-        this.symptomsArray.some(s => s.index === idx) && (!status || status.toString().trim() === ''))) {
-        this.showToast('Please rate all symptoms (1-10)');
-      } else if (!this.interpretation || this.interpretation.trim() === '') {
-        this.showToast('Please provide interpretation');
-      }
-      return;
-    }
+   if (!this.isFollowUpFormValid()) {
+  console.log('❌ VALIDATION FAILED - Form incomplete');
+
+  if (this.symptomsArray.length === 0) {
+    this.showToast('Please add at least one symptom');
+  } 
+  else if (!this.symptomsArray.some((sym) => {
+    const status = this.symptomStatus[sym.index];
+    return status && status.toString().trim() !== '';
+  })) {
+    this.showToast('Please rate at least one symptom (1-10)');
+  } 
+  else if (!this.interpretation || this.interpretation.trim() === '') {
+    this.showToast('Please provide interpretation');
+  }
+
+  return;
+}
 
     try {
       // ═════════════════════════════════════════════════════════════════════
@@ -1014,4 +1044,27 @@ export class FollowupPage implements OnInit, OnDestroy {
     if (page < 1 || page > this.summaryTotalPages) return;
     this.loadPatientSummary(page);
   }
+
+  onInterpretationChange(value: string) {
+  if (!value) {
+    this.interpretation = '';
+    return;
+  }
+
+  // 1. Remove multiple line breaks
+  let cleaned = value.replace(/\n\s*\n/g, '\n');
+
+  // 2. Replace multiple spaces with single space
+  cleaned = cleaned.replace(/\s+/g, ' ');
+
+  // 3. Trim start/end
+  cleaned = cleaned.trim();
+
+  // 4. Enforce max length (extra safety)
+  if (cleaned.length > 1000) {
+    cleaned = cleaned.substring(0, 1000);
+  }
+
+  this.interpretation = cleaned;
+}
 }
