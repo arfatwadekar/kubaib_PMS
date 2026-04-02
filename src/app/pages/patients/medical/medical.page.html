@@ -10,23 +10,6 @@
         Document comprehensive medical history and clinical findings.
       </div>
     </div>
-
-    <div class="me-top-right">
-      <ion-button
-        size="small"
-        fill="clear"
-        type="button"
-        (click)="autofill()"
-        [disabled]="!patientId"
-      >
-        AutoFill
-      </ion-button>
-
-      <div class="saving-pill" *ngIf="loading">Saving…</div>
-      <div class="saved-pill" *ngIf="!loading && !medicalForm?.dirty">
-        Saved
-      </div>
-    </div>
   </div>
 
   <div class="me-tab">
@@ -206,7 +189,11 @@
           </div>
         </ion-accordion> -->
 
-        <ion-accordion value="s2" class="family-accordion" (ionChange)="$event.stopPropagation()">
+        <ion-accordion
+          value="s2"
+          class="family-accordion"
+          (ionChange)="$event.stopPropagation()"
+        >
           <ion-item slot="header" lines="none" class="sec-header modern-header">
             <ion-icon name="people-outline"></ion-icon>
             <ion-label>Family History</ion-label>
@@ -930,13 +917,13 @@
                   "
                   >Anger / Sadness / Somatization Remark</label
                 >
-                <ion-textarea
+                <textarea
                   class="inp"
-                  rows="2"
+                  rows="8"
                   autoGrow="true"
                   formControlName="angerSadnessTriangles_Remark"
                   placeholder="Enter notes about the triangle state..."
-                ></ion-textarea>
+                ></textarea>
               </div>
               <div class="field full">
                 <label
@@ -950,13 +937,13 @@
                   class="lbl"
                   >General Mental State Evaluation</label
                 >
-                <ion-textarea
+                <textarea
                   class="inp"
-                  rows="2"
+                  rows="8"
                   autoGrow="true"
                   formControlName="mentalStateEvaluation"
                   placeholder="Write evaluation..."
-                ></ion-textarea>
+                ></textarea>
               </div>
             </div>
           </div>
@@ -985,13 +972,13 @@
                     </div>
                     <div class="mt10">
                       <div class="lbl">Remark</div>
-                      <ion-textarea
+                      <textarea
                         class="inp"
-                        rows="2"
+                        rows="8"
                         autoGrow="true"
                         placeholder="Write remark..."
                         formControlName="remarkAngerSadness"
-                      ></ion-textarea>
+                      ></textarea>
                     </div>
                   </div>
                 </ion-col>
@@ -1008,13 +995,13 @@
                     </div>
                     <div class="mt10">
                       <div class="lbl">Remark</div>
-                      <ion-textarea
+                      <textarea
                         class="inp"
-                        rows="2"
+                        rows="8"
                         autoGrow="true"
                         placeholder="Write remark..."
                         formControlName="remarkAttachments"
-                      ></ion-textarea>
+                      ></textarea>
                     </div>
                   </div>
                 </ion-col>
@@ -1031,13 +1018,13 @@
                     </div>
                     <div class="mt10">
                       <div class="lbl">Remark</div>
-                      <ion-textarea
+                      <textarea
                         class="inp"
-                        rows="2"
+                        rows="8"
                         autoGrow="true"
                         placeholder="Write remark..."
                         formControlName="remarkLoveHate"
-                      ></ion-textarea>
+                      ></textarea>
                     </div>
                   </div>
                 </ion-col>
@@ -1054,13 +1041,13 @@
                     </div>
                     <div class="mt10">
                       <div class="lbl">Remark</div>
-                      <ion-textarea
+                      <textarea
                         class="inp"
-                        rows="2"
+                        rows="8"
                         autoGrow="true"
                         placeholder="Write remark..."
                         formControlName="remarkFearAnxiety"
-                      ></ion-textarea>
+                      ></textarea>
                     </div>
                   </div>
                 </ion-col>
@@ -1069,7 +1056,10 @@
           </div>
         </ion-accordion> -->
 
-        <ion-accordion value="s8_emotional_grid" (ionChange)="$event.stopPropagation()">
+        <ion-accordion
+          value="s8_emotional_grid"
+          (ionChange)="$event.stopPropagation()"
+        >
           <ion-item slot="header" lines="none" class="sec-header modern-header">
             <ion-icon name="heart-outline"></ion-icon>
             <ion-label>Emotional State Evaluation</ion-label>
@@ -1114,16 +1104,16 @@
                         Remark
                       </div>
 
-                      <ion-textarea
+                      <textarea
                         class="inp"
-                        rows="2"
+                        rows="8"
                         autoGrow="true"
                         placeholder="Write remark..."
                         [formControlName]="item.control"
                         (click)="$event.stopPropagation()"
                         (ionChange)="$event.stopPropagation()"
                       >
-                      </ion-textarea>
+                      </textarea>
                     </div>
                   </div>
                 </ion-col>
@@ -1309,7 +1299,7 @@ SECTION 9: BEHAVIORAL EVALUATION
         <!-- =========================================================
 SECTION 10: INTELLECTUAL STATE
 ========================================================== -->
-        <ion-accordion value="s10" (ionChange)="$event.stopPropagation()"s>
+        <ion-accordion value="s10" (ionChange)="$event.stopPropagation()" s>
           <ion-item slot="header" lines="none" class="sec-header modern-header">
             <ion-icon name="bulb-outline"></ion-icon>
             <ion-label>Intellectual State</ion-label>
@@ -1393,45 +1383,22 @@ SECTION 10: INTELLECTUAL STATE
         <ion-button
           size="small"
           type="button"
+          class="btn-outline-green"
           (click)="goPrevIdentity()"
-          style="
-            height: 42px;
-            border-radius: 8px;
-            border: none;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-          "
         >
           Previous: Identity
         </ion-button>
 
-        <div class="right-actions">
-          <!-- <ion-button size="small" type="button" (click)="goNextFollowUp()">
-            Next: Follow Up
-          </ion-button> -->
-
-          <ion-button
-            size="small"
-            color="success"
-            type="button"
-            (click)="saveRecord()"
-            [disabled]="loading"
-            style="
-              height: 42px;
-              border-radius: 8px;
-              border: none;
-              font-size: 14px;
-              cursor: pointer;
-              transition: all 0.2s ease;
-              background:#15803d;
-  color: #ffffff;
-            "
-          >
-            {{ loading ? 'Saving...' : (medicalExists ? 'Update Record' : 'Save
-            Record') }}
-          </ion-button>
-        </div>
+        <ion-button
+          size="small"
+          type="button"
+          class="btn-green"
+          (click)="saveRecord()"
+          [disabled]="loading"
+        >
+          {{ loading ? 'Saving...' : (medicalExists ? 'Update Record' : 'Save
+          Record') }}
+        </ion-button>
       </div>
     </form>
   </div>

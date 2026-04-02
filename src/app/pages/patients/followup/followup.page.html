@@ -405,12 +405,15 @@
       </div>
       <!-- /card-body -->
       <!-- Card Footer -->
+        
+
       <div class="card-footer card-footer--right">
+        <button class="btn btn--secondary" (click)="goToMedical()">
+          🩺 Previous Medical
+        </button>
         <button class="btn btn--ghost">Cancel</button>
 
-        <button class="btn btn--secondary" (click)="goToMedical()">
-          🩺 Medical
-        </button>
+       
 
         <button
           class="btn btn--primary"
@@ -575,10 +578,10 @@
 
             <!-- Payment -->
             <div class="hist-payment-row" *ngIf="appt.payment">
-              <span>💰</span>
+              <!-- <span></span> -->
               <div class="hist-pills">
                 <span class="hist-pill"
-                  >Charges: <b>₹{{ appt.payment.consultationCharges }}</b></span
+                  > 💰 Charges: <b>₹{{ appt.payment.consultationCharges }}</b></span
                 >
                 <span
                   class="hist-pill hist-pill--warning"
@@ -649,6 +652,32 @@
       </button>
       <button class="btn btn--primary" (click)="verifyAdminPassword()">
         Verify
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showMedicineModal">
+  <div class="modal-box">
+    <div class="modal-icon">💊</div>
+
+    <h3 class="modal-title">Add Medicine</h3>
+    <p class="modal-sub">Enter medicine name</p>
+
+    <input
+      type="text"
+      class="fu-input"
+      placeholder="Enter medicine name"
+      [(ngModel)]="newMedicineName"
+    />
+
+    <div class="modal-actions">
+      <button class="btn btn--ghost" (click)="closeMedicineModal()">
+        Cancel
+      </button>
+
+      <button class="btn btn--primary" (click)="saveNewMedicine()">
+        Save
       </button>
     </div>
   </div>

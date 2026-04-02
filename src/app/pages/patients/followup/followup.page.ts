@@ -17,6 +17,10 @@ const AUTO_ADD_ROWS = 2;
   standalone: false,
 })
 export class FollowupPage implements OnInit, OnDestroy {
+  showMedicineModal = false;
+newMedicineName = '';
+selectedMedicineIndex: number | null = null;
+
   today = new Date();
   todayDate: string = '';
   // ─────────────────────────────────────────────────────────────────────────
@@ -464,89 +468,19 @@ export class FollowupPage implements OnInit, OnDestroy {
   // ADD NEW MEDICINE (Dialog-based)
   // ─────────────────────────────────────────────────────────────────────────
 
-  async addNewMedicine() {
-    const medicineName = prompt('Enter medicine name:');
-
-    if (!medicineName || !medicineName.trim()) {
-      this.showToast('Medicine name cannot be empty');
-      return;
-    }
-
-    this.creatingMedicine = true;
-
-    try {
-      const payload = {
-        name: medicineName.trim(),
-        strength: '',
-        dosageForm: 'Tablet',
-        stockQuantity: 0,
-        unit: 'Piece',
-        batchNumber: '',
-        expiryDate: new Date().toISOString(),
-        notes: 'Added from prescription',
-      };
-
-      console.log('Creating medicine:', payload);
-
-      const res: any = await firstValueFrom(this.api.createMedicine(payload));
-
-      console.log('Medicine created:', res);
-
-      const newMedicine = res?.data || res;
-
-      // Add to medicines list
-      this.medicines.unshift(newMedicine);
-
-      this.showToast('Medicine created successfully!');
-
-      // Reload medicines to be sure
-      await this.loadMedicines();
-    } catch (err) {
-      console.error('Create medicine error:', err);
-      this.showToast('Failed to create medicine. Please try again.');
-    } finally {
-      this.creatingMedicine = false;
-    }
-  }
-
+ 
   // ─────────────────────────────────────────────────────────────────────────
   // ON MEDICINE CHANGE (Dropdown)
   // Handles adding new medicine from dropdown selection
   // ─────────────────────────────────────────────────────────────────────────
 
-  async onMedicineChange(event: any, index: number) {
-    const value = event.target.value;
+ async onMedicineChange(event: any, index: number) {
+  const value = event.target.value;
 
-    if (value !== 'add_new') return;
-
-    const name = prompt('Enter medicine name');
-
-    if (!name || !name.trim()) {
-      return;
-    }
-
-    try {
-      const payload = {
-        name: name.trim(),
-        notes: 'Added from prescription',
-      };
-
-      const res: any = await firstValueFrom(this.api.createMedicine(payload));
-
-      const newMed = res?.data || res;
-
-      // add to list
-      this.medicines.push(newMed);
-
-      // auto select
-      this.prescriptions[index].medicineId = newMed.medicineId;
-
-      this.showToast('Medicine added successfully');
-    } catch (err) {
-      console.error(err);
-      this.showToast('Failed to add medicine');
-    }
+  if (value === 'add_new') {
+    this.openMedicineModal(index); // ✅ modal open
   }
+}
 
   // ─────────────────────────────────────────────────────────────────────────
   // ADD MEDICINE ROW TO PRESCRIPTION TABLE
@@ -1066,5 +1000,48 @@ export class FollowupPage implements OnInit, OnDestroy {
   }
 
   this.interpretation = cleaned;
+}
+
+openMedicineModal(index?: number) {
+  this.selectedMedicineIndex = index ?? null;
+  this.newMedicineName = '';
+  this.showMedicineModal = true;
+}
+
+closeMedicineModal() {
+  this.showMedicineModal = false;
+  this.newMedicineName = '';
+}
+
+async saveNewMedicine() {
+  if (!this.newMedicineName || !this.newMedicineName.trim()) {
+    this.showToast('Medicine name cannot be empty');
+    return;
+  }
+
+  try {
+    const payload = {
+      name: this.newMedicineName.trim(),
+      notes: 'Added from prescription',
+    };
+
+    const res: any = await firstValueFrom(this.api.createMedicine(payload));
+    const newMed = res?.data || res;
+
+    // list me add karo
+    this.medicines.unshift(newMed);
+
+    // auto select in row
+    if (this.selectedMedicineIndex !== null) {
+      this.prescriptions[this.selectedMedicineIndex].medicineId =
+        newMed.medicineId;
+    }
+
+    this.showToast('Medicine added successfully');
+    this.closeMedicineModal();
+  } catch (err) {
+    console.error(err);
+    this.showToast('Failed to add medicine');
+  }
 }
 }
