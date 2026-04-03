@@ -54,7 +54,7 @@ export class SideMenuComponent implements OnInit {
     },
     {
       title: 'APPOINTMENTS',
-      roles: ['Doctor', 'Receptionist'],
+      roles: ['Doctor'],
       items: [
         { title: 'Search Appointment', icon: 'calendar-outline', url: '/SearchAppointments' },
       ],

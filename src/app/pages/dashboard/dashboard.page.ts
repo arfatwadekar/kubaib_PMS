@@ -350,12 +350,20 @@ greetingText: string = '';
     let route   = '/patients/prelim';
     let tab     = 'prelim';
 
-    if (Number(row.statusCode) === AppointmentStatus.AwaitingPayment) {
-      route = '/patients/payment'; tab = 'payment';
-    } else if (role === 'doctor') {
-      route = '/patients/medical'; tab = 'medical';
-    } else if (role === 'receptionist') {
-      route = '/patients/payment'; tab = 'payment';
+    // Doctor always goes to medical tab
+    if (role === 'doctor') {
+      route = '/patients/medical';
+      tab = 'medical';
+    }
+    // Receptionist routing based on status
+    else if (role === 'receptionist') {
+      if (Number(row.statusCode) === AppointmentStatus.AwaitingPayment) {
+        route = '/patients/payment';
+        tab = 'payment';
+      } else if (Number(row.statusCode) === AppointmentStatus.InPatient) {
+        route = '/patients/prelim';
+        tab = 'prelim';
+      }
     }
 
     this.router.navigate([route], {

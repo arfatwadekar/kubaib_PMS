@@ -16,32 +16,21 @@
         <input
           type="text"
           class="search-input"
-          style="
-            display: flex;
-            align-items: center;
-            background: white;
-            height: 44px;
-            padding: 0 16px;
-            border-radius: 999px;
-            border: 1px solid #e5e7eb;
-            width: 320px;
-            transition: 0.2s ease;
-          "
           placeholder="Search by name, PID or phone..."
           [(ngModel)]="searchText"
           (input)="onSearchInput()"
         />
 
         <!-- STATUS FILTER -->
-      <select
-  class="status-filter"
-  [(ngModel)]="statusFilter"
-  (change)="onStatusChange()"
->
-  <option *ngFor="let s of statusOptions" [value]="s.value">
-    {{ s.label }}
-  </option>
-</select>
+        <select
+          class="status-filter"
+          [(ngModel)]="statusFilter"
+          (change)="onStatusChange()"
+        >
+          <option *ngFor="let s of statusOptions" [value]="s.value">
+            {{ s.label }}
+          </option>
+        </select>
       </div>
     </div>
 
@@ -73,39 +62,40 @@
         No appointments found
       </div>
 
-      <!-- TABLE -->
-      <table *ngIf="!loading && filtered.length">
-        <thead>
-          <tr>
-            <th>Patient</th>
-            <th>PID</th>
-            <th>Phone</th>
-            <th>Date</th>
-            <th>Time</th>
-            <th>Status</th>
-            <th class="text-right">Actions</th>
-          </tr>
-        </thead>
+      <!-- TABLE SCROLL WRAPPER -->
+      <div class="table-scroll-wrapper" *ngIf="!loading && filtered.length">
+        <table>
+          <thead>
+            <tr>
+              <th>Patient</th>
+              <th>PID</th>
+              <th>Phone</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Status</th>
+              <th class="text-right">Actions</th>
+            </tr>
+          </thead>
 
-        <tbody>
-          <tr *ngFor="let r of filtered; trackBy: trackById">
-            <td class="bold">{{ r.patient?.fullName || 'Unknown' }}</td>
+          <tbody>
+            <tr *ngFor="let r of filtered; trackBy: trackById">
+            <td class="bold" data-label="Patient">{{ r.patient?.fullName || 'Unknown' }}</td>
 
-            <td>{{ r.patient?.patientIdFormatted }}</td>
+            <td data-label="PID">{{ r.patient?.patientIdFormatted }}</td>
 
-            <td>{{ r.patient?.phoneNumber }}</td>
+            <td data-label="Phone">{{ r.patient?.phoneNumber }}</td>
 
-            <td>{{ r.appointmentDate | date:'mediumDate' }}</td>
+            <td data-label="Date">{{ r.appointmentDate | date:'mediumDate' }}</td>
 
-            <td>{{ r.appointmentTimeFormatted }}</td>
+            <td data-label="Time">{{ r.appointmentTimeFormatted || '—' }}</td>
 
-            <td>
+            <td data-label="Status">
               <span class="badge" [ngClass]="getStatusClass(r.status)">
                 {{ r.statusText }}
               </span>
             </td>
 
-            <td class="text-right">
+            <td class="text-right" data-label="Actions">
   <!-- Today / Future Tab -->
   <ng-container *ngIf="viewMode !== 'past'; else pastAction">
     <button class="edit-btn" (click)="openEditModal(r)">
@@ -127,7 +117,8 @@
           </td>
           </tr>
         </tbody>
-      </table>
+        </table>
+      </div>
     </div>
     <!-- ================= PAGINATION ================= -->
     <div class="pagination" *ngIf="totalPages > 1">
