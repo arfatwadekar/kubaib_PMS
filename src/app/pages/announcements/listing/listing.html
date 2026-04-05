@@ -108,11 +108,11 @@
             </td>
 
             <td class="col-title cell-title">
-              <span class="title-text" [title]="a.title">{{ a.title }}</span>
+              <span class="title-text" [title]="a.title">{{ a.title || 'N/A'}}</span>
             </td>
 
             <td class="col-desc cell-desc">
-              <span class="desc-text" [title]="a.description">{{ a.description }}</span>
+              <span class="desc-text" [title]="a.description">{{ a.description || 'N/A' }}</span>
             </td>
 
             <td class="col-date">{{ a.startDate | date:'dd MMM yyyy' }}</td>
