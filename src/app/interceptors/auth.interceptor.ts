@@ -44,9 +44,16 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
+        // if (error.status === 401) {
+        //   this.handleUnauthorized();
+        // }
         if (error.status === 401) {
-          this.handleUnauthorized();
-        }
+  const isVerifyPasswordCall = req.url.toLowerCase().includes('/auth/verify-admin-password');
+  
+  if (!isVerifyPasswordCall) {
+    this.handleUnauthorized();
+  }
+}
         return throwError(() => error);
       })
     );

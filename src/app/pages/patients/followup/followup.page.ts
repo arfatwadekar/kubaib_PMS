@@ -560,11 +560,13 @@ selectedMedicineIndex: number | null = null;
 
       if (!this.waveOffVerified) {
         this.showPasswordModal = true;
+       this.adminPassword = '';
       }
     } else {
       this.waveOffSelected = false;
       this.waveOffVerified = false;
       this.waveOffAmount = 0;
+      this.adminPassword = '';
     }
   }
 
@@ -598,6 +600,7 @@ selectedMedicineIndex: number | null = null;
     } catch (err) {
       console.error(err);
 
+  this.adminPassword = ''; 
       this.showToast('Invalid password');
     }
   }
