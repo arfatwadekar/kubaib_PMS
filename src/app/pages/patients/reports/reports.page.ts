@@ -1,7 +1,8 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, HostListener } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ToastController, AlertController } from '@ionic/angular';
 import { Subscription, firstValueFrom } from 'rxjs';
+import { CanComponentDeactivate } from 'src/app/guards/can-deactivate.guard';
 
 import {
   PatientReportService,
@@ -69,7 +70,7 @@ type MatrixRow = {
   styleUrls: ['./reports.page.scss'],
   standalone: false,
 })
-export class ReportsPage implements OnInit, OnDestroy {
+export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
   // =====================
   // STATE - CORE
   // =====================
@@ -120,6 +121,26 @@ export class ReportsPage implements OnInit, OnDestroy {
   private repDetailsMap: Record<number, ReportDetail> = {};
   private repUiDateToReportId: Record<string, number> = {};
   private sub = new Subscription();
+  private isFormDirty = false;
+
+  // ── Browser tab close / refresh warning ──────────────────────────────
+  @HostListener('window:beforeunload', ['$event'])
+  onBeforeUnload(event: BeforeUnloadEvent) {
+    if (this.isFormDirty) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  }
+
+  // ── Guard check ──────────────────────────────────────────────────────
+  canDeactivate(): boolean {
+    return !this.isFormDirty;
+  }
+
+  // ── Called from HTML when user types in any field ────────────────────
+  markDirty() {
+    this.isFormDirty = true;
+  }
 
   // =====================
   // LAB TEST METADATA
@@ -275,6 +296,7 @@ export class ReportsPage implements OnInit, OnDestroy {
   // REPORT ENTRY
   // =====================
   startNewReport(): void {
+    this.isFormDirty = false;   
     this.repSelectedPrevReportId = null;
     this.repReportDate = todayYmd();
     this.repReportName = '';

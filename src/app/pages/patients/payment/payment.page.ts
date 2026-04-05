@@ -1,8 +1,9 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, HostListener } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { PaymentService } from 'src/app/services/payment.service';
+import { CanComponentDeactivate } from 'src/app/guards/can-deactivate.guard';
 
 @Component({
   selector: 'app-payment',
@@ -49,6 +50,8 @@ export class PaymentPage implements OnInit, OnDestroy {
 
   /* ================= PAYMENT STATUS ================= */
   isPaymentDone = false;
+  private isSaved = false;    
+  private isFormDirty = false;
   private sub = new Subscription();
 
   constructor(
@@ -154,9 +157,29 @@ export class PaymentPage implements OnInit, OnDestroy {
   //   }
 
   // }
+
+// ── Browser tab close / refresh warning ──────────────────────────────
+@HostListener('window:beforeunload', ['$event'])
+onBeforeUnload(event: BeforeUnloadEvent) {
+  if (this.isFormDirty && !this.isSaved) {
+    event.preventDefault();
+    event.returnValue = '';
+  }
+}
+
+// ── Guard check ──────────────────────────────────────────────────────
+canDeactivate(): boolean {
+  return this.isPaymentDone || this.isSaved || !this.isFormDirty;
+}
+
+// ── Called from HTML when user types in any form field ───────────────
+markDirty() {
+  this.isFormDirty = true;
+}
+
 async loadPaymentData() {
   this.loading = true;
-
+  console.log("loadPaymentData", this);
   try {
     // ── 1. Appointment summary ────────────────────────────────────────────
     const res: any = await firstValueFrom(
@@ -253,6 +276,7 @@ async loadPaymentData() {
   /* ================================================= */
 
   recalculateBalance() {
+  this.isFormDirty = true; 
 
     const paid = Number(this.amountPaid ?? 0);
 
@@ -275,8 +299,14 @@ async loadPaymentData() {
       return;
     }
 
-    try {
+    // ── Amount cannot exceed total payable ──────────────────────────────
+    if (this.amountPaid > this.totalPayable) {
+      await this.toast(`Amount cannot exceed total payable ₹${this.totalPayable}`);
+      return;
+    }
 
+    try {
+      console.log(this);
       await firstValueFrom(
         this.paymentApi.updatePayment(this.paymentId,{
           amountPaid: this.amountPaid,
@@ -296,7 +326,7 @@ async loadPaymentData() {
           )
         );
 
-
+      this.isSaved = true;
       await this.toast('Payment recorded successfully');
 
       this.router.navigate(['/dashboard']);

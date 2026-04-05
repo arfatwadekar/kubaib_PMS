@@ -107,7 +107,7 @@
     <div class="form-grid">
       <div class="form-group">
         <label>Date</label>
-        <input type="date" [(ngModel)]="paymentDate" />
+        <input type="date" [(ngModel)]="paymentDate" (change)="markDirty()" />
       </div>
 
       <div class="form-group">
@@ -134,7 +134,7 @@
       <div class="form-group">
         <label>Payment Mode</label>
 
-        <select [(ngModel)]="paymentMode">
+        <select [(ngModel)]="paymentMode"  (change)="markDirty()">
           <option value="Cash">Cash</option>
           <option value="Online">Online</option>
         </select>

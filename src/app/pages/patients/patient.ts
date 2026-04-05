@@ -80,33 +80,51 @@ openNotifications() {
      TAB SELECT
   ================================= */
 
-  selectTab(tab: TabKey) {
+async selectTab(tab: TabKey) {
+  console.log('SELECT TAB CALLED:', tab, new Date().getTime());  // ← add this
+  if (this.isTabDisabled(tab)) return;
 
-    if (this.isTabDisabled(tab)) return;
+  const previousTab = this.activeTab;
 
+  // Navigate first — guard will run
+  const navigationResult = await this.router.navigate([tab], {
+    relativeTo: this.route,
+    queryParams: {
+      patientId:     this.patientId,
+      appointmentId: this.appointmentId,
+      tab
+    },
+    queryParamsHandling: 'merge',
+    replaceUrl: true
+  });
+
+  // Only update active tab if navigation succeeded
+  // If guard returned false, navigationResult will be false/null
+  if (navigationResult) {
     this.activeTab = tab;
-    this.navigateToTab(tab);
-
+  } else {
+    // Guard blocked navigation — restore previous tab highlight
+    this.activeTab = previousTab;
   }
+}
+
 
   /* ================================
      ROUTER NAVIGATION
   ================================= */
 
-  private navigateToTab(tab: TabKey) {
-
-    this.router.navigate([tab], {
-      relativeTo: this.route,
-      queryParams: {
-        patientId: this.patientId,
-        appointmentId: this.appointmentId,
-        tab
-      },
-      queryParamsHandling: 'merge',
-      replaceUrl: true
-    });
-
-  }
+private navigateToTab(tab: TabKey) {
+  this.router.navigate([tab], {
+    relativeTo: this.route,
+    queryParams: {
+      patientId:     this.patientId,
+      appointmentId: this.appointmentId,
+      tab
+    },
+    queryParamsHandling: 'merge',
+    replaceUrl: true
+  });
+}
 
   /* ================================
      ROLE PERMISSION

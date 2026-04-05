@@ -13,7 +13,7 @@
     <!-- TOP CONTROLS -->
     <ion-card class="rep-topcard">
       <ion-card-content class="rep-topcontent">
-        
+
         <!-- LEFT INPUTS -->
         <div class="rep-left">
           <!-- Report Date -->
@@ -23,8 +23,9 @@
               <ion-input
                 type="date"
                 [(ngModel)]="repReportDate"
-                (ionChange)="onReportDateChange()"
+                (ionChange)="onReportDateChange(); markDirty()"
               ></ion-input>
+              <!-- ↑ CHANGE: added markDirty() call here -->
             </ion-item>
           </div>
 
@@ -38,6 +39,7 @@
                 [(ngModel)]="repSelectedPrevReportId"
                 (ionChange)="onLoadPrevChange()"
               >
+                <!-- NO markDirty() here — this just loads existing data, not user input -->
                 <ion-select-option [value]="null">
                   New Report
                 </ion-select-option>
@@ -128,7 +130,9 @@
                   inputmode="decimal"
                   placeholder="--"
                   [(ngModel)]="row.value"
+                  (ionInput)="markDirty()"
                 ></ion-input>
+                <!-- ↑ CHANGE: added (ionInput)="markDirty()" — covers all 50+ lab rows -->
               </div>
             </div>
           </div>
@@ -186,7 +190,7 @@
           </div>
         </div>
 
-        <!-- MATRIX (DESKTOP) - Hidden on mobile -->
+        <!-- MATRIX (DESKTOP) -->
         <div class="rep-matrix-scroll" *ngIf="repDisplayUiDates.length">
           <div class="rep-matrix" [style.--rep-cols]="repDisplayUiDates.length">
 
@@ -225,7 +229,7 @@
           </div>
         </div>
 
-        <!-- MOBILE CARD VIEW - Only on mobile -->
+        <!-- MOBILE CARD VIEW -->
         <div class="rep-mobile-cards" *ngIf="repDisplayUiDates.length">
           <div class="rep-date-tabs">
             <div

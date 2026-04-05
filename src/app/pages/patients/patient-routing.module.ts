@@ -10,23 +10,23 @@ const routes: Routes = [
       { path: '', redirectTo: 'prelim', pathMatch: 'full' },
       {
         path: 'prelim',
-        loadChildren: () => import('./prelim/prelim.module').then(m => m.PrelimPageModule)
+        loadChildren: () => import('./prelim/prelim.module').then(m => m.PrelimPageModule),
       },
       {
         path: 'medical',
-        loadChildren: () => import('./medical/medical.module').then(m => m.MedicalPageModule)
+        loadChildren: () => import('./medical/medical.module').then(m => m.MedicalPageModule),
       },
       {
         path: 'followup',
-        loadChildren: () => import('./followup/followup.module').then(m => m.FollowupPageModule)
+        loadChildren: () => import('./followup/followup.module').then(m => m.FollowupPageModule),
       },
       {
         path: 'payment',
-        loadChildren: () => import('./payment/payment.module').then(m => m.PaymentPageModule)
+        loadChildren: () => import('./payment/payment.module').then(m => m.PaymentPageModule),
       },
       {
         path: 'reports',
-        loadChildren: () => import('./reports/reports.module').then(m => m.ReportsPageModule)
+        loadChildren: () => import('./reports/reports.module').then(m => m.ReportsPageModule),
       }
     ]
   }

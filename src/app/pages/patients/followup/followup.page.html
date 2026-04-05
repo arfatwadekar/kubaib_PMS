@@ -183,7 +183,7 @@
                       type="text"
                       placeholder="1–10"
                       [(ngModel)]="symptomStatus[i]"
-                      (input)="validateSymptom($event, i)"
+                        (input)="validateSymptom($event, i); triggerAutosave()"
                     />
                   </td>
                 </tr>
@@ -256,7 +256,7 @@
                   <td>
                     <select
                       [(ngModel)]="med.medicineId"
-                      (change)="onMedicineChange($event, i)"
+                      (change)="onMedicineChange($event, i); triggerAutosave()"
                       [name]="'medicine' + i"
                     >
                       <option value="">Select Medicine</option>
@@ -270,25 +270,16 @@
                     </select>
                   </td>
                   <td>
-                    <input
-                      type="text"
-                      [(ngModel)]="med.dosage"
-                      placeholder="e.g. 500mg"
-                    />
+                    <input type="text" [(ngModel)]="med.dosage" 
+                    (ngModelChange)="triggerAutosave()" placeholder="e.g. 500mg" />
                   </td>
                   <td>
-                    <input
-                      type="text"
-                      [(ngModel)]="med.frequency"
-                      placeholder="e.g. 1-0-1"
-                    />
+                    <input type="text" [(ngModel)]="med.frequency"
+                    (ngModelChange)="triggerAutosave()" placeholder="e.g. 1-0-1" />
                   </td>
                   <td>
-                    <input
-                      type="text"
-                      [(ngModel)]="med.duration"
-                      placeholder="e.g. 5 days"
-                    />
+                    <input type="text" [(ngModel)]="med.duration"
+                    (ngModelChange)="triggerAutosave()" placeholder="e.g. 5 days" />
                   </td>
                   <td>
                     <select [(ngModel)]="med.type">
@@ -299,11 +290,8 @@
                     </select>
                   </td>
                   <td>
-                    <input
-                      type="text"
-                      [(ngModel)]="med.instructions"
-                      placeholder="After meals…"
-                    />
+                    <input type="text" [(ngModel)]="med.instructions"
+                    (ngModelChange)="triggerAutosave()" placeholder="After meals…" />
                   </td>
                   <td class="td-center">
                     <button
@@ -331,7 +319,7 @@
               type="number"
               class="fu-input no-spinner"
               [ngModel]="consultationCharge"
-              (ngModelChange)="onConsultationChange($event)"
+              (ngModelChange)="onConsultationChange($event); triggerAutosave()"
               (wheel)="$event.preventDefault()"
               min="0"
               placeholder="0"
@@ -369,7 +357,7 @@
             type="number"
             class="fu-input no-spinner"
             [ngModel]="waveOffAmount"
-            (ngModelChange)="onWaveOffAmountChange($event)"
+            (ngModelChange)="onWaveOffAmountChange($event); triggerAutosave()"
             (wheel)="$event.preventDefault()"
             placeholder="0.00"
             [disabled]="!waveOffVerified"
@@ -387,6 +375,7 @@
               type="date"
               class="fu-input"
               [(ngModel)]="nextAppointmentDate"
+              (ngModelChange)="triggerAutosave()"
               [min]="todayDate"
             />
           </div>
@@ -399,6 +388,7 @@
               type="time"
               class="fu-input"
               [(ngModel)]="nextAppointmentTime"
+              (ngModelChange)="triggerAutosave()"
             />
           </div>
         </div>

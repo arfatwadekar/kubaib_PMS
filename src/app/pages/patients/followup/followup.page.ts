@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormArray, FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { firstValueFrom, Subject } from 'rxjs';
-import { takeUntil } from 'rxjs/operators';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ToastController } from '@ionic/angular';
 import { FollowUpService } from 'src/app/services/follow-up.service';
 
@@ -69,6 +69,10 @@ selectedMedicineIndex: number | null = null;
   summaryLoading = false;
 
   private destroy$ = new Subject<void>();
+  
+  // ─── Auto-save ───────────────────────────────────────────────────────────
+  private autosaveKey  = '';
+  private autosave$    = new Subject<void>();
 
   // ─────────────────────────────────────────────────────────────────────────
   // FORM DEFINITION
@@ -156,6 +160,7 @@ selectedMedicineIndex: number | null = null;
 
     // format: yyyy-MM-dd (IMPORTANT ⚠️)
     this.todayDate = today.toISOString().split('T')[0];
+    this.setupAutosave();
   }
 
   ngOnDestroy() {
@@ -568,6 +573,7 @@ selectedMedicineIndex: number | null = null;
       this.waveOffAmount = 0;
       this.adminPassword = '';
     }
+    this.triggerAutosave();
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -637,24 +643,24 @@ selectedMedicineIndex: number | null = null;
   //   return true;
   // }
 
-  isFollowUpFormValid(): boolean {
-  // ❌ No symptom at all
-  if (this.symptomsArray.length === 0) {
+isFollowUpFormValid(): boolean {
+  
+  // ❌ Consultation charge cannot be 0 or empty
+  if (!this.consultationCharge || this.consultationCharge <= 0) {
     return false;
   }
+  
+  console.log("isFollowUpFormValid", this);
 
   // ✅ Check if at least ONE symptom has status
   const hasAtLeastOneStatus = this.symptomsArray.some((sym) => {
     const status = this.symptomStatus[sym.index];
     return status && status.toString().trim() !== '';
-  });
+  }); 
 
-  if (!hasAtLeastOneStatus) {
-    return false;
-  }
-
-  // ✅ Interpretation required
-  if (!this.interpretation || this.interpretation.trim() === '') {
+  console.log("hasAtLeastOneStatus", hasAtLeastOneStatus);
+  console.log("this.symptomStatus.length", this.symptomStatus.length);
+  if ((!hasAtLeastOneStatus) && this.symptomStatus.length != 0) {
     return false;
   }
 
@@ -672,7 +678,7 @@ selectedMedicineIndex: number | null = null;
   // 6. Schedule next appointment (if applicable)
   // ─────────────────────────────────────────────────────────────────────────
 
-  async saveFollowUp() {
+async saveFollowUp() {
     console.log('===== SAVE FOLLOW-UP STARTED =====');
     console.log('PATIENT ID:', this.patientId);
     console.log('APPOINTMENT ID:', this.currentAppointmentId);
@@ -681,23 +687,23 @@ selectedMedicineIndex: number | null = null;
     // VALIDATION: Check that all required fields are filled
     // ═════════════════════════════════════════════════════════════════════
    if (!this.isFollowUpFormValid()) {
-  console.log('❌ VALIDATION FAILED - Form incomplete');
+      console.log('❌ VALIDATION FAILED - Form incomplete');
 
-  if (this.symptomsArray.length === 0) {
-    this.showToast('Please add at least one symptom');
-  } 
-  else if (!this.symptomsArray.some((sym) => {
-    const status = this.symptomStatus[sym.index];
-    return status && status.toString().trim() !== '';
-  })) {
-    this.showToast('Please rate at least one symptom (1-10)');
-  } 
-  else if (!this.interpretation || this.interpretation.trim() === '') {
-    this.showToast('Please provide interpretation');
-  }
+      if (this.symptomsArray.length === 0) {
+        this.showToast('Please add at least one symptom');
+      } 
+      else if (!this.symptomsArray.some((sym) => {
+        const status = this.symptomStatus[sym.index];
+        return status && status.toString().trim() !== '';
+      })) {
+        this.showToast('Please rate at least one symptom (1-10)');
+      } 
+      else if (!this.interpretation || this.interpretation.trim() === '') {
+        this.showToast('Please provide interpretation');
+      }
 
-  return;
-}
+      return;
+    }
 
     try {
       // ═════════════════════════════════════════════════════════════════════
@@ -895,25 +901,23 @@ selectedMedicineIndex: number | null = null;
       // ═════════════════════════════════════════════════════════════════════
 
       this.showToast('Follow-Up saved successfully');
-
+      this.clearDraft(); 
       console.log('===== SAVE FOLLOW-UP COMPLETED SUCCESSFULLY =====');
 
       // Navigate to payment page
-      this.router.navigate(['../payment'], {
-        relativeTo: this.route,
+      this.router.navigate(['/patients/payment'], {
         queryParams: {
           patientId: this.patientId,
           appointmentId: this.currentAppointmentId,
           tab: 'payment',
         },
-        queryParamsHandling: 'merge',
       });
     } catch (err) {
       console.error('===== SAVE FOLLOW-UP ERROR =====', err);
       this.showToast('Save failed. Please check the console for details.');
       return;
     }
-  }
+}
 
   onConsultationChange(value: any) {
     const num = parseFloat(value);
@@ -981,7 +985,94 @@ selectedMedicineIndex: number | null = null;
     if (page < 1 || page > this.summaryTotalPages) return;
     this.loadPatientSummary(page);
   }
+// ─────────────────────────────────────────────────────────────────────────
+// AUTO-SAVE: SETUP
+// ─────────────────────────────────────────────────────────────────────────
+private setupAutosave() {
+  this.autosaveKey = `draft_followup_${this.patientId}_${this.currentAppointmentId}`;
 
+  // Load draft first
+  this.loadDraft();
+
+  // Save on every trigger with 1 second debounce
+  this.autosave$
+    .pipe(debounceTime(1000), takeUntil(this.destroy$))
+    .subscribe(() => this.saveDraft());
+}
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // AUTO-SAVE: SAVE DRAFT TO LOCALSTORAGE
+  // ─────────────────────────────────────────────────────────────────────────
+  private saveDraft() {
+    const draft = {
+      interpretation:      this.interpretation,
+      temporaryProblems:   this.temporaryProblems,
+      consultationCharge:  this.consultationCharge,
+      waveOffAmount:       this.waveOffAmount,
+      waveOffSelected:     this.waveOffSelected,
+      waveOffVerified:     this.waveOffVerified,
+      nextAppointmentDate: this.nextAppointmentDate,
+      nextAppointmentTime: this.nextAppointmentTime,
+      prescriptions:       this.prescriptions,
+      symptomStatus:       this.symptomStatus,
+      savedAt:             new Date().toISOString(),
+    };
+
+    try {
+      localStorage.setItem(this.autosaveKey, JSON.stringify(draft));
+      console.log('Draft saved silently at', draft.savedAt);
+    } catch (err) {
+      console.error('Draft save failed:', err);
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // AUTO-SAVE: LOAD DRAFT FROM LOCALSTORAGE
+  // ─────────────────────────────────────────────────────────────────────────
+  private loadDraft() {
+    const raw = localStorage.getItem(this.autosaveKey);
+    if (!raw) return;
+
+    try {
+      const draft = JSON.parse(raw);
+
+      this.interpretation      = draft.interpretation      ?? '';
+      this.temporaryProblems   = draft.temporaryProblems   ?? '';
+      this.consultationCharge  = draft.consultationCharge  ?? 0;
+      this.waveOffAmount       = draft.waveOffAmount       ?? 0;
+      this.waveOffSelected     = draft.waveOffSelected     ?? false;
+      this.waveOffVerified     = draft.waveOffVerified     ?? false;
+      this.nextAppointmentDate = draft.nextAppointmentDate ?? null;
+      this.nextAppointmentTime = draft.nextAppointmentTime ?? null;
+      this.symptomStatus       = draft.symptomStatus       ?? [];
+
+      // Restore prescriptions only if they exist
+      if (draft.prescriptions?.length) {
+        this.prescriptions = draft.prescriptions;
+      }
+
+      console.log('Draft restored from localStorage:', draft.savedAt);
+    } catch {
+      // Corrupted draft — remove it
+      localStorage.removeItem(this.autosaveKey);
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // AUTO-SAVE: CLEAR DRAFT FROM LOCALSTORAGE
+  // ─────────────────────────────────────────────────────────────────────────
+  private clearDraft() {
+    localStorage.removeItem(this.autosaveKey);
+    console.log('Draft cleared from localStorage');
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // AUTO-SAVE: TRIGGER
+  // Call this from every field change
+  // ─────────────────────────────────────────────────────────────────────────
+  triggerAutosave() {
+    this.autosave$.next();
+  }
   onInterpretationChange(value: string) {
   if (!value) {
     this.interpretation = '';
@@ -1003,6 +1094,7 @@ selectedMedicineIndex: number | null = null;
   }
 
   this.interpretation = cleaned;
+  this.triggerAutosave();
 }
 
 openMedicineModal(index?: number) {
