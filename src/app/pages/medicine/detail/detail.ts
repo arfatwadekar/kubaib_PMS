@@ -200,7 +200,9 @@ export class DetailPage implements OnInit, OnDestroy {
     }
 
     const data = this.form.getRawValue();
-
+    if (!data.expiryDate || data.expiryDate.trim() === '') {
+      delete data.expiryDate;
+    }
     // Duplicate check (create only)
     if (this.mode === 'create') {
 

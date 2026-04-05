@@ -78,6 +78,7 @@ export class PrelimPage implements OnInit, OnDestroy, CanComponentDeactivate {
   }
 
   form = this.fb.group({
+    pid: [{ value: '', disabled: true }],
     firstName:          ['', [Validators.required, Validators.minLength(2)]],
     lastName:           ['', [Validators.required, Validators.minLength(2)]],
     gender:             ['Male', Validators.required],
@@ -188,6 +189,7 @@ export class PrelimPage implements OnInit, OnDestroy, CanComponentDeactivate {
         const p = res?.data ?? res;
         this.currentPatient = p;
         this.form.patchValue({
+          pid: safeStr(p.pid), 
           firstName:          safeStr(p.firstName),
           lastName:           safeStr(p.lastName),
           gender:             safeStr(p.gender) || 'Male',
@@ -239,12 +241,20 @@ export class PrelimPage implements OnInit, OnDestroy, CanComponentDeactivate {
       next: (res: any) => {
         this.loading = false;
         const data = res?.data ?? res;
-        this.isSaved       = true;
-        this.successMode   = this.isEditMode ? 'update' : 'create';
-        this.successPatient = data;
-        this.showSuccessModal = true;
-        if (!this.isEditMode) {
-          this.patientId  = data?.patientsId || data?.patientId;
+
+        if (this.isEditMode) {
+          // UPDATE: just show toast, no modal
+          // markAsPristine so guard resets — if user edits again, guard triggers again
+          this.form.markAsPristine();
+          this.form.markAsUntouched();
+          this.toast('Patient data updated successfully.');
+        } else {
+          // CREATE: show modal
+          this.isSaved = true;
+          this.successMode = 'create';
+          this.successPatient = data;
+          this.showSuccessModal = true;
+          this.patientId = data?.patientsId || data?.patientId;
           this.isEditMode = true;
         }
       },
@@ -307,5 +317,8 @@ export class PrelimPage implements OnInit, OnDestroy, CanComponentDeactivate {
   goToPatientList() {
     this.showSuccessModal = false;
     this.router.navigate(['/patients/list']);
+  }
+  closeModal() {
+    this.showSuccessModal = false;
   }
 }

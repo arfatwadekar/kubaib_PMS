@@ -374,3 +374,30 @@ select.inp {
     transform: scale(1);
   }
 }
+
+.disabled-field {
+  --color: var(--ion-color-medium);
+  opacity: 0.7;
+  cursor: not-allowed;
+}.success-modal {
+  position: relative;  // ← ADD this if not already there — needed for close btn positioning
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: var(--ion-color-medium);
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+  border-radius: 50%;
+
+  &:hover {
+    background: var(--ion-color-light);
+    color: var(--ion-color-dark);
+  }
+}
