@@ -64,11 +64,11 @@
       </div>
 
       <div class="table-row" *ngFor="let m of medicines">
-        <div class="cell name">{{ m.name }}</div>
+        <div class="cell name">{{ m.name || 'N/A' }}</div>
 
-        <div class="cell">{{ m.strength }}</div>
+        <div class="cell">{{ m.strength || 'N/A' }}</div>
 
-        <div class="cell">{{ m.dosageForm }}</div>
+        <div class="cell">{{ m.dosageForm || 'N/A' }}</div>
 
         <div class="cell stock" [class.low]="m.stockQuantity < 10">
           {{ m.stockQuantity }} in stock
@@ -93,7 +93,7 @@
     <div class="mobile-view" *ngIf="!loading && medicines.length > 0">
       <div class="medicine-card" *ngFor="let m of medicines">
         <div class="card-header">
-          <div class="card-title">{{ m.name }}</div>
+          <div class="card-title">{{ m.name || 'N/A' }}</div>
 
           <div class="stock-badge" [class.low]="m.stockQuantity < 10">
             {{ m.stockQuantity }} in stock
@@ -103,12 +103,12 @@
         <div class="card-body">
           <div class="info-row">
             <span class="label">Strength</span>
-            <span class="value">{{ m.strength }}</span>
+            <span class="value">{{ m.strength || 'N/A' }}</span>
           </div>
 
           <div class="info-row">
             <span class="label">Form</span>
-            <span class="value">{{ m.dosageForm }}</span>
+            <span class="value">{{ m.dosageForm || 'N/A' }}</span>
           </div>
         </div>
 
