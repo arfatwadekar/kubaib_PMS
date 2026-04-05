@@ -1,9 +1,13 @@
-<app-header title="All Patients" [showNotification]="true"
+<app-header
+  title="All Patients"
+  [showNotification]="true"
   [notificationCount]="unreadCount"
-  (notificationClick)="openNotifications()"></app-header>
+  (notificationClick)="openNotifications()"
+></app-header>
 
 <ion-content class="app-bg">
   <div class="app-container">
+
     <!-- ================= HEADER ================= -->
     <div class="card-header">
       <div class="header-left">
@@ -102,9 +106,10 @@
           </div>
 
           <button (click)="openActions($event, r)">
-            <ion-icon name="ellipsis-vertical" style="    padding: 8px 5px;
-    border-radius: 28px;
-"></ion-icon>
+            <ion-icon
+              name="ellipsis-vertical"
+              style="padding: 8px 5px; border-radius: 28px"
+            ></ion-icon>
           </button>
         </div>
 
@@ -117,7 +122,7 @@
           </div>
 
           <div>
-            <div class="meta-label" style="margin-bottom: 10px;">Gender</div>
+            <div class="meta-label" style="margin-bottom: 10px">Gender</div>
             <span
               class="gender-pill"
               [ngClass]="{
@@ -132,8 +137,8 @@
       </div>
     </div>
 
-    <!-- ================= PAGINATION (Desktop/Tablet Only) ================= -->
-    <!-- <div class="pagination" *ngIf="!isSearching && totalPages > 0">
+    <!-- ================= PAGINATION ================= -->
+    <div class="pagination" *ngIf="!isSearching && totalPages > 0">
       <button
         class="page-btn"
         (click)="prevPage()"
@@ -144,26 +149,6 @@
 
       <div class="page-info">Page {{ page }} of {{ totalPages }}</div>
 
-      <button
-        class="page-btn"
-        (click)="nextPage()"
-        [disabled]="page === totalPages || loading"
-      >
-        Next →
-      </button>
-    </div> -->
-
-      <div class="pagination" *ngIf="!isSearching && totalPages > 0">
-      <button
-        class="page-btn"
-        (click)="prevPage()"
-        [disabled]="page === 1 || loading"
-      >
-        ← Prev
-      </button>
- 
-      <div class="page-info">Page {{ page }} of {{ totalPages }}</div>
- 
       <button
         class="page-btn"
         (click)="nextPage()"
@@ -172,7 +157,111 @@
         Next →
       </button>
     </div>
+
   </div>
 </ion-content>
 
+<!-- ================= APPOINTMENT MODAL OVERLAY ================= -->
+<div
+  class="modal-overlay"
+  *ngIf="showAppointmentPanel"
+  (click)="closeAppointmentPanel()"
+></div>
 
+<div
+  class="modal-box appt-modal"
+  *ngIf="showAppointmentPanel && selectedPatientForAppt"
+>
+  <!-- HEADER -->
+  <div class="modal-header">
+    <h3 class="modal-title">
+      {{ selectedPatientForAppt.hasActiveAppointment ? 'Appointment Detail' : 'Create Appointment' }}
+    </h3>
+    <button class="modal-close" (click)="closeAppointmentPanel()">
+      <ion-icon name="close-outline"></ion-icon>
+    </button>
+  </div>
+
+  <!-- PATIENT INFO -->
+  <div class="modal-patient">
+    <span class="modal-patient__name">{{ selectedPatientForAppt.name }}</span>
+    <span class="modal-patient__meta">
+      {{ selectedPatientForAppt.pid }} • {{ selectedPatientForAppt.phone }}
+    </span>
+  </div>
+
+  <!-- FORM -->
+  <form [formGroup]="appointmentForm" class="modal-form">
+
+    <!-- Date -->
+    <div class="modal-field">
+      <label class="modal-label">Appointment Date *</label>
+      <input
+        type="date"
+        class="modal-input"
+        formControlName="appointmentDate"
+        [min]="apptMinDate"
+        [max]="apptMaxDate"
+      />
+      <div
+        class="modal-error"
+        *ngIf="appointmentForm.get('appointmentDate')?.invalid && appointmentForm.get('appointmentDate')?.touched"
+      >
+        Appointment Date is required
+      </div>
+    </div>
+
+    <!-- Time -->
+    <div class="modal-field">
+      <label class="modal-label">Appointment Time</label>
+      <input
+        type="time"
+        class="modal-input"
+        formControlName="appointmentTime"
+      />
+      <div
+        class="modal-hint"
+        *ngIf="!appointmentForm.get('appointmentTime')?.value"
+      >
+        No Time Selected
+      </div>
+    </div>
+
+    <!-- Remark -->
+    <div class="modal-field">
+      <label class="modal-label">Remark</label>
+      <input
+        type="text"
+        class="modal-input"
+        formControlName="remark"
+        maxlength="250"
+        placeholder="Optional note..."
+      />
+    </div>
+
+  </form>
+
+  <!-- ACTIONS -->
+  <div class="modal-actions">
+    <button
+      class="btn btn--ghost"
+      (click)="closeAppointmentPanel()"
+      [disabled]="creatingAppointment"
+    >
+      Cancel
+    </button>
+
+    <button
+      class="btn btn--primary"
+      (click)="submitAppointment()"
+      [disabled]="creatingAppointment"
+    >
+      <ion-spinner
+        *ngIf="creatingAppointment"
+        name="crescent"
+        class="btn-spinner"
+      ></ion-spinner>
+      {{ selectedPatientForAppt.hasActiveAppointment ? 'Update' : 'Create Appointment' }}
+    </button>
+  </div>
+</div>

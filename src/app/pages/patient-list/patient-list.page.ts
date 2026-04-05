@@ -1,12 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
+import { ToastController, PopoverController } from '@ionic/angular';
+import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import {
-  ModalController,
-  ToastController,
-  PopoverController,
-} from '@ionic/angular';
-
-import {
+  firstValueFrom,
   Subject,
   Subscription,
   debounceTime,
@@ -17,9 +14,9 @@ import {
 } from 'rxjs';
 
 import { PatientService } from 'src/app/services/patient.service';
-import { CreateAppointmentModalComponent } from 'src/app/components/create-appointment-modal/create-appointment-modal.component';
 import { PatientActionPopoverComponent } from 'src/app/components/patient-action-popover/patient-action-popover.component';
 import { NotificationService } from 'src/app/services/notification.service';
+import { AppointmentService } from 'src/app/services/appointment.service';
 
 type Row = {
   srNo: number;
@@ -39,48 +36,80 @@ type Row = {
   standalone: false,
 })
 export class PatientListPage implements OnInit, OnDestroy {
+
+  // ── List State ────────────────────────────────────────────────
   loading = false;
-unreadCount = 0;
-notifications: any[] = [];
   searchText = '';
   isSearching = false;
   searchedOnce = false;
-
   page = 1;
   pageSize = 10;
-
   totalCount = 0;
   totalPages = 0;
   hasNext = false;
-
   rows: Row[] = [];
 
+  // ── Notifications ─────────────────────────────────────────────
+  unreadCount = 0;
+  notifications: any[] = [];
+
+  // ── Inline Appointment Panel ──────────────────────────────────
+  showAppointmentPanel = false;
+  selectedPatientForAppt: Row | null = null;
+  creatingAppointment = false;
+
+  apptMinDate = new Date().toISOString().substring(0, 10);
+  apptMaxDate = (() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() + 3);
+    return d.toISOString().substring(0, 10);
+  })();
+
+  appointmentForm = this.fb.group({
+    appointmentDate: new FormControl<string | null>(
+      new Date().toISOString().substring(0, 10),
+      [Validators.required]
+    ),
+    appointmentTime: new FormControl<string | null>(null),
+    remark: new FormControl<string | null>(''),
+  });
+
+  // ── Private ───────────────────────────────────────────────────
   private subs = new Subscription();
   private search$ = new Subject<string>();
 
+  // ─────────────────────────────────────────────────────────────
   constructor(
+    private fb: FormBuilder,
     private patientService: PatientService,
+    private apptService: AppointmentService,
+    private notificationService: NotificationService,
     private toastCtrl: ToastController,
     private router: Router,
-    private modalCtrl: ModalController,
     private popoverCtrl: PopoverController,
-     private notificationService: NotificationService,
   ) {}
+
+  // ─────────────────────────────────────────────────────────────
+  // LIFECYCLE
+  // ─────────────────────────────────────────────────────────────
 
   ngOnInit(): void {
     this.setupSearchStream();
     this.loadPatients(true);
-      this.loadNotifications();
+    this.loadNotifications();
   }
-  ionViewWillEnter() {
-  this.loadPatients(true);
-}
+
+  ionViewWillEnter(): void {
+    this.loadPatients(true);
+  }
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
   }
 
-  // ================= SEARCH STREAM =================
+  // ─────────────────────────────────────────────────────────────
+  // SEARCH
+  // ─────────────────────────────────────────────────────────────
 
   private setupSearchStream(): void {
     const sub = this.search$
@@ -111,10 +140,7 @@ notifications: any[] = [];
         }),
       )
       .subscribe((res) => {
-        if (!res) {
-          this.loading = false;
-          return;
-        }
+        if (!res) { this.loading = false; return; }
 
         const list = this.extractArray(res);
 
@@ -134,19 +160,9 @@ notifications: any[] = [];
     this.subs.add(sub);
   }
 
-  onSearchInput(): void {
-    this.search$.next(this.searchText || '');
-  }
-
-  search(): void {
-    const q = (this.searchText || '').trim();
-    this.search$.next(q);
-  }
-
-  clearSearch(): void {
-    this.searchText = '';
-    this.search$.next('');
-  }
+  onSearchInput(): void { this.search$.next(this.searchText || ''); }
+  search(): void        { this.search$.next((this.searchText || '').trim()); }
+  clearSearch(): void   { this.searchText = ''; this.search$.next(''); }
 
   get showCreatePatientBtn(): boolean {
     return (
@@ -158,7 +174,9 @@ notifications: any[] = [];
     );
   }
 
-  // ================= DATA LOAD =================
+  // ─────────────────────────────────────────────────────────────
+  // LOAD PATIENTS
+  // ─────────────────────────────────────────────────────────────
 
   loadPatients(reset = false): void {
     if (reset) this.page = 1;
@@ -176,7 +194,6 @@ notifications: any[] = [];
 
   private fetchPatients() {
     this.loading = true;
-
     return this.patientService.getPatients(this.page, this.pageSize).pipe(
       catchError((err) => {
         this.handleError(err, 'Failed to load patients');
@@ -185,7 +202,9 @@ notifications: any[] = [];
     );
   }
 
-  // ================= PAGINATION =================
+  // ─────────────────────────────────────────────────────────────
+  // PAGINATION
+  // ─────────────────────────────────────────────────────────────
 
   nextPage(): void {
     if (this.loading || this.isSearching || !this.hasNext) return;
@@ -199,9 +218,12 @@ notifications: any[] = [];
     this.loadPatients();
   }
 
-  // ================= ACTIONS =================
-  async openActions(ev: Event, row: Row) {
-    ev.stopPropagation(); // important
+  // ─────────────────────────────────────────────────────────────
+  // POPOVER ACTIONS
+  // ─────────────────────────────────────────────────────────────
+
+  async openActions(ev: Event, row: Row): Promise<void> {
+    ev.stopPropagation();
 
     const popover = await this.popoverCtrl.create({
       component: PatientActionPopoverComponent,
@@ -213,21 +235,17 @@ notifications: any[] = [];
     await popover.present();
 
     const { data } = await popover.onDidDismiss();
-
     if (!data?.action) return;
 
     switch (data.action) {
-    case 'edit':
-  this.router.navigate(['/patients'], {
-    queryParams: {
-      patientId: row.id,
-      tab: 'prelim',
-      from: 'list'   // 👈 IMPORTANT
-    },
-  });
-  break;
+      case 'edit':
+        this.router.navigate(['/patients'], {
+          queryParams: { patientId: row.id, tab: 'prelim', from: 'list' },
+        });
+        break;
+
       case 'appointment':
-        this.openAppointmentModal(row);
+        this.openAppointmentPanel(row);
         break;
 
       case 'status':
@@ -236,35 +254,92 @@ notifications: any[] = [];
     }
   }
 
-async openAppointmentModal(row: Row) {
-  const modal = await this.modalCtrl.create({
-    component: CreateAppointmentModalComponent,
-    componentProps: {
-      patient: row,
-      mode: row.hasActiveAppointment ? 'edit' : 'create'   // 👈 THIS LINE
-    },
-  });
+  // ─────────────────────────────────────────────────────────────
+  // INLINE APPOINTMENT PANEL
+  // ─────────────────────────────────────────────────────────────
 
-  await modal.present();
-
-  const { role } = await modal.onWillDismiss();
-
-  if (role === 'success') {
-    this.loadPatients();
+  openAppointmentPanel(row: Row): void {
+    this.selectedPatientForAppt = row;
+    this.appointmentForm.reset({
+      appointmentDate: new Date().toISOString().substring(0, 10),
+      appointmentTime: null,
+      remark: '',
+    });
+    this.showAppointmentPanel = true;
   }
-}
 
- goToCreatePatient(): void {
-  this.router.navigate(['/patients'], {
-    queryParams: {
-      mode: 'create',     // 👈 IMPORTANT
-      from: 'list'    ,    // 👈 optional but clean
-        tab: 'prelim'
+  closeAppointmentPanel(): void {
+    this.showAppointmentPanel = false;
+    this.selectedPatientForAppt = null;
+  }
+
+  async submitAppointment(): Promise<void> {
+    if (this.creatingAppointment) return;
+
+    if (this.appointmentForm.invalid) {
+      this.appointmentForm.markAllAsTouched();
+      return;
     }
-  });
-}
 
-  // ================= HELPERS =================
+    const raw = this.appointmentForm.getRawValue();
+    const patientId = Number(this.selectedPatientForAppt?.id);
+
+    const payload: any = {
+      patientId,
+      appointmentDate: raw.appointmentDate,
+    };
+
+    if (raw.appointmentTime) payload.appointmentTime = raw.appointmentTime + ':00';
+    if (raw.remark?.trim())  payload.remark = raw.remark.trim();
+
+    this.creatingAppointment = true;
+
+    try {
+      await firstValueFrom(this.apptService.createAppointment(payload));
+
+      const toast = await this.toastCtrl.create({
+        message: 'Appointment Created ✅',
+        duration: 2500,
+        position: 'top',
+      });
+      await toast.present();
+
+      this.closeAppointmentPanel();
+      this.loadPatients();
+    } catch (err) {
+      await this.handleError(err, 'Failed to create appointment');
+    } finally {
+      this.creatingAppointment = false;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // NAVIGATION
+  // ─────────────────────────────────────────────────────────────
+
+  goToCreatePatient(): void {
+    this.router.navigate(['/patients'], {
+      queryParams: { mode: 'create', from: 'list', tab: 'prelim' },
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // NOTIFICATIONS
+  // ─────────────────────────────────────────────────────────────
+
+  async loadNotifications(): Promise<void> {
+    const res: any = await this.notificationService.getNotifications().toPromise();
+    this.notifications = res || [];
+    this.unreadCount = this.notifications.filter((n) => !n.isRead).length;
+  }
+
+  openNotifications(): void {
+    this.router.navigate(['/notifications']);
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // HELPERS
+  // ─────────────────────────────────────────────────────────────
 
   private extractArray(res: any): any[] {
     if (Array.isArray(res)) return res;
@@ -279,27 +354,16 @@ async openAppointmentModal(row: Row) {
 
     this.totalCount = count;
     this.totalPages = pages;
-    this.hasNext =
-      pages > 0 ? this.page < pages : list.length === this.pageSize;
+    this.hasNext = pages > 0 ? this.page < pages : list.length === this.pageSize;
   }
 
   private mapRows(list: any[], page: number): Row[] {
     return list.map((p: any, idx: number) => {
-      // ✅ DEBUG HERE
-      console.log('RAW PATIENT FROM API:', p);
-
       const patientId = Number(
-        p?.patientId ??
-          p?.patientID ??
-          p?.patientsId ??
-          p?.id ??
-          p?.patient?.patientId ??
-          0,
+        p?.patientId ?? p?.patientID ?? p?.patientsId ?? p?.id ?? p?.patient?.patientId ?? 0,
       );
 
-      if (!patientId) {
-        console.warn('❌ Invalid patientId detected:', p);
-      }
+      if (!patientId) console.warn('❌ Invalid patientId detected:', p);
 
       return {
         srNo: (page - 1) * this.pageSize + idx + 1,
@@ -314,27 +378,12 @@ async openAppointmentModal(row: Row) {
     });
   }
 
-  private async handleError(err: any, fallback: string) {
+  private async handleError(err: any, fallback: string): Promise<void> {
     const toast = await this.toastCtrl.create({
-      message: err?.message || fallback,
+      message: err?.error?.message || err?.message || fallback,
       duration: 2500,
       position: 'top',
     });
     await toast.present();
   }
-
-  
-
-  async loadNotifications() {
-  const res: any = await this.notificationService.getNotifications().toPromise();
-
-  this.notifications = res || [];
-
-  this.unreadCount = this.notifications.filter(n => !n.isRead).length;
-}
-
-openNotifications() {
-  this.router.navigate(['/notifications']);
-}
-
 }
