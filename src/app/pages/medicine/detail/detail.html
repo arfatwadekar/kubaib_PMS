@@ -41,7 +41,8 @@
       type="text"
       formControlName="name"
       placeholder="Enter medicine name (e.g., Paracetamol)"
-      [readonly]="mode !== 'create'"
+      [readonly]="mode === 'view'"   
+        (keydown.enter)="$event.preventDefault()"
     />
   </div>
 
@@ -54,6 +55,7 @@
         formControlName="strength"
         placeholder="Enter strength (e.g., 500 mg)"
         [readonly]="mode === 'view'"
+          (keydown.enter)="$event.preventDefault()"
       />
     </div>
 
@@ -62,6 +64,7 @@
       <select
         formControlName="dosageForm"
         [disabled]="mode === 'view'"
+          (keydown.enter)="$event.preventDefault()"
       >
         <option value="">Select dosage form</option>
         <option value="Tablet">Tablet</option>
@@ -94,6 +97,7 @@
           formControlName="stockQuantity"
           class="qty-input"
           placeholder="0"
+            (keydown.enter)="$event.preventDefault()"
           [readonly]="mode === 'view'"
         />
 
@@ -116,6 +120,7 @@
         formControlName="unit"
         placeholder="Enter unit (e.g., ml)"
         [readonly]="mode === 'view'"
+          (keydown.enter)="$event.preventDefault()"
       />
     </div>
 
@@ -134,6 +139,7 @@
         formControlName="batchNumber"
         placeholder="Enter batch number (optional)"
         [readonly]="mode === 'view'"
+          (keydown.enter)="$event.preventDefault()"
       />
     </div>
 
@@ -143,6 +149,7 @@
         type="date"
         formControlName="expiryDate"
         [readonly]="mode === 'view'"
+          (keydown.enter)="$event.preventDefault()"
       />
     </div>
 
@@ -155,6 +162,7 @@
       formControlName="notes"
       placeholder="Add any additional notes about this medicine..."
       [readonly]="mode === 'view'"
+        (keydown.enter)="$event.preventDefault()"
     ></textarea>
   </div>
 
