@@ -36,6 +36,8 @@ type Row = {
   standalone: false,
 })
 export class PatientListPage implements OnInit, OnDestroy {
+  currentStatus: number | null = null;
+  appointmentId: number | null = null;
 
   // ── List State ────────────────────────────────────────────────
   loading = false;
@@ -65,13 +67,23 @@ export class PatientListPage implements OnInit, OnDestroy {
     return d.toISOString().substring(0, 10);
   })();
 
+  // appointmentForm = this.fb.group({
+  //   appointmentDate: new FormControl<string | null>(
+  //     new Date().toISOString().substring(0, 10),
+  //     [Validators.required]
+  //   ),
+  //   appointmentTime: new FormControl<string | null>(null),
+  //   remark: new FormControl<string | null>(''),
+  // });
+
   appointmentForm = this.fb.group({
     appointmentDate: new FormControl<string | null>(
       new Date().toISOString().substring(0, 10),
-      [Validators.required]
+      [Validators.required],
     ),
     appointmentTime: new FormControl<string | null>(null),
     remark: new FormControl<string | null>(''),
+    status: new FormControl<number>(1), // ✅ ADD THIS
   });
 
   // ── Private ───────────────────────────────────────────────────
@@ -140,7 +152,10 @@ export class PatientListPage implements OnInit, OnDestroy {
         }),
       )
       .subscribe((res) => {
-        if (!res) { this.loading = false; return; }
+        if (!res) {
+          this.loading = false;
+          return;
+        }
 
         const list = this.extractArray(res);
 
@@ -160,9 +175,16 @@ export class PatientListPage implements OnInit, OnDestroy {
     this.subs.add(sub);
   }
 
-  onSearchInput(): void { this.search$.next(this.searchText || ''); }
-  search(): void        { this.search$.next((this.searchText || '').trim()); }
-  clearSearch(): void   { this.searchText = ''; this.search$.next(''); }
+  onSearchInput(): void {
+    this.search$.next(this.searchText || '');
+  }
+  search(): void {
+    this.search$.next((this.searchText || '').trim());
+  }
+  clearSearch(): void {
+    this.searchText = '';
+    this.search$.next('');
+  }
 
   get showCreatePatientBtn(): boolean {
     return (
@@ -258,13 +280,54 @@ export class PatientListPage implements OnInit, OnDestroy {
   // INLINE APPOINTMENT PANEL
   // ─────────────────────────────────────────────────────────────
 
-  openAppointmentPanel(row: Row): void {
+  // openAppointmentPanel(row: Row): void {
+  //   this.selectedPatientForAppt = row;
+  //   this.appointmentForm.reset({
+  //     appointmentDate: new Date().toISOString().substring(0, 10),
+  //     appointmentTime: null,
+  //     remark: '',
+  //   });
+  //   this.showAppointmentPanel = true;
+  // }
+
+  async openAppointmentPanel(row: Row): Promise<void> {
     this.selectedPatientForAppt = row;
+
     this.appointmentForm.reset({
       appointmentDate: new Date().toISOString().substring(0, 10),
       appointmentTime: null,
       remark: '',
+      status: 1,
     });
+
+    // 🔵 EDIT MODE → fetch appointment
+    if (row.hasActiveAppointment) {
+      try {
+        const res: any = await firstValueFrom(
+          this.apptService.getActiveAppointmentByPatient(row.id),
+        );
+
+        if (res) {
+          this.appointmentId = res.appointmentId;
+          this.currentStatus = res.status;
+
+          this.appointmentForm.patchValue({
+            appointmentDate: res.appointmentDate?.slice(0, 10),
+            appointmentTime: res.appointmentTime?.slice(0, 5),
+            remark: res.remark || '',
+            status: res.status,
+          });
+        }
+      } catch {
+        this.toastCtrl
+          .create({
+            message: 'Failed to load appointment',
+            duration: 2000,
+          })
+          .then((t) => t.present());
+      }
+    }
+
     this.showAppointmentPanel = true;
   }
 
@@ -272,6 +335,50 @@ export class PatientListPage implements OnInit, OnDestroy {
     this.showAppointmentPanel = false;
     this.selectedPatientForAppt = null;
   }
+
+  // async submitAppointment(): Promise<void> {
+  //   if (this.creatingAppointment) return;
+
+  //   if (this.appointmentForm.invalid) {
+  //     this.appointmentForm.markAllAsTouched();
+  //     return;
+  //   }
+
+  //   const raw = this.appointmentForm.getRawValue();
+  //   const patientId = Number(this.selectedPatientForAppt?.id);
+
+  //   const payload: any = {
+  //     patientId,
+  //     appointmentDate: raw.appointmentDate,
+  //   };
+
+  //   if (raw.appointmentTime) payload.appointmentTime = raw.appointmentTime + ':00';
+  //   if (raw.remark?.trim())  payload.remark = raw.remark.trim();
+
+  //   this.creatingAppointment = true;
+
+  //   try {
+  //     await firstValueFrom(this.apptService.createAppointment(payload));
+
+  //     const toast = await this.toastCtrl.create({
+  //       message: 'Appointment Created ✅',
+  //       duration: 2500,
+  //       position: 'top',
+  //     });
+  //     await toast.present();
+
+  //     this.closeAppointmentPanel();
+  //     this.loadPatients();
+  //   } catch (err) {
+  //     await this.handleError(err, 'Failed to create appointment');
+  //   } finally {
+  //     this.creatingAppointment = false;
+  //   }
+  // }
+
+  // ─────────────────────────────────────────────────────────────
+  // NAVIGATION
+  // ─────────────────────────────────────────────────────────────
 
   async submitAppointment(): Promise<void> {
     if (this.creatingAppointment) return;
@@ -285,37 +392,71 @@ export class PatientListPage implements OnInit, OnDestroy {
     const patientId = Number(this.selectedPatientForAppt?.id);
 
     const payload: any = {
-      patientId,
       appointmentDate: raw.appointmentDate,
     };
 
-    if (raw.appointmentTime) payload.appointmentTime = raw.appointmentTime + ':00';
-    if (raw.remark?.trim())  payload.remark = raw.remark.trim();
+    if (raw.appointmentTime) {
+      payload.appointmentTime = raw.appointmentTime + ':00';
+    }
+
+    if (raw.remark?.trim()) {
+      payload.remark = raw.remark.trim();
+    }
 
     this.creatingAppointment = true;
 
     try {
-      await firstValueFrom(this.apptService.createAppointment(payload));
+      // 🟢 CREATE
+      if (!this.selectedPatientForAppt?.hasActiveAppointment) {
+        await firstValueFrom(
+          this.apptService.createAppointment({
+            patientId,
+            ...payload,
+          }),
+        );
 
-      const toast = await this.toastCtrl.create({
-        message: 'Appointment Created ✅',
-        duration: 2500,
-        position: 'top',
-      });
-      await toast.present();
+        await (
+          await this.toastCtrl.create({
+            message: 'Appointment Created ✅',
+            duration: 2000,
+          })
+        ).present();
+      } else {
+        // 🔵 UPDATE
+        await firstValueFrom(
+          this.apptService.updateAppointment(this.appointmentId!, payload),
+        );
+
+        if (raw.status !== this.currentStatus) {
+          await firstValueFrom(
+            this.apptService.updateAppointmentStatus(
+              this.appointmentId!,
+              Number(raw.status),
+            ),
+          );
+        }
+
+        await (
+          await this.toastCtrl.create({
+            message: 'Appointment Updated ✅',
+            duration: 2000,
+          })
+        ).present();
+      }
 
       this.closeAppointmentPanel();
       this.loadPatients();
-    } catch (err) {
-      await this.handleError(err, 'Failed to create appointment');
+    } catch {
+      await (
+        await this.toastCtrl.create({
+          message: 'Operation failed',
+          duration: 2000,
+        })
+      ).present();
     } finally {
       this.creatingAppointment = false;
     }
   }
-
-  // ─────────────────────────────────────────────────────────────
-  // NAVIGATION
-  // ─────────────────────────────────────────────────────────────
 
   goToCreatePatient(): void {
     this.router.navigate(['/patients'], {
@@ -328,7 +469,9 @@ export class PatientListPage implements OnInit, OnDestroy {
   // ─────────────────────────────────────────────────────────────
 
   async loadNotifications(): Promise<void> {
-    const res: any = await this.notificationService.getNotifications().toPromise();
+    const res: any = await this.notificationService
+      .getNotifications()
+      .toPromise();
     this.notifications = res || [];
     this.unreadCount = this.notifications.filter((n) => !n.isRead).length;
   }
@@ -354,13 +497,19 @@ export class PatientListPage implements OnInit, OnDestroy {
 
     this.totalCount = count;
     this.totalPages = pages;
-    this.hasNext = pages > 0 ? this.page < pages : list.length === this.pageSize;
+    this.hasNext =
+      pages > 0 ? this.page < pages : list.length === this.pageSize;
   }
 
   private mapRows(list: any[], page: number): Row[] {
     return list.map((p: any, idx: number) => {
       const patientId = Number(
-        p?.patientId ?? p?.patientID ?? p?.patientsId ?? p?.id ?? p?.patient?.patientId ?? 0,
+        p?.patientId ??
+          p?.patientID ??
+          p?.patientsId ??
+          p?.id ??
+          p?.patient?.patientId ??
+          0,
       );
 
       if (!patientId) console.warn('❌ Invalid patientId detected:', p);

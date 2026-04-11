@@ -227,6 +227,25 @@
       </div>
     </div>
 
+     <!-- STATUS (ONLY EDIT MODE) -->
+<div
+  class="modal-field"
+  *ngIf="selectedPatientForAppt?.hasActiveAppointment"
+>
+  <label class="modal-label">Status</label>
+
+  <select
+    class="modal-input"
+    formControlName="status"
+  >
+    <option [value]="1">Pending</option>
+    <option [value]="2">In Patient</option>
+    <option [value]="3">Awaiting Payment</option>
+    <option [value]="4">Out Patient</option>
+    <option [value]="5">Cancelled</option>
+  </select>
+</div>
+    
     <!-- Remark -->
     <div class="modal-field">
       <label class="modal-label">Remark</label>
