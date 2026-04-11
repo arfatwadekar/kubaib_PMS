@@ -47,8 +47,8 @@ export class HeaderComponent {
   get resolvedRole(): string {
     return (
       this.profileRole ||
-      localStorage.getItem('mhc_role') ||
-      'Doctor'
+      localStorage.getItem('mhc_username') ||
+      'Guest User'
     );
   }
 

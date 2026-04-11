@@ -53,9 +53,11 @@
         class="profile-btn"
         (click)="openProfilePopover($event)"
       >
-        <div class="role">{{ resolvedRole }}</div>
-        <div class="avatar">{{ resolvedInitial }}</div>
-        <ion-icon name="chevron-down-outline"></ion-icon>
+        <div class="role" style="    color: black;
+    font-weight: bold;
+    font-family: sans-serif;">{{ resolvedRole }}</div>
+        <ion-icon name="chevron-down-outline" style="    color: black;
+    padding-left: 10px;"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
