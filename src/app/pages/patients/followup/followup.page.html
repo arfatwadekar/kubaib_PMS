@@ -236,7 +236,7 @@
 </div>
 
         <!-- ── Prescribed Medicines ── -->
-        <div class="form-section">
+        <!-- <div class="form-section">
           <label class="field-label">Prescribed Medicines</label>
           <div class="table-scroll-wrap">
             <table class="med-table">
@@ -309,7 +309,87 @@
           <button class="btn-add-row" (click)="addMedicineRow()">
             ＋ Add Medicine
           </button>
-        </div>
+        </div> -->
+
+<div class="form-section">
+  <label class="field-label">Prescribed Medicines</label>
+  <div class="table-scroll-wrap">
+    <table class="med-table">
+      <thead>
+        <tr>
+          <th>Medicine Name</th>
+          <th>Dosage</th>
+          <th>Frequency</th>
+          <th>Duration</th>
+          <th>Type</th>
+          <th>Instructions</th>
+          <!-- <th>Issue</th> -->
+          <th class="th-center">Del</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let med of prescriptions; let i = index">
+          <td class="med-name-col">
+           <select
+  [(ngModel)]="med.medicineId"
+  (change)="onMedicineChange($event, i); triggerAutosave()"
+  [name]="'medicine' + i"
+  class="custom-select"
+>
+  <option [ngValue]="null" disabled>Select Medicine</option>
+
+  <option
+    *ngFor="let m of medicines"
+    [ngValue]="m.medicineId"
+  >
+    {{ m.name }}
+  </option>
+
+  <option value="add_new">➕ Add New Medicine</option>
+</select>
+          </td>
+          <td>
+            <input type="text" [(ngModel)]="med.dosage" 
+            (ngModelChange)="triggerAutosave()" placeholder="e.g. 500mg" />
+          </td>
+          <td>
+            <input type="text" [(ngModel)]="med.frequency"
+            (ngModelChange)="triggerAutosave()" placeholder="e.g. 1-0-1" />
+          </td>
+          <td>
+            <input type="text" [(ngModel)]="med.duration"
+            (ngModelChange)="triggerAutosave()" placeholder="e.g. 5 days" />
+          </td>
+          <td>
+            <select [(ngModel)]="med.type" (ngModelChange)="triggerAutosave()">
+              <option value="" disabled selected>Select Type</option>
+              <option>Tablet</option>
+              <option>Capsule</option>
+              <option>Syrup</option>
+              <option>Injection</option>
+            </select>
+          </td>
+          <td>
+            <input type="text" [(ngModel)]="med.instructions"
+            (ngModelChange)="triggerAutosave()" placeholder="After meals…" />
+          </td>
+          <td class="td-center">
+            <button
+              class="icon-btn icon-btn--danger"
+              (click)="removeMedicineRow(i)"
+              type="button"
+            >
+              ✕
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <button class="btn-add-row" (click)="addMedicineRow()" type="button">
+    ＋ Add Medicine
+  </button>
+</div>
 
         <!-- ── Charges ── -->
         <div class="form-grid form-grid--2">

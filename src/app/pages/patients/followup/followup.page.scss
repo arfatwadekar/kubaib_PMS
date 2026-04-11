@@ -565,15 +565,88 @@ select {
 // MEDICINE TABLE
 // ═══════════════════════════════════════════════════════════════════════════
 
+// .med-table {
+//   width: 100%;
+//   border-collapse: collapse;
+//   min-width: 800px;
+//   table-layout: auto;
+
+//   th {
+//     background: $surface2;
+//     padding: 10px 14px;
+//     text-align: left;
+//     font-size: 11px;
+//     font-weight: 700;
+//     color: $text-muted;
+//     text-transform: uppercase;
+//     letter-spacing: .5px;
+//     border-bottom: 1px solid $border;
+//     white-space: nowrap;
+
+//     &.th-center { text-align: center; }
+
+//     // Column width hints
+//     &:nth-child(1) { min-width: 100px; } // Medicine Name
+//     &:nth-child(2) { min-width: 70px; }  // Dosage
+//     &:nth-child(3) { min-width: 70px; }  // Frequency
+//     &:nth-child(4) { min-width: 70px; }  // Duration
+//     &:nth-child(5) { min-width: 110px; } // Type - wider
+//     &:nth-child(6) { min-width: 90px; }  // Instructions
+//     &:nth-child(7) { width: 45px; }      // Delete button
+//   }
+
+//   td {
+//     padding: 9px 12px;
+//     border-bottom: 1px solid $border-lt;
+//     vertical-align: middle;
+
+//     &.td-center { text-align: center; }
+
+//     input, select {
+//       font-size: 13px;
+//       padding: 7px 10px;
+//       width: 100%;
+//       box-sizing: border-box;
+//     }
+
+//     // Column width alignment with headers
+//     &:nth-child(1) { min-width: 90px; } // Medicine Name
+//     &:nth-child(2) { min-width: 70px; }  // Dosage
+//     &:nth-child(3) { min-width: 70px; }  // Frequency
+//     &:nth-child(4) { min-width: 70px; }  // Duration
+//     &:nth-child(5) { min-width: 150px; } // Type - wider
+//     &:nth-child(6) { min-width: 90px; }  // Instructions
+//     &:nth-child(7) { width: 125px; }      // Delete button
+//   }
+
+//   tr:last-child td { border-bottom: none; }
+//   tr:hover td      { background: $green-xlt; }
+// }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// MEDICINE TABLE (COMPLETE FIX)
+// ═══════════════════════════════════════════════════════════════════════════
+
+.table-scroll-wrap {
+  overflow-x: auto;
+  border-radius: $r-md;
+  border: 1px solid $border;
+  -webkit-overflow-scrolling: touch;
+  width: 100%;
+  
+  // Ensure horizontal scroll starts at left, not right
+  scroll-behavior: smooth;
+}
+
 .med-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px;
-  table-layout: auto;
+  table-layout: fixed; // IMPORTANT: Fixed layout for consistent column widths
+  background: $surface;
 
   th {
     background: $surface2;
-    padding: 10px 14px;
+    padding: 12px 14px;
     text-align: left;
     font-size: 11px;
     font-weight: 700;
@@ -582,47 +655,159 @@ select {
     letter-spacing: .5px;
     border-bottom: 1px solid $border;
     white-space: nowrap;
+    position: sticky;
+    top: 0;
+    z-index: 2;
 
-    &.th-center { text-align: center; }
-
-    // Column width hints
-    &:nth-child(1) { min-width: 100px; } // Medicine Name
-    &:nth-child(2) { min-width: 70px; }  // Dosage
-    &:nth-child(3) { min-width: 70px; }  // Frequency
-    &:nth-child(4) { min-width: 70px; }  // Duration
-    &:nth-child(5) { min-width: 110px; } // Type - wider
-    &:nth-child(6) { min-width: 90px; }  // Instructions
-    &:nth-child(7) { width: 45px; }      // Delete button
+    &.th-center { 
+      text-align: center; 
+    }
   }
 
   td {
-    padding: 9px 12px;
+    padding: 10px 12px;
     border-bottom: 1px solid $border-lt;
     vertical-align: middle;
+    word-break: break-word;
 
-    &.td-center { text-align: center; }
+    &.td-center { 
+      text-align: center; 
+      padding: 10px 8px;
+    }
+
+    &.med-name-col {
+      min-width: 140px;
+    }
 
     input, select {
       font-size: 13px;
-      padding: 7px 10px;
+      padding: 8px 10px;
       width: 100%;
       box-sizing: border-box;
+      border: 1.5px solid $border;
+      border-radius: $r-sm;
+      font-family: $font;
+      background: $surface;
+      color: $text-pri;
+      transition: border-color .15s, box-shadow .15s;
+
+      &::placeholder { 
+        color: $text-muted; 
+      }
+
+      &:focus {
+        border-color: $green;
+        box-shadow: 0 0 0 3px rgba(22, 163, 74, .12);
+        background: $green-xlt;
+        outline: none;
+      }
     }
 
-    // Column width alignment with headers
-    &:nth-child(1) { min-width: 100px; } // Medicine Name
-    &:nth-child(2) { min-width: 70px; }  // Dosage
-    &:nth-child(3) { min-width: 70px; }  // Frequency
-    &:nth-child(4) { min-width: 70px; }  // Duration
-    &:nth-child(5) { min-width: 110px; } // Type - wider
-    &:nth-child(6) { min-width: 90px; }  // Instructions
-    &:nth-child(7) { width: 45px; }      // Delete button
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      background-color: $surface;
+      padding-right: 30px;
+      cursor: pointer;
+      appearance: none;
+    }
   }
 
-  tr:last-child td { border-bottom: none; }
-  tr:hover td      { background: $green-xlt; }
+  tr {
+    &:last-child td { 
+      border-bottom: none; 
+    }
+
+    &:hover td { 
+      background: $green-xlt; 
+    }
+  }
+
+  // Define column widths with fixed layout (NO ISSUE COLUMN)
+  th:nth-child(1),
+  td:nth-child(1) { width: 22%; }  // Medicine Name
+
+  th:nth-child(2),
+  td:nth-child(2) { width: 13%; }  // Dosage
+
+  th:nth-child(3),
+  td:nth-child(3) { width: 13%; }  // Frequency
+
+  th:nth-child(4),
+  td:nth-child(4) { width: 13%; }  // Duration
+
+  th:nth-child(5),
+  td:nth-child(5) { width: 14%; }  // Type
+
+  th:nth-child(6),
+  td:nth-child(6) { width: 18%; }  // Instructions
+
+  th:nth-child(7),
+  td:nth-child(7) { width: 7%; }   // Delete button
+
+  @media (max-width: $bp-md) {
+    table-layout: auto;
+    min-width: 900px;
+  }
 }
 
+// Delete button styling
+.icon-btn.icon-btn--danger {
+  width: 100%;
+  height: 32px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $red-lt;
+  color: $red;
+  border: 1.5px solid $red-lt;
+  border-radius: $r-sm;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 600;
+  transition: all .15s;
+
+  &:hover {
+    background: $red;
+    color: #fff;
+    border-color: $red;
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.btn-add-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 9px 18px;
+  border-radius: $r-md;
+  font-family: $font;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px dashed $green-mid;
+  background: $green-lt;
+  color: $green;
+  transition: all .15s;
+
+  &:hover {
+    border-style: solid;
+    border-color: $green;
+    background: darken($green-lt, 3%);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
 // ═══════════════════════════════════════════════════════════════════════════
 // RADIO GROUP
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1384,4 +1569,29 @@ select {
       }
     }
   }
+}
+
+// Placeholder styling for select elements
+.med-select,
+.type-select {
+  color: $text-pri;
+
+  option {
+    color: $text-pri;
+  }
+
+  option[value=""] {
+    color: $text-muted;
+  }
+}
+
+// Style placeholder option to look like placeholder text
+select option:first-child {
+  color: $text-muted;
+  font-weight: normal;
+}
+
+// When select has no value, show muted color
+select:invalid {
+  color: $text-muted;
 }
