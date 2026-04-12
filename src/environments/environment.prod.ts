@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://your-production-domain.com', // later
+  apiBaseUrl: 'https://api.drkhubaib.com', // later
 };
