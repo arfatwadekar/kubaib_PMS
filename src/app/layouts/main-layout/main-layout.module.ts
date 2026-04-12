@@ -12,7 +12,6 @@ const routes: Routes = [
     path: '',
     component: MainLayoutComponent,
     children: [
-
       // ======================
       // Default Redirect
       // ======================
@@ -24,8 +23,11 @@ const routes: Routes = [
       {
         path: 'dashboard',
         loadChildren: () =>
-          import('../../pages/dashboard/dashboard.module')
-            .then(m => m.DashboardPageModule),
+          import('../../pages/dashboard/dashboard.module').then(
+            (m) => m.DashboardPageModule,
+          ),
+        canActivate: [RoleGuard],
+        data: { roles: ['Doctor', 'Receptionist'] },
       },
 
       // ======================
@@ -34,15 +36,21 @@ const routes: Routes = [
       {
         path: 'patients',
         loadChildren: () =>
-          import('../../pages/patients/patient.module')
-            .then(m => m.PatientPageModule),
+          import('../../pages/patients/patient.module').then(
+            (m) => m.PatientPageModule,
+          ),
+        canActivate: [RoleGuard],
+        data: { roles: ['Doctor', 'Receptionist'] },
       },
 
       {
         path: 'patients/list',
         loadChildren: () =>
-          import('../../pages/patient-list/patient-list.module')
-            .then(m => m.PatientListPageModule),
+          import('../../pages/patient-list/patient-list.module').then(
+            (m) => m.PatientListPageModule,
+          ),
+        canActivate: [RoleGuard],
+        data: { roles: ['Doctor', 'Receptionist'] },
       },
 
       // {
@@ -65,15 +73,21 @@ const routes: Routes = [
       {
         path: 'report',
         loadChildren: () =>
-          import('../../pages/report/report.module')
-            .then(m => m.ReportPageModule),
+          import('../../pages/report/report.module').then(
+            (m) => m.ReportPageModule,
+          ),
+               canActivate: [RoleGuard],
+        data: { roles: ['Doctor', 'Receptionist'] },
+            
+
       },
 
       {
         path: 'reports',
         loadChildren: () =>
-          import('../../pages/coming-soon/coming-soon.module')
-            .then(m => m.ComingSoonModule),
+          import('../../pages/coming-soon/coming-soon.module').then(
+            (m) => m.ComingSoonModule,
+          ),
         canActivate: [RoleGuard],
         data: { roles: ['Doctor', 'Receptionist'] },
       },
@@ -84,8 +98,9 @@ const routes: Routes = [
       {
         path: 'SearchAppointments',
         loadChildren: () =>
-          import('../../pages/search-appointment/search-appointment.module')
-            .then(m => m.SearchAppointmentPageModule),
+          import('../../pages/search-appointment/search-appointment.module').then(
+            (m) => m.SearchAppointmentPageModule,
+          ),
         canActivate: [RoleGuard],
         data: { roles: ['Doctor', 'Receptionist'] },
       },
@@ -93,37 +108,42 @@ const routes: Routes = [
       // ======================
       // Doctor Only
       // ======================
-{
-  path: 'medicines',
-  loadChildren: () =>
-    import('../../pages/medicine/medicine.module')
-      .then(m => m.MedicineModule)
-}
-,
-    {
-  path: 'notifications',
-  loadChildren: () =>
-    import('../../pages/notifications/notification.module')
-      .then(m => m.NotificationsModule),
-  canActivate: [RoleGuard],
-    data: { roles: ['Doctor', 'Receptionist'] },
-},
+      {
+        path: 'medicines',
+        loadChildren: () =>
+          import('../../pages/medicine/medicine.module').then(
+            (m) => m.MedicineModule,
+          ),
+             canActivate: [RoleGuard],
+        data: { roles: ['Doctor', 'Receptionist'] },
+      },
+      {
+        path: 'notifications',
+        loadChildren: () =>
+          import('../../pages/notifications/notification.module').then(
+            (m) => m.NotificationsModule,
+          ),
+        canActivate: [RoleGuard],
+        data: { roles: ['Doctor', 'Receptionist'] },
+      },
 
       {
         path: 'announcements',
         loadChildren: () =>
-          import('../../pages/announcements/announcements.module')
-            .then(m => m.AnnouncementModule),
+          import('../../pages/announcements/announcements.module').then(
+            (m) => m.AnnouncementModule,
+          ),
         canActivate: [RoleGuard],
-             data: { roles: ['Doctor', 'Receptionist'] },
+        data: { roles: ['Doctor', 'Receptionist'] },
       },
       {
-      path: 'video-testimonials',
+        path: 'video-testimonials',
         loadChildren: () =>
-          import('../../pages/video-testimonials/video-testimonials.module')
-            .then(m => m.VideoTestimonialsModule),
+          import('../../pages/video-testimonials/video-testimonials.module').then(
+            (m) => m.VideoTestimonialsModule,
+          ),
         canActivate: [RoleGuard],
-           data: { roles: ['Doctor', 'Receptionist'] },
+        data: { roles: ['Doctor', 'Receptionist'] },
       },
     ],
   },
