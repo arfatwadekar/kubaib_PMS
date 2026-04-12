@@ -606,6 +606,10 @@ setGreeting() {
   }
 }
 
+get userName(): string {
+  return localStorage.getItem('mhc_username') || 'Guest User';
+}
+
 
   get resolvedRole(): string {
     return (
