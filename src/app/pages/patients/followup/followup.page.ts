@@ -479,11 +479,20 @@ selectedMedicineIndex: number | null = null;
   // Handles adding new medicine from dropdown selection
   // ─────────────────────────────────────────────────────────────────────────
 
- async onMedicineChange(event: any, index: number) {
+//  async onMedicineChange(event: any, index: number) {
+//   const value = event.target.value;
+
+//   if (value === 'add_new') {
+//     this.openMedicineModal(index); // ✅ modal open
+//   }
+// }
+async onMedicineChange(event: any, index: number) {
   const value = event.target.value;
 
   if (value === 'add_new') {
-    this.openMedicineModal(index); // ✅ modal open
+    this.prescriptions[index].medicineId = null;  // reset model
+    event.target.value = null;                    // reset DOM select
+    this.openMedicineModal(index);
   }
 }
 
@@ -491,16 +500,28 @@ selectedMedicineIndex: number | null = null;
   // ADD MEDICINE ROW TO PRESCRIPTION TABLE
   // ─────────────────────────────────────────────────────────────────────────
 
+  // addMedicineRow() {
+  //   this.prescriptions.push({
+  //     medicineId: null,
+  //     dosage: '',
+  //     frequency: '',
+  //     duration: '',
+  //     type: '',
+  //     instructions: '',
+  //   });
+  // }
+
   addMedicineRow() {
-    this.prescriptions.push({
-      medicineId: null,
-      dosage: '',
-      frequency: '',
-      duration: '',
-      type: '',
-      instructions: '',
-    });
-  }
+  this.prescriptions.push({
+    medicineId: null,
+    dosage: '',
+    frequency: '',
+    duration: '',
+    type: '',
+    instructions: '',
+  });
+  // No auto-open modal here — that was never the issue
+}
 
   // ─────────────────────────────────────────────────────────────────────────
   // REMOVE MEDICINE ROW FROM PRESCRIPTION TABLE
@@ -1103,9 +1124,21 @@ openMedicineModal(index?: number) {
   this.showMedicineModal = true;
 }
 
+// closeMedicineModal() {
+//   this.showMedicineModal = false;
+//   this.newMedicineName = '';
+// }
+
 closeMedicineModal() {
   this.showMedicineModal = false;
   this.newMedicineName = '';
+
+  // Reset dropdown to null only if opened from a dropdown row
+  if (this.selectedMedicineIndex !== null && this.selectedMedicineIndex >= 0) {
+    this.prescriptions[this.selectedMedicineIndex].medicineId = null;
+  }
+
+  this.selectedMedicineIndex = null;
 }
 
 async saveNewMedicine() {
