@@ -336,4 +336,15 @@ openNotifications() {
   this.router.navigate(['/notifications']);
 }
 
+
+isExpired(a: any): boolean {
+  const end = new Date(a.endDate);
+  const today = new Date();
+
+  end.setHours(0,0,0,0);
+  today.setHours(0,0,0,0);
+
+  return end < today;
+}
+
 }

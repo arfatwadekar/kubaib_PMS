@@ -14,21 +14,21 @@ textarea {
   font-family: inherit;
   font-size: inherit;
   line-height: 1.5;
-  vertical-align: top;       // fixes inline top gap
-  display: block;            // removes inline whitespace gap
-  -webkit-appearance: none;  // removes iOS default styling
+  vertical-align: top; // fixes inline top gap
+  display: block; // removes inline whitespace gap
+  -webkit-appearance: none; // removes iOS default styling
   appearance: none;
   outline: none;
   background: #ffffff;
   color: #111;
-  border-radius: 0;          // reset, each component overrides
+  border-radius: 0; // reset, each component overrides
   resize: vertical;
   overflow: auto;
   width: 100%;
 
   &::placeholder {
     color: #9aa6b2;
-    opacity: 1;              // Firefox fix
+    opacity: 1; // Firefox fix
   }
 }
 
@@ -294,7 +294,7 @@ textarea {
       min-height: 70px;
       resize: vertical;
       line-height: 1.5;
-      padding: 10px 12px;   // explicit padding, no top gap
+      padding: 10px 12px; // explicit padding, no top gap
       vertical-align: top;
       display: block;
     }
@@ -454,7 +454,9 @@ textarea {
   }
 }
 
-.mt12 { margin-top: 12px; }
+.mt12 {
+  margin-top: 12px;
+}
 
 // ===== PHYSICAL REACTION TABLE (Section 6) =====
 .rf-table {
@@ -640,7 +642,7 @@ textarea {
   position: relative;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     width: 1px;
     height: 100px;
@@ -650,7 +652,7 @@ textarea {
   }
 
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     height: 1px;
     width: 180px;
@@ -683,10 +685,18 @@ textarea {
     --border-style: solid;
     --border-width: 1px;
 
-    &.btn-top    { grid-area: top; }
-    &.btn-bottom { grid-area: bottom; }
-    &.btn-left   { grid-area: left; }
-    &.btn-right  { grid-area: right; }
+    &.btn-top {
+      grid-area: top;
+    }
+    &.btn-bottom {
+      grid-area: bottom;
+    }
+    &.btn-left {
+      grid-area: left;
+    }
+    &.btn-right {
+      grid-area: right;
+    }
 
     @media (max-width: 380px) {
       width: 60px;
@@ -827,7 +837,9 @@ textarea {
   }
 }
 
-.mt10 { margin-top: 10px; }
+.mt10 {
+  margin-top: 10px;
+}
 
 // ===== INTELLECTUAL STATE (Section 10) =====
 .intellectual-container {
@@ -1146,7 +1158,7 @@ textarea {
     border: none;
     border-top: 1px solid #e5e7eb;
     border-right: 1px solid #e5e7eb;
-    padding: 10px 12px;       // consistent, no extra top gap
+    padding: 10px 12px; // consistent, no extra top gap
     font-size: 14px;
     font-family: inherit;
     line-height: 1.5;
@@ -1159,11 +1171,11 @@ textarea {
     transition: background 0.2s ease;
     box-sizing: border-box;
     width: 100%;
-    display: block;           // removes inline top gap
+    display: block; // removes inline top gap
     vertical-align: top;
     -webkit-appearance: none;
     appearance: none;
-    margin: 0;                // browser default margin reset
+    margin: 0; // browser default margin reset
 
     &:last-child {
       border-right: none;
@@ -1265,14 +1277,16 @@ textarea {
 .fh-textarea {
   width: 100%;
   min-height: 140px;
-  padding: 10px 12px;        // no extra top gap
+  padding: 10px 12px; // no extra top gap
   border-radius: 10px;
   border: 1px solid #e5e7eb;
   resize: vertical;
   font-size: 14px;
   font-family: inherit;
   line-height: 1.5;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
   box-sizing: border-box;
   display: block;
   vertical-align: top;
@@ -1449,12 +1463,11 @@ textarea {
 ================================ */
 
 ion-accordion[value="s6"] {
-
   .modern-card {
     border-radius: 18px;
     padding: 16px;
     background: linear-gradient(180deg, #ffffff, #f9fafb);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.06);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
     border: 1px solid #eef2f7;
 
     @media (max-width: 480px) {
@@ -1534,7 +1547,7 @@ ion-accordion[value="s6"] {
     &:focus {
       background: #fff;
       border-color: #16a34a;
-      box-shadow: 0 0 0 2px rgba(22,163,74,0.15);
+      box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
     }
 
     @media (max-width: 480px) {
@@ -1553,7 +1566,7 @@ ion-accordion[value="s6"] {
 
     &:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 16px rgba(0,0,0,0.05);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
     }
 
     @media (max-width: 380px) {
@@ -1604,8 +1617,8 @@ ion-accordion[value="s6"] {
 .textarea {
   min-height: 90px;
   resize: vertical;
-  padding: 10px 12px;        // no extra top gap
-  padding-top: 10px;         // explicit, overrides any inherited top spacing
+  padding: 10px 12px; // no extra top gap
+  padding-top: 10px; // explicit, overrides any inherited top spacing
   vertical-align: top;
   display: block;
   line-height: 1.5;
@@ -1734,4 +1747,9 @@ ion-accordion[value="s6"] {
   @media (max-width: 480px) {
     width: 100%;
   }
+}
+
+input {
+  background: white !important;
+  color: black !important;
 }

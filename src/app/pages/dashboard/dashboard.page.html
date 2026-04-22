@@ -17,7 +17,7 @@
     <div class="greeting-card">
       <div class="greeting-left">
         <div class="greeting-title">
-          <span class="wave animate" style="font-size: 28px;">👋</span>
+          <span class="wave animate" style="font-size: 28px">👋</span>
           {{ greetingText }}, {{ userName }}
         </div>
         <div class="greeting-sub">Here's your daily overview</div>
@@ -263,6 +263,7 @@
               type="text"
               placeholder="Search Appointments"
               [(ngModel)]="search"
+              (keyup.enter)="onSearchClick()"
             />
           </div>
           <button

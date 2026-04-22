@@ -336,15 +336,13 @@ $bp-xs: 480px;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// INPUTS (global within component)
+// INPUTS (GLOBAL) - WITH CALENDAR/CLOCK ICON FIX
 // ═══════════════════════════════════════════════════════════════════════════
 
 .sym-input,
 .fu-input,
 .fu-textarea,
 input[type="text"],
-input[type="date"],
-input[type="time"],
 input[type="number"],
 input[type="password"],
 textarea,
@@ -380,6 +378,67 @@ select {
     font-size: 13px;
     padding: 8px 10px;
   }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DATE INPUT STYLING (with visible calendar icon)
+// ═══════════════════════════════════════════════════════════════════════════
+
+input[type="date"],
+input[type="time"] {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid $border;
+  border-radius: $r-md;
+  font-family: $font;
+  font-size: 13.5px;
+  color: $text-pri;
+  background: $surface;
+  transition: border-color .15s, box-shadow .15s;
+  outline: none;
+
+  // Allow browser default icons to show
+  appearance: auto;
+  -webkit-appearance: auto;
+
+  &::placeholder { 
+    color: $text-muted; 
+  }
+
+  &:focus {
+    border-color: $green;
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, .12);
+    background: $green-xlt;
+  }
+
+  &:disabled {
+    background: $surface2;
+    color: $text-muted;
+    cursor: not-allowed;
+    opacity: .7;
+  }
+
+  @media (max-width: $bp-xs) {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+}
+
+// Firefox date/time input styling
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  border-radius: 4px;
+  margin-right: 4px;
+  opacity: 1;
+  filter: invert(0.5);
+}
+
+// Style the calendar popup when date/time picker is open
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  background-color: $green-xlt;
+  opacity: 1;
 }
 
 .fu-textarea {
@@ -565,68 +624,6 @@ select {
 // MEDICINE TABLE
 // ═══════════════════════════════════════════════════════════════════════════
 
-// .med-table {
-//   width: 100%;
-//   border-collapse: collapse;
-//   min-width: 800px;
-//   table-layout: auto;
-
-//   th {
-//     background: $surface2;
-//     padding: 10px 14px;
-//     text-align: left;
-//     font-size: 11px;
-//     font-weight: 700;
-//     color: $text-muted;
-//     text-transform: uppercase;
-//     letter-spacing: .5px;
-//     border-bottom: 1px solid $border;
-//     white-space: nowrap;
-
-//     &.th-center { text-align: center; }
-
-//     // Column width hints
-//     &:nth-child(1) { min-width: 100px; } // Medicine Name
-//     &:nth-child(2) { min-width: 70px; }  // Dosage
-//     &:nth-child(3) { min-width: 70px; }  // Frequency
-//     &:nth-child(4) { min-width: 70px; }  // Duration
-//     &:nth-child(5) { min-width: 110px; } // Type - wider
-//     &:nth-child(6) { min-width: 90px; }  // Instructions
-//     &:nth-child(7) { width: 45px; }      // Delete button
-//   }
-
-//   td {
-//     padding: 9px 12px;
-//     border-bottom: 1px solid $border-lt;
-//     vertical-align: middle;
-
-//     &.td-center { text-align: center; }
-
-//     input, select {
-//       font-size: 13px;
-//       padding: 7px 10px;
-//       width: 100%;
-//       box-sizing: border-box;
-//     }
-
-//     // Column width alignment with headers
-//     &:nth-child(1) { min-width: 90px; } // Medicine Name
-//     &:nth-child(2) { min-width: 70px; }  // Dosage
-//     &:nth-child(3) { min-width: 70px; }  // Frequency
-//     &:nth-child(4) { min-width: 70px; }  // Duration
-//     &:nth-child(5) { min-width: 150px; } // Type - wider
-//     &:nth-child(6) { min-width: 90px; }  // Instructions
-//     &:nth-child(7) { width: 125px; }      // Delete button
-//   }
-
-//   tr:last-child td { border-bottom: none; }
-//   tr:hover td      { background: $green-xlt; }
-// }
-
-// ═══════════════════════════════════════════════════════════════════════════
-// MEDICINE TABLE (COMPLETE FIX)
-// ═══════════════════════════════════════════════════════════════════════════
-
 .table-scroll-wrap {
   overflow-x: auto;
   border-radius: $r-md;
@@ -808,6 +805,7 @@ select {
     transform: translateY(0);
   }
 }
+
 // ═══════════════════════════════════════════════════════════════════════════
 // RADIO GROUP
 // ═══════════════════════════════════════════════════════════════════════════
@@ -868,6 +866,8 @@ select {
   outline: none;
   white-space: nowrap;
   letter-spacing: .2px;
+  background: lightgrey;
+  color: black;
 
   &:disabled { opacity: .55; cursor: not-allowed; }
 
@@ -913,29 +913,6 @@ select {
   }
 }
 
-.btn-add-row {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 12px;
-  padding: 8px 18px;
-  border-radius: $r-md;
-  font-family: $font;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1.5px dashed $green-mid;
-  background: $green-lt;
-  color: $green;
-  transition: all .15s;
-
-  &:hover {
-    border-style: solid;
-    border-color: $green;
-    background: darken($green-lt, 3%);
-  }
-}
-
 .icon-btn {
   display: flex;
   align-items: center;
@@ -966,26 +943,33 @@ select {
 .card-footer {
   display: flex;
   align-items: center;
+  padding: 12px 16px;
+  border-top: 1px solid #edf1f7;
+  gap: 8px;
   justify-content: space-between;
-  gap: 12px;
-  padding: 18px 24px;
-  border-top: 1px solid $border;
-  background: $surface2;
-  flex-wrap: wrap;
 
-  &--right { justify-content: flex-end; }
+  &--right {
+    // Previous Medical — auto pushes to left
+    .btn:first-child {
+      margin-right: auto;
+    }
 
-  @media (max-width: $bp-sm) { padding: 14px 18px; }
-}
+    // Cancel + Save — stay on right side
+  }
 
-.footer-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
+  @media (max-width: 480px) {
+    flex-wrap: wrap;
 
-  @media (max-width: $bp-xs) {
-    width: 100%;
-    .btn { flex: 1; justify-content: center; }
+    &--right {
+      .btn:first-child {
+        width: 100%;
+        margin-right: 0;
+      }
+
+      .btn:not(:first-child) {
+        flex: 1;
+      }
+    }
   }
 }
 
@@ -1537,39 +1521,6 @@ select {
 ::-webkit-scrollbar-track { background: $bg; }
 ::-webkit-scrollbar-thumb { background: $border; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: $green-mid; }
-
-
-.card-footer {
-  display: flex;
-  align-items: center;
-  padding: 12px 16px;
-  border-top: 1px solid #edf1f7;
-  gap: 8px;
-
-  &--right {
-    // Previous Medical — auto pushes to left
-    .btn:first-child {
-      margin-right: auto;
-    }
-
-    // Cancel + Save — stay on right side
-  }
-
-  @media (max-width: 480px) {
-    flex-wrap: wrap;
-
-    &--right {
-      .btn:first-child {
-        width: 100%;
-        margin-right: 0;
-      }
-
-      .btn:not(:first-child) {
-        flex: 1;
-      }
-    }
-  }
-}
 
 // Placeholder styling for select elements
 .med-select,

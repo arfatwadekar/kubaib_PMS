@@ -183,7 +183,7 @@
                       type="text"
                       placeholder="1–10"
                       [(ngModel)]="symptomStatus[i]"
-                        (input)="validateSymptom($event, i); triggerAutosave()"
+                      (input)="validateSymptom($event, i); triggerAutosave()"
                     />
                   </td>
                 </tr>
@@ -201,39 +201,40 @@
             placeholder="Enter clinical interpretation…"
           ></textarea>
         </div> -->
-        
-        
+
         <div class="form-section" *ngIf="!isFirstVisit">
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+            "
+          >
+            <label style="font-weight: 600; font-size: 14px">
+              Interpretation
+            </label>
 
-  <div style="display: flex; justify-content: space-between; align-items: center;">
-    
-    <label style="font-weight: 600; font-size: 14px;">
-      Interpretation
-    </label>
+            <span style="font-size: 12px; color: #6c757d">
+              (Max 1000 characters)
+            </span>
+          </div>
 
-    <span style="font-size: 12px; color: #6c757d;">
-      (Max 1000 characters)
-    </span>
-
-  </div>
-
-  <textarea
-  [(ngModel)]="interpretation"
-  (ngModelChange)="onInterpretationChange($event)"
-  maxlength="1000"
-  placeholder="Enter clinical interpretation…"
-  style="
-    width: 100%;
-    min-height: 100px;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    margin-top: 6px;
-    outline: none;
-  "
-></textarea>
-
-</div>
+          <textarea
+            [(ngModel)]="interpretation"
+            (ngModelChange)="onInterpretationChange($event)"
+            maxlength="1000"
+            placeholder="Enter clinical interpretation…"
+            style="
+              width: 100%;
+              min-height: 100px;
+              padding: 10px;
+              border-radius: 8px;
+              border: 1px solid #ccc;
+              margin-top: 6px;
+              outline: none;
+            "
+          ></textarea>
+        </div>
 
         <!-- ── Prescribed Medicines ── -->
         <!-- <div class="form-section">
@@ -311,85 +312,104 @@
           </button>
         </div> -->
 
-<div class="form-section">
-  <label class="field-label">Prescribed Medicines</label>
-  <div class="table-scroll-wrap">
-    <table class="med-table">
-      <thead>
-        <tr>
-          <th>Medicine Name</th>
-          <th>Dosage</th>
-          <th>Frequency</th>
-          <th>Duration</th>
-          <th>Type</th>
-          <th>Instructions</th>
-          <!-- <th>Issue</th> -->
-          <th class="th-center">Del</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let med of prescriptions; let i = index">
-          <td class="med-name-col">
-           <select
-  [(ngModel)]="med.medicineId"
-  (change)="onMedicineChange($event, i); triggerAutosave()"
-  [name]="'medicine' + i"
-  class="custom-select"
->
-  <option [ngValue]="null" disabled>Select Medicine</option>
+        <div class="form-section">
+          <label class="field-label">Prescribed Medicines</label>
+          <div class="table-scroll-wrap">
+            <table class="med-table">
+              <thead>
+                <tr>
+                  <th>Medicine Name</th>
+                  <th>Dosage</th>
+                  <th>Frequency</th>
+                  <th>Duration</th>
+                  <th>Type</th>
+                  <th>Instructions</th>
+                  <!-- <th>Issue</th> -->
+                  <th class="th-center">Del</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let med of prescriptions; let i = index">
+                  <td class="med-name-col">
+                    <select
+                      [(ngModel)]="med.medicineId"
+                      (change)="onMedicineChange($event, i); triggerAutosave()"
+                      [name]="'medicine' + i"
+                      class="custom-select"
+                    >
+                      <option [ngValue]="null" disabled>Select Medicine</option>
 
-  <option
-    *ngFor="let m of medicines"
-    [ngValue]="m.medicineId"
-  >
-    {{ m.name }}
-  </option>
+                      <option
+                        *ngFor="let m of medicines"
+                        [ngValue]="m.medicineId"
+                      >
+                        {{ m.name }}
+                      </option>
 
-  <option value="add_new">➕ Add New Medicine</option>
-</select>
-          </td>
-          <td>
-            <input type="text" [(ngModel)]="med.dosage" 
-            (ngModelChange)="triggerAutosave()" placeholder="e.g. 500mg" />
-          </td>
-          <td>
-            <input type="text" [(ngModel)]="med.frequency"
-            (ngModelChange)="triggerAutosave()" placeholder="e.g. 1-0-1" />
-          </td>
-          <td>
-            <input type="text" [(ngModel)]="med.duration"
-            (ngModelChange)="triggerAutosave()" placeholder="e.g. 5 days" />
-          </td>
-          <td>
-            <select [(ngModel)]="med.type" (ngModelChange)="triggerAutosave()">
-              <option value="" disabled selected>Select Type</option>
-              <option>Tablet</option>
-              <option>Capsule</option>
-              <option>Syrup</option>
-              <option>Injection</option>
-            </select>
-          </td>
-          <td>
-            <input type="text" [(ngModel)]="med.instructions"
-            (ngModelChange)="triggerAutosave()" placeholder="After meals…" />
-          </td>
-          <td class="td-center">
-            <button
-              class="icon-btn icon-btn--danger"
-              (click)="removeMedicineRow(i)"
-              type="button"
-            >
-              ✕
-            </button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <button class="btn-add-row" (click)="addMedicineRow()" type="button">
-    ＋ Add Medicine
-  </button>
-</div>
+                      <option value="add_new">➕ Add New Medicine</option>
+                    </select>
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      [(ngModel)]="med.dosage"
+                      (ngModelChange)="triggerAutosave()"
+                      placeholder="e.g. 500mg"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      [(ngModel)]="med.frequency"
+                      (ngModelChange)="triggerAutosave()"
+                      placeholder="e.g. 1-0-1"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      [(ngModel)]="med.duration"
+                      (ngModelChange)="triggerAutosave()"
+                      placeholder="e.g. 5 days"
+                    />
+                  </td>
+                  <td>
+                    <select
+                      [(ngModel)]="med.type"
+                      (ngModelChange)="triggerAutosave()"
+                    >
+                      <option value="" disabled selected>Select Type</option>
+                      <option>Tablet</option>
+                      <option>Capsule</option>
+                      <option>Syrup</option>
+                      <option>Injection</option>
+                    </select>
+                  </td>
+                  <td>
+                    <input
+                      type="text"
+                      [(ngModel)]="med.instructions"
+                      (ngModelChange)="triggerAutosave()"
+                      placeholder="After meals…"
+                    />
+                  </td>
+                  <td class="td-center">
+                    <button
+                      class="icon-btn icon-btn--danger"
+                      (click)="removeMedicineRow(i)"
+                      type="button"
+                    >
+                      ✕
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <button class="btn-add-row" (click)="addMedicineRow()" type="button">
+            ＋ Add Medicine
+          </button>
+        </div>
 
         <!-- ── Charges ── -->
         <div class="form-grid form-grid--2">
@@ -405,7 +425,7 @@
               placeholder="0"
             />
           </div>
-          <div class="form-section mb-0">
+          <!-- <div class="form-section mb-0">
             <label class="field-label">Wave Off Charges?</label>
             <div class="radio-group">
               <label class="radio-opt">
@@ -423,6 +443,32 @@
                   type="radio"
                   name="waveoff"
                   value="yes"
+                  (change)="onWaveOffChange('yes')"
+                />
+                Yes
+              </label>
+            </div>
+          </div> -->
+
+          <div class="form-section mb-0">
+            <label class="field-label">Wave Off Charges?</label>
+            <div class="radio-group">
+              <label class="radio-opt">
+                <input
+                  type="radio"
+                  name="waveoff"
+                  value="no"
+                  [checked]="!waveOffSelected"
+                  (change)="onWaveOffChange('no')"
+                />
+                No
+              </label>
+              <label class="radio-opt">
+                <input
+                  type="radio"
+                  name="waveoff"
+                  value="yes"
+                  [checked]="waveOffSelected"
                   (change)="onWaveOffChange('yes')"
                 />
                 Yes
@@ -475,15 +521,12 @@
       </div>
       <!-- /card-body -->
       <!-- Card Footer -->
-        
 
       <div class="card-footer card-footer--right">
         <button class="btn btn--secondary" (click)="goToMedical()">
           🩺 Previous Medical
         </button>
         <button class="btn btn--ghost">Cancel</button>
-
-       
 
         <button
           class="btn btn--primary"
@@ -650,8 +693,9 @@
             <div class="hist-payment-row" *ngIf="appt.payment">
               <!-- <span></span> -->
               <div class="hist-pills">
-                <span class="hist-pill"
-                  > 💰 Charges: <b>₹{{ appt.payment.consultationCharges }}</b></span
+                <span class="hist-pill">
+                  💰 Charges:
+                  <b>₹{{ appt.payment.consultationCharges }}</b></span
                 >
                 <span
                   class="hist-pill hist-pill--warning"
@@ -746,9 +790,7 @@
         Cancel
       </button>
 
-      <button class="btn btn--primary" (click)="saveNewMedicine()">
-        Save
-      </button>
+      <button class="btn btn--primary" (click)="saveNewMedicine()">Save</button>
     </div>
   </div>
 </div>

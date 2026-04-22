@@ -601,10 +601,22 @@ async onMedicineChange(event: any, index: number) {
   // PASSWORD MODAL
   // ─────────────────────────────────────────────────────────────────────────
 
-  closePasswordModal() {
-    this.showPasswordModal = false;
-    this.adminPassword = '';
+  // closePasswordModal() {
+  //   this.showPasswordModal = false;
+  //   this.adminPassword = '';
+  // }
+
+  // AFTER
+closePasswordModal() {
+  this.showPasswordModal = false;
+  this.adminPassword = '';
+  
+  // If password not verified, revert wave-off selection back to No
+  if (!this.waveOffVerified) {
+    this.waveOffSelected = false;
+    this.waveOffAmount = 0;
   }
+}
 
   async verifyAdminPassword() {
     if (!this.adminPassword) {

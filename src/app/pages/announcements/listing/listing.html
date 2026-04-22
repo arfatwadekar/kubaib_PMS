@@ -128,14 +128,33 @@
             <td class="col-created">{{ (a.createdDate || a.createdOn) | date:'dd MMM yyyy' }}</td>
 
             <td class="col-actions cell-actions">
-              <button
+              <!-- <button
                 class="action-btn action-btn--toggle"
                 [class.action-btn--activate]="a.status !== 1"
                 (click)="toggleStatus(a)"
                 [title]="a.status === 1 ? 'Mark Inactive' : 'Mark Active'"
               >
                 <ion-icon [name]="a.status === 1 ? 'pause-circle-outline' : 'play-circle-outline'"></ion-icon>
-              </button>
+              </button> -->
+
+              <button
+  class="action-btn action-btn--toggle"
+  [class.action-btn--activate]="a.status !== 1"
+  (click)="toggleStatus(a)"
+  [disabled]="a.status !== 1 && isExpired(a)"
+  [title]="
+    a.status === 1
+      ? 'Mark Inactive'
+      : isExpired(a)
+        ? 'Cannot activate expired announcement'
+        : 'Mark Active'
+  "
+>
+  <ion-icon 
+    [name]="a.status === 1 ? 'pause-circle-outline' : 'play-circle-outline'">
+  </ion-icon>
+</button>
+
               <button class="action-btn action-btn--edit" (click)="edit(a.id)" title="Edit">
                 <ion-icon name="pencil-outline"></ion-icon>
               </button>
