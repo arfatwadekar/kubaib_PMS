@@ -446,13 +446,16 @@ export class PatientListPage implements OnInit, OnDestroy {
 
       this.closeAppointmentPanel();
       this.loadPatients();
-    } catch {
-      await (
-        await this.toastCtrl.create({
-          message: 'Operation failed',
-          duration: 2000,
-        })
-      ).present();
+    } catch (err) {
+      // catch {
+      //   await (
+      //     await this.toastCtrl.create({
+      //       message: 'Operation failed',
+      //       duration: 2000,
+      //     })
+      //   ).present();
+      // }
+      await this.handleError(err, 'Operation failed');
     } finally {
       this.creatingAppointment = false;
     }
