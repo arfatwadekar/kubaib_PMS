@@ -25,7 +25,7 @@ export class SideMenuComponent implements OnInit {
 
   private readonly MENU_ID = 'mainMenu';
 
-  clinicName = 'Mariam Health Care';
+  clinicName = 'Mumbra Health Care';
   role: UserRole | null = null;
 
   menuSections: MenuSection[] = [
