@@ -1217,7 +1217,10 @@ async saveFollowUp() {
       this.summaryHistory = res?.appointments || [];
       this.summaryPage = res?.page || 1;
       this.summaryTotalPages = res?.totalPages || 0;
-      this.summaryTotalCount = res?.totalCount || 0;
+      // this.summaryTotalCount = res?.totalCount || 0;
+
+      this.summaryHistory = res?.appointments || [];
+this.summaryTotalCount = this.summaryHistory.length;
 
       console.log(this.currentAppointmentId);
       console.log(this.summaryHistory);
