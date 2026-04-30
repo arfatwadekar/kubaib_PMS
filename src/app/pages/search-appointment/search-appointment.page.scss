@@ -894,3 +894,14 @@ ion-content.page {
     cursor: not-allowed;
   }
 }
+
+.patient-name-link {
+  cursor: pointer;
+  color: var(--ion-color-primary);
+  font-weight: 600;
+
+  &:hover {
+    text-decoration: underline;
+    opacity: 0.85;
+  }
+}

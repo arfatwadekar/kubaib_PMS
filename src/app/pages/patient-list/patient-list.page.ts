@@ -261,9 +261,7 @@ export class PatientListPage implements OnInit, OnDestroy {
 
     switch (data.action) {
       case 'edit':
-        this.router.navigate(['/patients'], {
-          queryParams: { patientId: row.id, tab: 'prelim', from: 'list' },
-        });
+        this.navigateToPatient(row);
         break;
 
       case 'appointment':
@@ -330,7 +328,12 @@ export class PatientListPage implements OnInit, OnDestroy {
 
     this.showAppointmentPanel = true;
   }
-
+  // Add this method — same logic as the edit case in openActions()
+  navigateToPatient(row: Row): void {
+    this.router.navigate(['patients'], {
+      queryParams: { patientId: row.id, tab: 'prelim', from: 'list' }
+    });
+  }
   closeAppointmentPanel(): void {
     this.showAppointmentPanel = false;
     this.selectedPatientForAppt = null;

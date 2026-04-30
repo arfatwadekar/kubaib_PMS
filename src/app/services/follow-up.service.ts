@@ -186,6 +186,7 @@ export class FollowUpService {
     return this.http.delete(this.url(this.EP.CRITERIA_DELETE(criteriaId)));
   }
 
+
   // ── FollowUp Entry ────────────────────────────────────────────────────────
 
   getFollowUpsByPatient(patientId: number): Observable<any> {

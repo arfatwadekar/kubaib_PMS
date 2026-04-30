@@ -156,7 +156,42 @@ export class SearchAppointmentPage implements OnInit {
       this.applyFilter();
     }
   }
+// Add this import at the top (already have AppointmentStatus imported ✅)
 
+// Add this method to the class
+openPatient(row: UiRow): void {
+  const patientId = row.patient?.patientId ?? (row as any).patientId;
+  if (!patientId) return;
+
+  const role = localStorage.getItem('mhcrole')?.trim().toLowerCase();
+  let route = 'patients/prelim';
+  let tab = 'prelim';
+
+  // Doctor → always medical tab
+  if (role === 'doctor') {
+    route = 'patients/medical';
+    tab = 'medical';
+  }
+  // Receptionist → route based on status
+  else if (role === 'receptionist') {
+    if (Number(row.status) === AppointmentStatus.AwaitingPayment) {
+      route = 'patients/payment';
+      tab = 'payment';
+    } else {
+      route = 'patients/prelim';
+      tab = 'prelim';
+    }
+  }
+
+  this.router.navigate([route], {
+    queryParams: {
+      patientId: patientId,
+      appointmentId: row.appointmentId,
+      from: 'dashboard',   // ← same as dashboard so tab-disable logic works
+      tab
+    }
+  });
+}
   prevPage() {
     if (this.currentPage > 1) {
       this.currentPage--;

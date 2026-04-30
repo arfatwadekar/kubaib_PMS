@@ -82,15 +82,18 @@
                 />
               </div>
 
-              <!-- <div class="col-act">
-                <button
-                  type="button"
-                  class="icon-btn icon-btn--danger"
-                  *ngIf="!isSaved || isEditMode"
-                >
-                  ✕
-                </button>
-              </div> -->
+              <div class="col-act">
+              <button
+                type="button"
+                class="icon-btn icon-btn--danger"
+                *ngIf="isEditMode && $any(fuSymptomsArr.controls[i])?.criteriaId"
+                (click)="deleteCriteria(i)"
+                [disabled]="criteriaLoading"
+                title="Delete symptom"
+              >
+                ✕
+              </button>
+            </div>
             </div>
           </div>
         </form>
@@ -143,7 +146,7 @@
     <!-- ═══════════════════════════════════════════════════
          CARD 2 — FOLLOW-UP RECORD
     ═══════════════════════════════════════════════════ -->
-    <div class="fu-card" *ngIf="!isFollowUpAlreadySaved">
+    <div class="fu-card">
       <!-- Gradient header -->
       <div class="record-header">
         <div class="record-header-left">
@@ -159,38 +162,69 @@
       </div>
 
       <div class="card-body">
-        <!-- ── Follow-Up Symptoms Rating ── -->
-        <div class="form-section" *ngIf="!isFirstVisit">
-          <label class="field-label">Follow-Up Symptom Status (1 – 10)</label>
-          <div class="table-scroll-wrap">
-            <table class="rating-table">
-              <thead>
-                <tr>
-                  <th class="th-left">Symptom</th>
-                  <th *ngFor="let sym of symptomsArray; let i = index">
-                    {{ i + 1 }}<br />
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td class="td-label">Status</td>
-                  <td
-                    *ngFor="let ctrl of fuSymptomsArr.controls; let i = index"
-                  >
+      <!-- ── Saved Banner + Edit Button ── -->
+      <div
+        *ngIf="isFollowUpAlreadySaved && !isFollowUpEditMode"
+        style="
+          background: #d1fae5;
+          border: 1px solid #6ee7b7;
+          border-radius: 8px;
+          padding: 10px 16px;
+          margin-bottom: 16px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        "
+      >
+        <span style="color: #065f46; font-weight: 600;">
+          ✅ Follow-up already saved for this appointment.
+        </span>
+        <button
+          *ngIf="isAppointmentEditable"
+          class="btn btn--outline"
+          (click)="enableFollowUpEdit()"
+          style="margin-left: 16px;"
+        >
+          ✎ Edit Follow-Up
+        </button>
+      </div>
+
+        <!-- ── Wrap all form content ── -->
+        <ng-container *ngIf="!isFollowUpAlreadySaved || isFollowUpEditMode">
+          <!-- ── Follow-Up Symptoms Rating ── -->
+          <div class="form-section" *ngIf="!isFirstVisit">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <label class="field-label" style="margin: 0;">Follow-Up Symptom Status (1 – 10)</label>
+        </div>
+            <div class="table-scroll-wrap">
+              <table class="rating-table">
+                <thead>
+                  <tr>
+                    <th class="th-left">Symptom</th>
+                    <th *ngFor="let sym of symptomsArray; let i = index">
+                      {{ i + 1 }}<br />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="td-label">Status</td>
+                    <td *ngFor="let sym of symptomsArray; trackBy: trackBySymIndex">
                     <input
                       class="rating-input"
                       type="text"
                       placeholder="1–10"
-                      [(ngModel)]="symptomStatus[i]"
-                      (input)="validateSymptom($event, i); triggerAutosave()"
+                      [(ngModel)]="symptomStatus[sym.index]"
+                      (input)="validateSymptom($event, sym.index); triggerAutosave()"
+                      [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode"
                     />
                   </td>
-                </tr>
-              </tbody>
-            </table>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-        </div>
+
 
         <!-- ── Interpretation ── -->
         <!-- <div class="form-section" *ngIf="!isFirstVisit">
@@ -219,22 +253,24 @@
             </span>
           </div>
 
-          <textarea
-            [(ngModel)]="interpretation"
-            (ngModelChange)="onInterpretationChange($event)"
-            maxlength="1000"
-            placeholder="Enter clinical interpretation…"
-            style="
-              width: 100%;
-              min-height: 100px;
-              padding: 10px;
-              border-radius: 8px;
-              border: 1px solid #ccc;
-              margin-top: 6px;
-              outline: none;
-            "
-          ></textarea>
-        </div>
+  <textarea
+  [(ngModel)]="interpretation"
+  (ngModelChange)="onInterpretationChange($event)"
+  [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode"
+  maxlength="1000"
+  placeholder="Enter clinical interpretation…"
+  style="
+    width: 100%;
+    min-height: 100px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    margin-top: 6px;
+    outline: none;
+  "
+></textarea>
+
+</div>
 
         <!-- ── Prescribed Medicines ── -->
         <!-- <div class="form-section">
@@ -298,6 +334,7 @@
                     <button
                       class="icon-btn icon-btn--danger"
                       (click)="removeMedicineRow(i)"
+                      [disabled]="isDeletingPrescription"
                       style="background: #dc2626; color: white"
                     >
                       ✕
@@ -423,6 +460,7 @@
               (wheel)="$event.preventDefault()"
               min="0"
               placeholder="0"
+              [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode"
             />
           </div>
           <!-- <div class="form-section mb-0">
@@ -435,6 +473,7 @@
                   value="no"
                   checked
                   (change)="onWaveOffChange('no')"
+                  [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode"
                 />
                 No
               </label>
@@ -444,32 +483,7 @@
                   name="waveoff"
                   value="yes"
                   (change)="onWaveOffChange('yes')"
-                />
-                Yes
-              </label>
-            </div>
-          </div> -->
-
-          <div class="form-section mb-0">
-            <label class="field-label">Wave Off Charges?</label>
-            <div class="radio-group">
-              <label class="radio-opt">
-                <input
-                  type="radio"
-                  name="waveoff"
-                  value="no"
-                  [checked]="!waveOffSelected"
-                  (change)="onWaveOffChange('no')"
-                />
-                No
-              </label>
-              <label class="radio-opt">
-                <input
-                  type="radio"
-                  name="waveoff"
-                  value="yes"
-                  [checked]="waveOffSelected"
-                  (change)="onWaveOffChange('yes')"
+                  [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode"
                 />
                 Yes
               </label>
@@ -486,7 +500,7 @@
             (ngModelChange)="onWaveOffAmountChange($event); triggerAutosave()"
             (wheel)="$event.preventDefault()"
             placeholder="0.00"
-            [disabled]="!waveOffVerified"
+            [disabled]="!waveOffVerified || (isFollowUpAlreadySaved && !isFollowUpEditMode)"
           />
         </div>
 
@@ -519,24 +533,35 @@
           </div>
         </div>
       </div>
+      </ng-container>   
       <!-- /card-body -->
       <!-- Card Footer -->
+        
 
-      <div class="card-footer card-footer--right">
-        <button class="btn btn--secondary" (click)="goToMedical()">
-          🩺 Previous Medical
-        </button>
+      <div class="card-footer card-footer--right" *ngIf="!isFollowUpAlreadySaved || isFollowUpEditMode">
         <button class="btn btn--ghost">Cancel</button>
 
-        <button
-          class="btn btn--primary"
-          (click)="saveFollowUp()"
-          [disabled]="!isFollowUpFormValid()"
-        >
-          💾 Save Follow-Up
-        </button>
-      </div>
-    </div>
+        <ng-container *ngIf="!isFollowUpAlreadySaved">
+          <button
+            class="btn btn--primary"
+            (click)="saveFollowUp()"
+            [disabled]="!isFollowUpFormValid()"
+          >
+            💾 Save Follow-Up
+          </button>
+        </ng-container>
+        
+        <ng-container *ngIf="isFollowUpAlreadySaved && isFollowUpEditMode">
+          
+          <button
+            class="btn btn--primary"
+            (click)="saveFollowUpEdit()"
+            [disabled]="!isFollowUpFormValid()"
+          >
+            💾 Save Changes
+          </button>
+        </ng-container>
+              </div>
     <!-- /fu-card record -->
 
     <!-- ═══════════════════════════════════════════════════
@@ -741,7 +766,7 @@
       </div>
     </div>
     <!-- /hist-section -->
-  </div>
+
   <!-- /fu-wrap -->
 </div>
 <!-- /fu-container -->

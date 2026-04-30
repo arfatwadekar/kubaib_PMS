@@ -82,13 +82,10 @@
 
           <tbody>
             <tr *ngFor="let r of filtered; trackBy: trackById">
-              <td class="bold" data-label="Patient">
-                {{ r.patient?.fullName || 'Unknown' }}
-              </td>
-
-              <td data-label="PID">
-                {{ r.patient?.patientIdFormatted || 'N/A' }}
-              </td>
+            <td class="bold patient-name-link" data-label="Patient" (click)="openPatient(r)">
+              {{ r.patient?.fullName || 'Unknown' }}
+            </td>
+            <td data-label="PID">{{ r.patient?.patientIdFormatted || 'N/A' }}</td>
 
               <td data-label="Phone">{{ r.patient?.phoneNumber || 'N/A' }}</td>
 

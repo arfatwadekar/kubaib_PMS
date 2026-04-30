@@ -620,3 +620,15 @@ select{
     background: white !important;
   color: black !important;
 }
+
+
+.patient-name-link {
+  cursor: pointer;
+  color: var(--ion-color-primary);   // or your theme blue/teal
+  font-weight: 600;
+
+  &:hover {
+    text-decoration: underline;
+    opacity: 0.85;
+  }
+}

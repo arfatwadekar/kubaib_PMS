@@ -66,24 +66,22 @@ export class PaymentPage implements OnInit, OnDestroy {
   /* ================================================= */
 
   ngOnInit(): void {
-
     this.sub.add(
       this.route.queryParams.subscribe(params => {
-
-        this.patientId = Number(params['patientId']);
+        this.patientId    = Number(params['patientId']);
         this.appointmentId = Number(params['appointmentId']);
 
-        if (!this.appointmentId) {
-          this.toast('Invalid appointment');
-          return;
+        // ✅ Always load history if patientId exists
+        if (this.patientId) {
+          this.loadPaymentHistory();
         }
 
-        this.loadPaymentData();
-        this.loadPaymentHistory();
-
+        // ✅ Only load appointment payment data if appointmentId exists
+        if (this.appointmentId) {
+          this.loadPaymentData();
+        }
       })
     );
-
   }
 
   ngOnDestroy(): void {

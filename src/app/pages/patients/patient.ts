@@ -194,32 +194,21 @@ private navigateToTab(tab: TabKey) {
 // }
 
 isTabDisabled(tab: TabKey): boolean {
+  const mode  = this.route.snapshot.queryParamMap.get('mode');
+  const from  = this.route.snapshot.queryParamMap.get('from');
 
-  const mode = this.route.snapshot.queryParamMap.get('mode');
-  const from = this.route.snapshot.queryParamMap.get('from');
-
-  /* CREATE PATIENT → ONLY PRELIMINARY */
-
-  if (mode === 'create') {
+  // ── CREATE MODE: patientId is null — only Prelim allowed ──────────
+  if (mode === 'create' || !this.patientId) {
     return tab !== 'prelim';
   }
 
-  /* EDIT FROM PATIENT LIST → ONLY PRELIMINARY */
+  // ── EDIT FROM PATIENT LIST: only Prelim allowed ───────────────────
+  // if (from === 'list') {
+  //   return tab !== 'prelim';
+  // }
 
-  if (from === 'list') {
-    return tab !== 'prelim';
-  }
-
-  /* DASHBOARD → ROLE BASED */
-
-  if (from === 'dashboard') {
-    return !this.isTabAllowed(tab);
-  }
-
-  /* DEFAULT → ROLE BASED */
-
+  // ── DASHBOARD / DEFAULT: role-based permission ────────────────────
   return !this.isTabAllowed(tab);
-
 }
 
 unreadCount = 0;
