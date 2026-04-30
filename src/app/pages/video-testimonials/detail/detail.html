@@ -73,31 +73,7 @@
         </div>
 
         <!-- ── IMAGE UPLOAD (create / edit) ──────── -->
-        <div class="form-group" *ngIf="mode !== 'view'">
-          <label>Choose Thumnail</label>
-          <label class="file-label" [class.disabled]="totalImageCount >= 4"   style="width: 100%; padding: 12px 14px">
-            <ion-icon name="cloud-upload-outline"></ion-icon>
-            Choose Files
-            <input
-              type="file"
-              multiple
-              accept=".jpg,.jpeg,.png,.pdf"
-              (change)="onImagesSelected($event)"
-              [disabled]="totalImageCount >= 4"
-              hidden
-            />
-          </label>
-          <label>
-            Images
-            <span class="hint"
-              >(Max {{ 4 }}, JPG / PNG / PDF, max 10 MB each)</span
-            >
-          </label>
-
-          <span class="error" *ngIf="imageError">{{ imageError }}</span>
-          <!-- <span class="hint-count">{{ totalImageCount }} / 4 images</span> -->
-        </div>
-
+      
         <!-- ── EXISTING IMAGES (edit / view) ──────── -->
         <div class="form-group" *ngIf="existingImages.length > 0">
           <label>{{ mode === 'view' ? 'Images' : 'Existing Images' }}</label>

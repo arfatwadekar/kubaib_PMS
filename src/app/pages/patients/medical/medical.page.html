@@ -102,6 +102,7 @@
               >
                 <!-- Title -->
                 <div class="card-title">{{section.title}}</div>
+                <span> (1000 characters)</span>
 
                 <!-- Table -->
                 <div class="table-wrap">
@@ -117,19 +118,19 @@
                   <div class="table-row" [formGroupName]="section.key">
                     <textarea
                       formControlName="location"
-                      placeholder="Location"
+                      maxlength="1000"
                     ></textarea>
                     <textarea
                       formControlName="sensation"
-                      placeholder="Sensation"
+                      maxlength="1000"
                     ></textarea>
                     <textarea
                       formControlName="modality"
-                      placeholder="Modality"
+                      maxlength="1000"
                     ></textarea>
                     <textarea
                       formControlName="concomitant"
-                      placeholder="Concomitant"
+                      maxlength="1000"
                     ></textarea>
                   </div>
                 </div>
@@ -915,7 +916,8 @@
                     margin: 0 0 6px 2px;
                     text-transform: uppercase;
                   "
-                  >Anger / Sadness / Somatization Remark</label
+                  >Anger / Sadness / Somatization Remark (1000
+                  characters)</label
                 >
                 <textarea
                   class="inp"
@@ -935,7 +937,7 @@
                     text-transform: uppercase;
                   "
                   class="lbl"
-                  >General Mental State Evaluation</label
+                  >General Mental State Evaluation (1000 characters)</label
                 >
                 <textarea
                   class="inp"
@@ -1101,7 +1103,7 @@
                           font-weight: 500;
                         "
                       >
-                        Remark
+                        Remark (500 characters)
                       </div>
 
                       <textarea
@@ -1176,7 +1178,7 @@ SECTION 9: BEHAVIORAL EVALUATION
                   </div>
 
                   <div class="ps-field full">
-                    <label>Action Description</label>
+                    <label>Action Description (500 characters)</label>
                     <textarea
                       class="ps-input textarea"
                       formControlName="action_Description"
@@ -1214,7 +1216,7 @@ SECTION 9: BEHAVIORAL EVALUATION
                 </div>
 
                 <div class="ps-field full mt10">
-                  <label>Block Notes</label>
+                  <label>Block Notes (500 characters)</label>
                   <textarea
                     class="ps-input textarea"
                     formControlName="block_Notes"

@@ -83,17 +83,17 @@
               </div>
 
               <div class="col-act">
-              <button
-                type="button"
-                class="icon-btn icon-btn--danger"
-                *ngIf="isEditMode && $any(fuSymptomsArr.controls[i])?.criteriaId"
-                (click)="deleteCriteria(i)"
-                [disabled]="criteriaLoading"
-                title="Delete symptom"
-              >
-                ✕
-              </button>
-            </div>
+                <button
+                  type="button"
+                  class="icon-btn icon-btn--danger"
+                  *ngIf="isEditMode && $any(fuSymptomsArr.controls[i])?.criteriaId"
+                  (click)="deleteCriteria(i)"
+                  [disabled]="criteriaLoading"
+                  title="Delete symptom"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           </div>
         </form>
@@ -101,10 +101,10 @@
 
       <!-- Card Footer -->
       <div class="card-footer">
-        <p class="info-hint">
+        <!-- <p class="info-hint">
           <span class="info-icon">ℹ</span>
           Rows auto-expand as you fill them. Maximum of 10 entries allowed.
-        </p>
+        </p> -->
         <div class="footer-actions">
           <button
             type="button"
@@ -162,40 +162,49 @@
       </div>
 
       <div class="card-body">
-      <!-- ── Saved Banner + Edit Button ── -->
-      <div
-        *ngIf="isFollowUpAlreadySaved && !isFollowUpEditMode"
-        style="
-          background: #d1fae5;
-          border: 1px solid #6ee7b7;
-          border-radius: 8px;
-          padding: 10px 16px;
-          margin-bottom: 16px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        "
-      >
-        <span style="color: #065f46; font-weight: 600;">
-          ✅ Follow-up already saved for this appointment.
-        </span>
-        <button
-          *ngIf="isAppointmentEditable"
-          class="btn btn--outline"
-          (click)="enableFollowUpEdit()"
-          style="margin-left: 16px;"
+        <!-- ── Saved Banner + Edit Button ── -->
+        <div
+          *ngIf="isFollowUpAlreadySaved && !isFollowUpEditMode"
+          style="
+            background: #d1fae5;
+            border: 1px solid #6ee7b7;
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
         >
-          ✎ Edit Follow-Up
-        </button>
-      </div>
+          <span style="color: #065f46; font-weight: 600">
+            ✅ Follow-up already saved for this appointment.
+          </span>
+          <button
+            *ngIf="isAppointmentEditable"
+            class="btn btn--outline"
+            (click)="enableFollowUpEdit()"
+            style="margin-left: 16px"
+          >
+            ✎ Edit Follow-Up
+          </button>
+        </div>
 
         <!-- ── Wrap all form content ── -->
         <ng-container *ngIf="!isFollowUpAlreadySaved || isFollowUpEditMode">
           <!-- ── Follow-Up Symptoms Rating ── -->
           <div class="form-section" *ngIf="!isFirstVisit">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <label class="field-label" style="margin: 0;">Follow-Up Symptom Status (1 – 10)</label>
-        </div>
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+              "
+            >
+              <label class="field-label" style="margin: 0"
+                >Follow-Up Symptom Status (Yes/No)</label
+              >
+            </div>
             <div class="table-scroll-wrap">
               <table class="rating-table">
                 <thead>
@@ -209,25 +218,26 @@
                 <tbody>
                   <tr>
                     <td class="td-label">Status</td>
-                    <td *ngFor="let sym of symptomsArray; trackBy: trackBySymIndex">
-                    <input
-                      class="rating-input"
-                      type="text"
-                      placeholder="1–10"
-                      [(ngModel)]="symptomStatus[sym.index]"
-                      (input)="validateSymptom($event, sym.index); triggerAutosave()"
-                      [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode"
-                    />
-                  </td>
+                    <td
+                      *ngFor="let sym of symptomsArray; trackBy: trackBySymIndex"
+                    >
+                      <input
+                        class="rating-input"
+                        type="text"
+                        placeholder="Yes/No"
+                        [(ngModel)]="symptomStatus[sym.index]"
+                        (input)="validateSymptom($event, sym.index); triggerAutosave()"
+                        [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode"
+                      />
+                    </td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
 
-
-        <!-- ── Interpretation ── -->
-        <!-- <div class="form-section" *ngIf="!isFirstVisit">
+          <!-- ── Interpretation ── -->
+          <!-- <div class="form-section" *ngIf="!isFirstVisit">
           <label class="field-label">Interpretation</label>
           <textarea
             class="fu-textarea"
@@ -236,44 +246,43 @@
           ></textarea>
         </div> -->
 
-        <div class="form-section" *ngIf="!isFirstVisit">
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-            "
-          >
-            <label style="font-weight: 600; font-size: 14px">
-              Interpretation
-            </label>
+          <div class="form-section" *ngIf="!isFirstVisit">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <label style="font-weight: 600; font-size: 14px">
+                Interpretation (Max 1000 characters)
+              </label>
 
-            <span style="font-size: 12px; color: #6c757d">
-              (Max 1000 characters)
-            </span>
+              <span style="font-size: 12px; color: #6c757d">
+                (Max 1000 characters)
+              </span>
+            </div>
+
+            <textarea
+              [(ngModel)]="interpretation"
+              (ngModelChange)="onInterpretationChange($event)"
+              [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode"
+              maxlength="1000"
+              placeholder="Enter clinical interpretation…"
+              style="
+                width: 100%;
+                min-height: 100px;
+                padding: 10px;
+                border-radius: 8px;
+                border: 1px solid #ccc;
+                margin-top: 6px;
+                outline: none;
+              "
+            ></textarea>
           </div>
 
-  <textarea
-  [(ngModel)]="interpretation"
-  (ngModelChange)="onInterpretationChange($event)"
-  [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode"
-  maxlength="1000"
-  placeholder="Enter clinical interpretation…"
-  style="
-    width: 100%;
-    min-height: 100px;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    margin-top: 6px;
-    outline: none;
-  "
-></textarea>
-
-</div>
-
-        <!-- ── Prescribed Medicines ── -->
-        <!-- <div class="form-section">
+          <!-- ── Prescribed Medicines ── -->
+          <!-- <div class="form-section">
           <label class="field-label">Prescribed Medicines</label>
           <div class="table-scroll-wrap">
             <table class="med-table">
@@ -349,121 +358,127 @@
           </button>
         </div> -->
 
-        <div class="form-section">
-          <label class="field-label">Prescribed Medicines</label>
-          <div class="table-scroll-wrap">
-            <table class="med-table">
-              <thead>
-                <tr>
-                  <th>Medicine Name</th>
-                  <th>Dosage</th>
-                  <th>Frequency</th>
-                  <th>Duration</th>
-                  <th>Type</th>
-                  <th>Instructions</th>
-                  <!-- <th>Issue</th> -->
-                  <th class="th-center">Del</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let med of prescriptions; let i = index">
-                  <td class="med-name-col">
-                    <select
-                      [(ngModel)]="med.medicineId"
-                      (change)="onMedicineChange($event, i); triggerAutosave()"
-                      [name]="'medicine' + i"
-                      class="custom-select"
-                    >
-                      <option [ngValue]="null" disabled>Select Medicine</option>
-
-                      <option
-                        *ngFor="let m of medicines"
-                        [ngValue]="m.medicineId"
+          <div class="form-section">
+            <label class="field-label">Prescribed Medicines</label>
+            <div class="table-scroll-wrap">
+              <table class="med-table">
+                <thead>
+                  <tr>
+                    <th>Medicine Name</th>
+                    <th>Dosage</th>
+                    <th>Frequency</th>
+                    <th>Duration</th>
+                    <th>Type</th>
+                    <th>Instructions</th>
+                    <!-- <th>Issue</th> -->
+                    <th class="th-center">Del</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let med of prescriptions; let i = index">
+                    <td class="med-name-col">
+                      <select
+                        [(ngModel)]="med.medicineId"
+                        (change)="onMedicineChange($event, i); triggerAutosave()"
+                        [name]="'medicine' + i"
+                        class="custom-select"
                       >
-                        {{ m.name }}
-                      </option>
+                        <option [ngValue]="null" disabled>
+                          Select Medicine
+                        </option>
 
-                      <option value="add_new">➕ Add New Medicine</option>
-                    </select>
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      [(ngModel)]="med.dosage"
-                      (ngModelChange)="triggerAutosave()"
-                      placeholder="e.g. 500mg"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      [(ngModel)]="med.frequency"
-                      (ngModelChange)="triggerAutosave()"
-                      placeholder="e.g. 1-0-1"
-                    />
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      [(ngModel)]="med.duration"
-                      (ngModelChange)="triggerAutosave()"
-                      placeholder="e.g. 5 days"
-                    />
-                  </td>
-                  <td>
-                    <select
-                      [(ngModel)]="med.type"
-                      (ngModelChange)="triggerAutosave()"
-                    >
-                      <option value="" disabled selected>Select Type</option>
-                      <option>Tablet</option>
-                      <option>Capsule</option>
-                      <option>Syrup</option>
-                      <option>Injection</option>
-                    </select>
-                  </td>
-                  <td>
-                    <input
-                      type="text"
-                      [(ngModel)]="med.instructions"
-                      (ngModelChange)="triggerAutosave()"
-                      placeholder="After meals…"
-                    />
-                  </td>
-                  <td class="td-center">
-                    <button
-                      class="icon-btn icon-btn--danger"
-                      (click)="removeMedicineRow(i)"
-                      type="button"
-                    >
-                      ✕
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <button class="btn-add-row" (click)="addMedicineRow()" type="button">
-            ＋ Add Medicine
-          </button>
-        </div>
+                        <option
+                          *ngFor="let m of medicines"
+                          [ngValue]="m.medicineId"
+                        >
+                          {{ m.name }}
+                        </option>
 
-        <!-- ── Charges ── -->
-        <div class="form-grid form-grid--2">
-          <div class="form-section mb-0">
-            <label class="field-label">Consultation Charges (₹)</label>
-            <input
-              type="number"
-              class="fu-input no-spinner"
-              [ngModel]="consultationCharge"
-              (ngModelChange)="onConsultationChange($event); triggerAutosave()"
-              (wheel)="$event.preventDefault()"
-              min="0"
-              placeholder="0"
-              [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode"
-            />
+                        <option value="add_new">➕ Add New Medicine</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        [(ngModel)]="med.dosage"
+                        (ngModelChange)="triggerAutosave()"
+                        placeholder="e.g. 500mg"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        [(ngModel)]="med.frequency"
+                        (ngModelChange)="triggerAutosave()"
+                        placeholder="e.g. 1-0-1"
+                      />
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        [(ngModel)]="med.duration"
+                        (ngModelChange)="triggerAutosave()"
+                        placeholder="e.g. 5 days"
+                      />
+                    </td>
+                    <td>
+                      <select
+                        [(ngModel)]="med.type"
+                        (ngModelChange)="triggerAutosave()"
+                      >
+                        <option value="" disabled selected>Select Type</option>
+                        <option>Tablet</option>
+                        <option>Capsule</option>
+                        <option>Syrup</option>
+                        <option>Injection</option>
+                      </select>
+                    </td>
+                    <td>
+                      <input
+                        type="text"
+                        [(ngModel)]="med.instructions"
+                        (ngModelChange)="triggerAutosave()"
+                        placeholder="After meals…"
+                      />
+                    </td>
+                    <td class="td-center">
+                      <button
+                        class="icon-btn icon-btn--danger"
+                        (click)="removeMedicineRow(i)"
+                        type="button"
+                      >
+                        ✕
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <button
+              class="btn-add-row"
+              (click)="addMedicineRow()"
+              type="button"
+            >
+              ＋ Add Medicine
+            </button>
           </div>
-          <!-- <div class="form-section mb-0">
+
+          <!-- ── Charges ── -->
+          <div class="form-grid form-grid--2">
+            <div class="form-section mb-0">
+              <label class="field-label">Consultation Charges (₹)</label>
+              <input
+                type="number"
+                class="fu-input no-spinner"
+                [ngModel]="consultationCharge"
+                (ngModelChange)="onConsultationChange($event); triggerAutosave()"
+                (wheel)="$event.preventDefault()"
+                min="0"
+                placeholder="0"
+                [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode"
+              />
+            </div>
+            <!-- <div class="form-section mb-0">
             <label class="field-label">Wave Off Charges?</label>
             <div class="radio-group">
               <label class="radio-opt">
@@ -505,75 +520,157 @@
         </div>
 
         <!-- ── Next Appointment ── -->
-        <div class="form-grid form-grid--2">
-          <div class="form-section mb-0">
-            <label class="field-label"
-              >Next Appointment Date
-              <span class="field-optional">(Optional)</span></label
-            >
-            <input
-              type="date"
-              class="fu-input"
-              [(ngModel)]="nextAppointmentDate"
-              (ngModelChange)="triggerAutosave()"
-              [min]="todayDate"
-            />
+            <div class="form-grid form-grid--2">
+              <div class="form-section mb-0">
+                <label class="field-label"
+                  >Next Appointment Date
+                  <span class="field-optional">(Optional)</span></label
+                >
+                <input
+                  type="date"
+                  class="fu-input"
+                  [(ngModel)]="nextAppointmentDate"
+                  (ngModelChange)="triggerAutosave()"
+                  [min]="todayDate"
+                />
+              </div>
+              <div class="form-section mb-0">
+                <label class="field-label"
+                  >Next Appointment Time
+                  <span class="field-optional">(Optional)</span></label
+                >
+                <input
+                  type="time"
+                  class="fu-input"
+                  [(ngModel)]="nextAppointmentTime"
+                  (ngModelChange)="triggerAutosave()"
+                />
+              </div>
+            </div>
           </div>
-          <div class="form-section mb-0">
-            <label class="field-label"
-              >Next Appointment Time
-              <span class="field-optional">(Optional)</span></label
+        </ng-container>
+        <!-- /card-body -->
+        <!-- Card Footer -->
+
+        <div
+          class="card-footer card-footer--right"
+          *ngIf="!isFollowUpAlreadySaved || isFollowUpEditMode"
+        >
+          <!-- <button class="btn btn--ghost">Cancel</button> -->
+
+          <ng-container *ngIf="!isFollowUpAlreadySaved">
+            <button
+              class="btn btn--primary"
+              (click)="saveFollowUp()"
+              [disabled]="!isFollowUpFormValid()"
             >
-            <input
-              type="time"
-              class="fu-input"
-              [(ngModel)]="nextAppointmentTime"
-              (ngModelChange)="triggerAutosave()"
-            />
+              💾 Save Follow-Up
+            </button>
+          </ng-container>
+
+          <ng-container *ngIf="isFollowUpAlreadySaved && isFollowUpEditMode">
+            <button
+              class="btn btn--primary"
+              (click)="saveFollowUpEdit()"
+              [disabled]="!isFollowUpFormValid()"
+            >
+              💾 Save Changes
+            </button>
+          </ng-container>
+        </div>
+        <!-- /fu-card record -->
+
+        <!-- /hist-section -->
+
+        <!-- /fu-wrap -->
+      </div>
+      <!-- /fu-container -->
+
+      <!-- ═══════════════════════════════════════════════════
+     ADMIN PASSWORD MODAL
+═══════════════════════════════════════════════════ -->
+      <div class="modal-overlay" *ngIf="showPasswordModal">
+        <div class="modal-box">
+          <div class="modal-icon">🔐</div>
+          <h3 class="modal-title">Admin Verification</h3>
+          <p class="modal-sub">
+            Enter admin password to apply the wave-off amount.
+          </p>
+          <input
+            type="password"
+            class="fu-input"
+            placeholder="Enter password"
+            [(ngModel)]="adminPassword"
+          />
+          <div class="modal-actions">
+            <button class="btn btn--ghost" (click)="closePasswordModal()">
+              Cancel
+            </button>
+            <button class="btn btn--primary" (click)="verifyAdminPassword()">
+              Verify
+            </button>
           </div>
         </div>
       </div>
-      </ng-container>   
-      <!-- /card-body -->
-      <!-- Card Footer -->
-        
 
-      <div class="card-footer card-footer--right" *ngIf="!isFollowUpAlreadySaved || isFollowUpEditMode">
-        <button class="btn btn--ghost">Cancel</button>
+      <div class="modal-overlay" *ngIf="showMedicineModal">
+        <div class="modal-box">
+          <div class="modal-icon">💊</div>
 
-        <ng-container *ngIf="!isFollowUpAlreadySaved">
-          <button
-            class="btn btn--primary"
-            (click)="saveFollowUp()"
-            [disabled]="!isFollowUpFormValid()"
-          >
-            💾 Save Follow-Up
-          </button>
-        </ng-container>
-        
-        <ng-container *ngIf="isFollowUpAlreadySaved && isFollowUpEditMode">
-          
-          <button
-            class="btn btn--primary"
-            (click)="saveFollowUpEdit()"
-            [disabled]="!isFollowUpFormValid()"
-          >
-            💾 Save Changes
-          </button>
-        </ng-container>
-              </div>
-    <!-- /fu-card record -->
+          <h3 class="modal-title">Add Medicine</h3>
+          <p class="modal-sub">Enter medicine name</p>
+
+          <input
+            type="text"
+            class="fu-input"
+            placeholder="Enter medicine name"
+            [(ngModel)]="newMedicineName"
+          />
+
+          <div class="modal-actions">
+            <button class="btn btn--ghost" (click)="closeMedicineModal()">
+              Cancel
+            </button>
+
+            <button class="btn btn--primary" (click)="saveNewMedicine()">
+              Save
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- ═══════════════════════════════════════════════════
          APPOINTMENT HISTORY
     ═══════════════════════════════════════════════════ -->
     <div class="hist-section">
-      <div class="hist-head">
+      <div
+        class="hist-head"
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 20px 24px;
+          border-bottom: 1px solid #e4e9f0;
+          flex-wrap: wrap;
+          background: linear-gradient(125deg, #16a34a 0%, #dcd726 100%);
+          padding: 22px 24px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 12px;
+          flex-wrap: wrap;
+          color: white;
+        "
+      >
         <div class="hist-head-left">
           <div class="hist-icon">📋</div>
           <div>
-            <h2 class="hist-title">Appointment History</h2>
-            <p class="hist-sub">Past visits and treatment records</p>
+            <h2 class="hist-title" style="color: white">Appointment History</h2>
+            <p class="hist-sub" style="color: white">
+              Past visits and treatment records
+            </p>
           </div>
         </div>
         <span class="count-chip" *ngIf="summaryTotalCount > 0">
@@ -607,7 +704,10 @@
         >
           <div class="hist-card">
             <!-- Top row -->
-            <div class="hist-card-top">
+            <div
+              class="hist-card-top"
+              style="background: #d3efd7; border-radius: 10px; padding: 10px"
+            >
               <div class="hist-date-row">
                 <span class="hist-date"
                   >📅 {{ appt.appointmentDate | date: 'dd MMM yyyy' }}</span
@@ -671,7 +771,9 @@
                   class="hist-meta-item"
                   *ngIf="appt.followUpEntry.interpretation"
                 >
-                  <span class="hist-meta-lbl">Interpretation</span>
+                  <span class="hist-meta-lbl"
+                    >Interpretation (1000 characters)</span
+                  >
                   <span class="hist-meta-val"
                     >{{ appt.followUpEntry.interpretation }}</span
                   >
@@ -764,58 +866,6 @@
           Next →
         </button>
       </div>
-    </div>
-    <!-- /hist-section -->
-
-  <!-- /fu-wrap -->
-</div>
-<!-- /fu-container -->
-
-<!-- ═══════════════════════════════════════════════════
-     ADMIN PASSWORD MODAL
-═══════════════════════════════════════════════════ -->
-<div class="modal-overlay" *ngIf="showPasswordModal">
-  <div class="modal-box">
-    <div class="modal-icon">🔐</div>
-    <h3 class="modal-title">Admin Verification</h3>
-    <p class="modal-sub">Enter admin password to apply the wave-off amount.</p>
-    <input
-      type="password"
-      class="fu-input"
-      placeholder="Enter password"
-      [(ngModel)]="adminPassword"
-    />
-    <div class="modal-actions">
-      <button class="btn btn--ghost" (click)="closePasswordModal()">
-        Cancel
-      </button>
-      <button class="btn btn--primary" (click)="verifyAdminPassword()">
-        Verify
-      </button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" *ngIf="showMedicineModal">
-  <div class="modal-box">
-    <div class="modal-icon">💊</div>
-
-    <h3 class="modal-title">Add Medicine</h3>
-    <p class="modal-sub">Enter medicine name</p>
-
-    <input
-      type="text"
-      class="fu-input"
-      placeholder="Enter medicine name"
-      [(ngModel)]="newMedicineName"
-    />
-
-    <div class="modal-actions">
-      <button class="btn btn--ghost" (click)="closeMedicineModal()">
-        Cancel
-      </button>
-
-      <button class="btn btn--primary" (click)="saveNewMedicine()">Save</button>
     </div>
   </div>
 </div>

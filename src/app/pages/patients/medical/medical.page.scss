@@ -1331,6 +1331,14 @@ textarea {
   font-weight: 600;
   color: #16a34a;
   margin-bottom: 10px;
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #16a34a, #4ade80);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 12px;
 
   @media (max-width: 480px) {
     font-size: 12px;
