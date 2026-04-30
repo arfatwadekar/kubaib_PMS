@@ -92,14 +92,25 @@
           −
         </button>
 
-        <input
+        <!-- <input
           type="number"
           formControlName="stockQuantity"
           class="qty-input"
           placeholder="0"
             (keydown.enter)="$event.preventDefault()"
           [readonly]="mode === 'view'"
-        />
+        /> -->
+
+        <input
+  type="number"
+  formControlName="stockQuantity"
+  class="qty-input"
+  placeholder="0"
+  min="0"
+  (keydown.enter)="$event.preventDefault()"
+  (keydown)=" $event.key === '-' ? $event.preventDefault() : null "
+  [readonly]="mode === 'view'"
+/>
 
         <button
           type="button"
