@@ -130,17 +130,26 @@ private navigateToTab(tab: TabKey) {
      ROLE PERMISSION
   ================================= */
 
+  // isTabAllowed(tab: TabKey): boolean {
+
+  //   if (this.role === 'Doctor') return true;
+
+  //   return (
+  //     tab === 'prelim' ||
+  //     tab === 'payment' ||
+  //     tab === 'reports'
+  //   );
+
+  // }
+
   isTabAllowed(tab: TabKey): boolean {
 
-    if (this.role === 'Doctor') return true;
+  if (this.role === 'Doctor') return true;
 
-    return (
-      tab === 'prelim' ||
-      tab === 'payment' ||
-      tab === 'reports'
-    );
+  // ✅ Receptionist can access all tabs (view mode)
+  return true;
 
-  }
+}
 
   /* ================================
      DISABLED STATE

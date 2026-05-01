@@ -296,7 +296,7 @@
 //   // REPORT ENTRY
 //   // =====================
 //   startNewReport(): void {
-//     this.isFormDirty = false;   
+//     this.isFormDirty = false;
 //     this.repSelectedPrevReportId = null;
 //     this.repReportDate = todayYmd();
 //     this.repReportName = '';
@@ -470,7 +470,7 @@
 //     const payload = this.createEmptyPayload();
 //     payload.patientId = this.patientId;
 //     payload.reportDate = new Date(`${this.repReportDate}T00:00:00.000Z`).toISOString();
-    
+
 //     // Add metadata fields
 //     payload.reportName = safeStr(this.repReportName);
 //     payload.labName = safeStr(this.repLabName);
@@ -505,7 +505,7 @@
 //   private applyDetailToEntry(detail: ReportDetail, uiDate: string): void {
 //     this.repReportDate =
 //       toKeyYmd(safeStr((detail as any).reportDate)) || todayYmd();
-    
+
 //     // Apply metadata fields
 //     this.repReportName = safeStr((detail as any).reportName);
 //     this.repLabName = safeStr((detail as any).labName);
@@ -665,9 +665,7 @@
 //     return index;
 //   }
 
-  
 // }
-
 
 import { Component, OnDestroy, OnInit, HostListener } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
@@ -719,7 +717,11 @@ function toKeyYmd(isoOrDate: string): string {
 type ReportMode = 'entry' | 'compare';
 type UiRow = { label: string; apiKey: keyof PatientReportPayload };
 type ReportDetail = PatientReportPayload & { patientReportId: number };
-type ReportRow = { label: string; apiKey: keyof PatientReportPayload; value: string };
+type ReportRow = {
+  label: string;
+  apiKey: keyof PatientReportPayload;
+  value: string;
+};
 type ReportSummary = {
   patientReportId: number;
   reportName: string;
@@ -747,6 +749,7 @@ export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
   // =====================
   patientId: number | null = null;
   reportLoading = false;
+  repEditingReportId: number | null = null; // ← ADD THIS
 
   // =====================
   // STATE - MODE & DATES
@@ -914,7 +917,7 @@ export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
           this.patientId = null;
           this.resetReportsAll();
         }
-      })
+      }),
     );
   }
 
@@ -967,7 +970,7 @@ export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
   // REPORT ENTRY
   // =====================
   startNewReport(): void {
-    this.isFormDirty = false;   
+    this.isFormDirty = false;
     this.repSelectedPrevReportId = null;
     this.repReportDate = todayYmd();
     this.repReportName = '';
@@ -975,6 +978,7 @@ export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
     this.repReferredBy = '';
     this.repSummary = '';
     this.repSelectedHeaderDate = '';
+    this.repEditingReportId = null;
     this.initReportEntryRows();
   }
 
@@ -1011,7 +1015,7 @@ export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
 
     try {
       const res: any = await firstValueFrom(
-        this.reportApi.getByPatient(this.patientId)
+        this.reportApi.getByPatient(this.patientId),
       );
       const list = this.extractArray(res);
 
@@ -1028,7 +1032,7 @@ export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
       });
 
       this.repSummaryList = summaries.sort(
-        (a, b) => b.patientReportId - a.patientReportId
+        (a, b) => b.patientReportId - a.patientReportId,
       );
 
       // Build date-to-ID map
@@ -1039,12 +1043,12 @@ export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
 
       // Collect all unique dates
       this.repAllUiDates = Array.from(
-        new Set(summaries.map((s) => s.uiDate).filter(Boolean))
+        new Set(summaries.map((s) => s.uiDate).filter(Boolean)),
       );
 
       // Keep comparison selection valid
       this.repSelectedUiDates = this.repSelectedUiDates.filter((d) =>
-        this.repAllUiDates.includes(d)
+        this.repAllUiDates.includes(d),
       );
       this.repDisplayUiDates = this.repSelectedUiDates.slice(0, 5);
 
@@ -1131,6 +1135,47 @@ export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
     void this.saveReportInternal();
   }
 
+  // private async saveReportInternal(): Promise<void> {
+  //   if (!this.patientId) {
+  //     await this.showToast('Patient ID missing');
+  //     return;
+  //   }
+  //   if (this.reportLoading) return;
+
+  //   const payload = this.createEmptyPayload();
+  //   payload.patientId = this.patientId;
+  //   payload.reportDate = new Date(
+  //     `${this.repReportDate}T00:00:00.000Z`,
+  //   ).toISOString();
+
+  //   // Add metadata fields
+  //   payload.reportName = safeStr(this.repReportName);
+  //   payload.labName = safeStr(this.repLabName);
+  //   payload.referredBy = safeStr(this.repReferredBy);
+  //   payload.summary = safeStr(this.repSummary);
+
+  //   // Populate with current row values (all as strings)
+  //   for (const r of this.repRows) {
+  //     (payload as any)[r.apiKey] = safeStr(r.value);
+  //   }
+
+  //   this.reportLoading = true;
+
+  //   this.reportApi.create(payload).subscribe({
+  //     next: async () => {
+  //       this.reportLoading = false;
+  //       await this.showToast('✓ Report saved successfully');
+  //       await this.loadReportsForPatient();
+  //       this.startNewReport();
+  //     },
+  //     error: async (err) => {
+  //       this.reportLoading = false;
+  //       const msg = this.extractErrorMessage(err);
+  //       await this.showAlert('Save Failed', msg);
+  //     },
+  //   });
+  // }
+
   private async saveReportInternal(): Promise<void> {
     if (!this.patientId) {
       await this.showToast('Patient ID missing');
@@ -1138,34 +1183,57 @@ export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
     }
     if (this.reportLoading) return;
 
-    const payload = this.createEmptyPayload();
+    const payload: any = this.createEmptyPayload();
     payload.patientId = this.patientId;
-    payload.reportDate = new Date(`${this.repReportDate}T00:00:00.000Z`).toISOString();
-    
-    // Add metadata fields
+    payload.reportDate = new Date(
+      `${this.repReportDate}T00:00:00.000Z`,
+    ).toISOString();
     payload.reportName = safeStr(this.repReportName);
     payload.labName = safeStr(this.repLabName);
     payload.referredBy = safeStr(this.repReferredBy);
     payload.summary = safeStr(this.repSummary);
 
-    // Populate with current row values (all as strings)
     for (const r of this.repRows) {
-      (payload as any)[r.apiKey] = safeStr(r.value);
+      payload[r.apiKey] = safeStr(r.value);
     }
 
     this.reportLoading = true;
 
-    this.reportApi.create(payload).subscribe({
+    // ← BRANCH: update if editing, create if new
+    const isEditing = !!this.repEditingReportId;
+    if (isEditing) {
+      payload.patientReportId = this.repEditingReportId;
+    }
+
+    const apiCall = isEditing
+      ? this.reportApi.update(payload)
+      : this.reportApi.create(payload);
+
+    apiCall.subscribe({
+      // next: async () => {
+      //   this.reportLoading = false;
+      //   await this.showToast(isEditing ? '✓ Report updated successfully' : '✓ Report saved successfully');
+      //   await this.loadReportsForPatient();
+      //   this.startNewReport();
+      // },
+
       next: async () => {
         this.reportLoading = false;
-        await this.showToast('✓ Report saved successfully');
+        this.repDetailsMap = {};
+
+        await this.showToast(
+          isEditing
+            ? 'Report updated successfully'
+            : 'Report saved successfully',
+        );
+
         await this.loadReportsForPatient();
         this.startNewReport();
       },
       error: async (err) => {
         this.reportLoading = false;
         const msg = this.extractErrorMessage(err);
-        await this.showAlert('Save Failed', msg);
+        await this.showAlert(isEditing ? 'Update Failed' : 'Save Failed', msg);
       },
     });
   }
@@ -1176,13 +1244,13 @@ export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
   private extractErrorMessage(err: any): string {
     // Try multiple paths to find the error message
     const message =
-      err?.error?.message ||           // { error: { message: '...' } }
-      err?.error?.detail ||            // { error: { detail: '...' } }
-      err?.error?.error ||             // { error: { error: '...' } }
+      err?.error?.message || // { error: { message: '...' } }
+      err?.error?.detail || // { error: { detail: '...' } }
+      err?.error?.error || // { error: { error: '...' } }
       (typeof err?.error === 'string' ? err.error : null) || // error as plain string
-      err?.message ||                  // Direct error message
-      err?.statusText ||               // HTTP status text (e.g., 'Bad Request')
-      'Failed to save report';          // Default fallback
+      err?.message || // Direct error message
+      err?.statusText || // HTTP status text (e.g., 'Bad Request')
+      'Failed to save report'; // Default fallback
 
     // Return the message, trimmed and cleaned
     return safeStr(message);
@@ -1194,7 +1262,7 @@ export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
   private applyDetailToEntry(detail: ReportDetail, uiDate: string): void {
     this.repReportDate =
       toKeyYmd(safeStr((detail as any).reportDate)) || todayYmd();
-    
+
     // Apply metadata fields
     this.repReportName = safeStr((detail as any).reportName);
     this.repLabName = safeStr((detail as any).labName);
@@ -1205,6 +1273,8 @@ export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
     for (const r of this.repRows) {
       r.value = safeStr((detail as any)[r.apiKey]);
     }
+
+    this.repEditingReportId = detail.patientReportId || null;
 
     if (uiDate) this.repSelectedHeaderDate = uiDate;
   }
@@ -1234,9 +1304,14 @@ export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
   // =====================
   // CACHE MANAGEMENT
   // =====================
-  private async ensureReportDetail(reportId: number): Promise<ReportDetail | null> {
+  private async ensureReportDetail(
+    reportId: number,
+  ): Promise<ReportDetail | null> {
     if (!reportId || reportId <= 0) return null;
-    if (this.repDetailsMap[reportId]) return this.repDetailsMap[reportId];
+    // if (this.repDetailsMap[reportId]) return this.repDetailsMap[reportId];
+    if (this.repDetailsMap[reportId]) {
+      return this.repDetailsMap[reportId];
+    }
 
     try {
       const res: any = await firstValueFrom(this.reportApi.getById(reportId));
@@ -1246,7 +1321,7 @@ export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
       const detail: ReportDetail = {
         ...(data as any),
         patientReportId: safeNum(
-          data?.patientReportId ?? data?.reportId ?? data?.id ?? reportId
+          data?.patientReportId ?? data?.reportId ?? data?.id ?? reportId,
         ),
       };
 
@@ -1353,6 +1428,4 @@ export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
   trackByIndex(index: number): number {
     return index;
   }
-
-  
 }

@@ -50,6 +50,9 @@ export class MedicalPage implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private sub = new Subscription();
 
+  role: 'Doctor' | 'Receptionist' = 'Receptionist';
+isReadonly = false;
+
   // ============================================================
   // MEDICAL FORM
   // ============================================================
@@ -216,6 +219,7 @@ export class MedicalPage implements OnInit, OnDestroy {
   // INIT / DESTROY
   // =====================
   ngOnInit(): void {
+    this.loadRole();
     this.initMedicalBmiAutoCalc();
 
     this.sub.add(
@@ -232,6 +236,10 @@ export class MedicalPage implements OnInit, OnDestroy {
         }
       })
     );
+
+    if (this.isReadonly) {
+    this.medicalForm.disable({ emitEvent: false });
+  }
   }
 
   ngOnDestroy(): void {
@@ -349,14 +357,24 @@ export class MedicalPage implements OnInit, OnDestroy {
   // ============================================================
   // RELATIONSHIP BUTTONS
   // ============================================================
+  // toggleStatus(key: string) {
+  //   const g = this.medicalForm.get('mentalState') as FormGroup;
+  //   const cur = (g?.get(key)?.value ?? '').toString().trim();
+  //   const next = cur === '' ? 'P' : cur === 'P' ? 'N' : '';
+  //   g?.patchValue({ [key]: next }, { emitEvent: false });
+  //   g?.markAsDirty();
+  // }
+
   toggleStatus(key: string) {
+    if (this.isReadonly) return;
+
     const g = this.medicalForm.get('mentalState') as FormGroup;
     const cur = (g?.get(key)?.value ?? '').toString().trim();
     const next = cur === '' ? 'P' : cur === 'P' ? 'N' : '';
     g?.patchValue({ [key]: next }, { emitEvent: false });
     g?.markAsDirty();
   }
-
+  
   getBtnClass(key: string): string {
     const g = this.medicalForm.get('mentalState') as FormGroup;
     const v = (g?.get(key)?.value ?? '').toString().trim();
@@ -587,6 +605,10 @@ export class MedicalPage implements OnInit, OnDestroy {
       this.patchMedicalFormFromApi(data);
       this.medicalForm.markAsPristine();
       this.medicalExists = true;
+  
+if (this.isReadonly) {
+  this.medicalForm.disable({ emitEvent: false });
+}
     } catch (e: any) {
       if (e?.status === 404) {
         this.medicalExists = false;
@@ -748,5 +770,13 @@ goPrevIdentity() {
 
   onAccordionChange(event: any) {
   event.preventDefault();
+}
+
+private loadRole() {
+  const raw = (localStorage.getItem('mhc_role') || '').toLowerCase();
+  this.role = raw === 'doctor' ? 'Doctor' : 'Receptionist';
+
+  // ⭐ MAIN LOGIC
+  this.isReadonly = this.role === 'Receptionist';
 }
 }

@@ -34,19 +34,9 @@
           </div>
         </div>
         <div class="card-header-right">
-          <span
-            *ngIf="isSaved && !isEditMode"
-            class="status-chip status-chip--saved"
-            >✓ Saved</span
-          >
-          <span
-            *ngIf="isSaved && isEditMode"
-            class="status-chip status-chip--editing"
-            >✎ Editing</span
-          >
-          <span *ngIf="!isSaved" class="status-chip status-chip--new"
-            >● New</span
-          >
+          <span *ngIf="isSaved && !isEditMode" class="status-chip status-chip--saved">✓ Saved</span>
+          <span *ngIf="isSaved && isEditMode" class="status-chip status-chip--editing">✎ Editing</span>
+          <span *ngIf="!isSaved" class="status-chip status-chip--new">● New</span>
           <span class="count-chip">{{ fuSymptomsArr.length }} entries</span>
         </div>
       </div>
@@ -60,11 +50,8 @@
               <span class="col-desc">Description</span>
             </div>
 
-            <div
-              class="sym-row"
-              *ngFor="let ctrl of fuSymptomsArr.controls; let i = index; trackBy: trackByIndex"
-              [class.sym-row--filled]="ctrl.value"
-            >
+            <div class="sym-row" *ngFor="let ctrl of fuSymptomsArr.controls; let i = index; trackBy: trackByIndex"
+              [class.sym-row--filled]="ctrl.value">
               <div class="col-sr">
                 <span class="sr-num">{{ i + 1 }}</span>
               </div>
@@ -73,24 +60,14 @@
                 <span *ngIf="isSaved && !isEditMode" class="readonly-text">
                   {{ ctrl.value || '–' }}
                 </span>
-                <input
-                  *ngIf="!isSaved || isEditMode"
-                  class="sym-input"
-                  type="text"
-                  [formControlName]="i"
-                  [placeholder]="'Enter symptom ' + (i + 1)"
-                />
+                <input *ngIf="!isSaved || isEditMode" class="sym-input" type="text" [formControlName]="i"
+                  [placeholder]="'Enter symptom ' + (i + 1)" />
               </div>
 
               <div class="col-act">
-                <button
-                  type="button"
-                  class="icon-btn icon-btn--danger"
-                  *ngIf="isEditMode && $any(fuSymptomsArr.controls[i])?.criteriaId"
-                  (click)="deleteCriteria(i)"
-                  [disabled]="criteriaLoading"
-                  title="Delete symptom"
-                >
+                <button type="button" class="icon-btn icon-btn--danger"
+                  *ngIf="isEditMode && $any(fuSymptomsArr.controls[i])?.criteriaId" (click)="deleteCriteria(i)"
+                  [disabled]="criteriaLoading" title="Delete symptom">
                   ✕
                 </button>
               </div>
@@ -106,37 +83,18 @@
           Rows auto-expand as you fill them. Maximum of 10 entries allowed.
         </p> -->
         <div class="footer-actions">
-          <button
-            type="button"
-            class="btn btn--primary"
-            *ngIf="!isSaved"
-            (click)="saveCriteria()"
-            [disabled]="criteriaLoading"
-          >
+          <button type="button" class="btn btn--primary" *ngIf="!isSaved" (click)="saveCriteria()"
+            [disabled]="criteriaLoading">
             <span *ngIf="!criteriaLoading">💾 Save Criteria</span>
-            <span *ngIf="criteriaLoading"
-              ><span class="spinner"></span> Saving…</span
-            >
+            <span *ngIf="criteriaLoading"><span class="spinner"></span> Saving…</span>
           </button>
-          <button
-            type="button"
-            class="btn btn--outline"
-            *ngIf="isSaved && !isEditMode"
-            (click)="enableEdit()"
-          >
+          <button type="button" class="btn btn--outline" *ngIf="isSaved && !isEditMode" (click)="enableEdit()">
             ✎ Edit
           </button>
-          <button
-            type="button"
-            class="btn btn--primary"
-            *ngIf="isSaved && isEditMode"
-            (click)="saveCriteria()"
-            [disabled]="criteriaLoading"
-          >
+          <button type="button" class="btn btn--primary" *ngIf="isSaved && isEditMode" (click)="saveCriteria()"
+            [disabled]="criteriaLoading">
             <span *ngIf="!criteriaLoading">💾 Update Criteria</span>
-            <span *ngIf="criteriaLoading"
-              ><span class="spinner"></span> Updating…</span
-            >
+            <span *ngIf="criteriaLoading"><span class="spinner"></span> Updating…</span>
           </button>
         </div>
       </div>
@@ -155,17 +113,13 @@
         </div>
         <div class="record-header-right">
           <span class="date-pill">{{ today | date:'hh:mm a' }}</span>
-          <span class="date-pill date-pill--highlight"
-            >{{ today | date:'dd/MM/yyyy' }}</span
-          >
+          <span class="date-pill date-pill--highlight">{{ today | date:'dd/MM/yyyy' }}</span>
         </div>
       </div>
 
       <div class="card-body">
         <!-- ── Saved Banner + Edit Button ── -->
-        <div
-          *ngIf="isFollowUpAlreadySaved && !isFollowUpEditMode"
-          style="
+        <div *ngIf="isFollowUpAlreadySaved && !isFollowUpEditMode" style="
             background: #d1fae5;
             border: 1px solid #6ee7b7;
             border-radius: 8px;
@@ -174,17 +128,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-          "
-        >
+          ">
           <span style="color: #065f46; font-weight: 600">
             ✅ Follow-up already saved for this appointment.
           </span>
-          <button
-            *ngIf="isAppointmentEditable"
-            class="btn btn--outline"
-            (click)="enableFollowUpEdit()"
-            style="margin-left: 16px"
-          >
+          <button *ngIf="isAppointmentEditable" class="btn btn--outline" (click)="enableFollowUpEdit()"
+            style="margin-left: 16px">
             ✎ Edit Follow-Up
           </button>
         </div>
@@ -193,17 +142,13 @@
         <ng-container *ngIf="!isFollowUpAlreadySaved || isFollowUpEditMode">
           <!-- ── Follow-Up Symptoms Rating ── -->
           <div class="form-section" *ngIf="!isFirstVisit">
-            <div
-              style="
+            <div style="
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 margin-bottom: 8px;
-              "
-            >
-              <label class="field-label" style="margin: 0"
-                >Follow-Up Symptom Status (Yes/No)</label
-              >
+              ">
+              <label class="field-label" style="margin: 0">Follow-Up Symptom Status (Yes/No)</label>
             </div>
             <div class="table-scroll-wrap">
               <table class="rating-table">
@@ -218,17 +163,11 @@
                 <tbody>
                   <tr>
                     <td class="td-label">Status</td>
-                    <td
-                      *ngFor="let sym of symptomsArray; trackBy: trackBySymIndex"
-                    >
-                      <input
-                        class="rating-input"
-                        type="text"
-                        placeholder="Yes/No"
+                    <td *ngFor="let sym of symptomsArray; trackBy: trackBySymIndex">
+                      <input class="rating-input" type="text" placeholder="Yes/No"
                         [(ngModel)]="symptomStatus[sym.index]"
                         (input)="validateSymptom($event, sym.index); triggerAutosave()"
-                        [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode"
-                      />
+                        [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode" />
                     </td>
                   </tr>
                 </tbody>
@@ -247,13 +186,11 @@
         </div> -->
 
           <div class="form-section" *ngIf="!isFirstVisit">
-            <div
-              style="
+            <div style="
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-              "
-            >
+              ">
               <label style="font-weight: 600; font-size: 14px">
                 Interpretation (Max 1000 characters)
               </label>
@@ -263,13 +200,9 @@
               </span>
             </div>
 
-            <textarea
-              [(ngModel)]="interpretation"
-              (ngModelChange)="onInterpretationChange($event)"
-              [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode"
-              maxlength="1000"
-              placeholder="Enter clinical interpretation…"
-              style="
+            <textarea [(ngModel)]="interpretation" (ngModelChange)="onInterpretationChange($event)"
+              [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode" maxlength="1000"
+              placeholder="Enter clinical interpretation…" style="
                 width: 100%;
                 min-height: 100px;
                 padding: 10px;
@@ -277,8 +210,7 @@
                 border: 1px solid #ccc;
                 margin-top: 6px;
                 outline: none;
-              "
-            ></textarea>
+              "></textarea>
           </div>
 
           <!-- ── Prescribed Medicines ── -->
@@ -377,20 +309,13 @@
                 <tbody>
                   <tr *ngFor="let med of prescriptions; let i = index">
                     <td class="med-name-col">
-                      <select
-                        [(ngModel)]="med.medicineId"
-                        (change)="onMedicineChange($event, i); triggerAutosave()"
-                        [name]="'medicine' + i"
-                        class="custom-select"
-                      >
+                      <select [(ngModel)]="med.medicineId" (change)="onMedicineChange($event, i); triggerAutosave()"
+                        [name]="'medicine' + i" class="custom-select">
                         <option [ngValue]="null" disabled>
                           Select Medicine
                         </option>
 
-                        <option
-                          *ngFor="let m of medicines"
-                          [ngValue]="m.medicineId"
-                        >
+                        <option *ngFor="let m of medicines" [ngValue]="m.medicineId">
                           {{ m.name }}
                         </option>
 
@@ -398,34 +323,19 @@
                       </select>
                     </td>
                     <td>
-                      <input
-                        type="text"
-                        [(ngModel)]="med.dosage"
-                        (ngModelChange)="triggerAutosave()"
-                        placeholder="e.g. 500mg"
-                      />
+                      <input type="text" [(ngModel)]="med.dosage" (ngModelChange)="triggerAutosave()"
+                        placeholder="e.g. 500mg" />
                     </td>
                     <td>
-                      <input
-                        type="text"
-                        [(ngModel)]="med.frequency"
-                        (ngModelChange)="triggerAutosave()"
-                        placeholder="e.g. 1-0-1"
-                      />
+                      <input type="text" [(ngModel)]="med.frequency" (ngModelChange)="triggerAutosave()"
+                        placeholder="e.g. 1-0-1" />
                     </td>
                     <td>
-                      <input
-                        type="text"
-                        [(ngModel)]="med.duration"
-                        (ngModelChange)="triggerAutosave()"
-                        placeholder="e.g. 5 days"
-                      />
+                      <input type="text" [(ngModel)]="med.duration" (ngModelChange)="triggerAutosave()"
+                        placeholder="e.g. 5 days" />
                     </td>
                     <td>
-                      <select
-                        [(ngModel)]="med.type"
-                        (ngModelChange)="triggerAutosave()"
-                      >
+                      <select [(ngModel)]="med.type" (ngModelChange)="triggerAutosave()">
                         <option value="" disabled selected>Select Type</option>
                         <option>Tablet</option>
                         <option>Capsule</option>
@@ -434,19 +344,11 @@
                       </select>
                     </td>
                     <td>
-                      <input
-                        type="text"
-                        [(ngModel)]="med.instructions"
-                        (ngModelChange)="triggerAutosave()"
-                        placeholder="After meals…"
-                      />
+                      <input type="text" [(ngModel)]="med.instructions" (ngModelChange)="triggerAutosave()"
+                        placeholder="After meals…" />
                     </td>
                     <td class="td-center">
-                      <button
-                        class="icon-btn icon-btn--danger"
-                        (click)="removeMedicineRow(i)"
-                        type="button"
-                      >
+                      <button class="icon-btn icon-btn--danger" (click)="removeMedicineRow(i)" type="button">
                         ✕
                       </button>
                     </td>
@@ -454,11 +356,7 @@
                 </tbody>
               </table>
             </div>
-            <button
-              class="btn-add-row"
-              (click)="addMedicineRow()"
-              type="button"
-            >
+            <button class="btn-add-row" (click)="addMedicineRow()" type="button">
               ＋ Add Medicine
             </button>
           </div>
@@ -467,186 +365,127 @@
           <div class="form-grid form-grid--2">
             <div class="form-section mb-0">
               <label class="field-label">Consultation Charges (₹)</label>
-              <input
-                type="number"
-                class="fu-input no-spinner"
-                [ngModel]="consultationCharge"
-                (ngModelChange)="onConsultationChange($event); triggerAutosave()"
-                (wheel)="$event.preventDefault()"
-                min="0"
-                placeholder="0"
-                [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode"
-              />
+              <input type="number" class="fu-input no-spinner" [ngModel]="consultationCharge"
+                (ngModelChange)="onConsultationChange($event); triggerAutosave()" (wheel)="$event.preventDefault()"
+                min="0" placeholder="0" [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode" />
             </div>
-            <!-- <div class="form-section mb-0">
-            <label class="field-label">Wave Off Charges?</label>
-            <div class="radio-group">
-              <label class="radio-opt">
-                <input
-                  type="radio"
-                  name="waveoff"
-                  value="no"
-                  checked
-                  (change)="onWaveOffChange('no')"
-                  [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode"
-                />
-                No
-              </label>
-              <label class="radio-opt">
-                <input
-                  type="radio"
-                  name="waveoff"
-                  value="yes"
-                  (change)="onWaveOffChange('yes')"
-                  [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode"
-                />
-                Yes
-              </label>
+
+            <!--  -->
+            <div class="form-section mb-0">
+              <label class="field-label">Wave Off Charges?</label>
+              <div class="radio-group">
+                <label class="radio-opt">
+                  <input type="radio" name="waveoff" value="no" checked (change)="onWaveOffChange('no')"
+                    [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode" />
+                  No
+                </label>
+                <label class="radio-opt">
+                  <input type="radio" name="waveoff" value="yes" (change)="onWaveOffChange('yes')"
+                    [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode" />
+                  Yes
+                </label>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="form-section">
-          <label class="field-label">Wave Off Amount (₹)</label>
-          <input
-            type="number"
-            class="fu-input no-spinner"
-            [ngModel]="waveOffAmount"
-            (ngModelChange)="onWaveOffAmountChange($event); triggerAutosave()"
-            (wheel)="$event.preventDefault()"
-            placeholder="0.00"
-            [disabled]="!waveOffVerified || (isFollowUpAlreadySaved && !isFollowUpEditMode)"
-          />
-        </div>
+          <div class="form-section">
+            <label class="field-label">Wave Off Amount (₹)</label>
+            <input type="number" class="fu-input no-spinner" [ngModel]="waveOffAmount"
+              (ngModelChange)="onWaveOffAmountChange($event); triggerAutosave()" (wheel)="$event.preventDefault()"
+              placeholder="0.00" [disabled]="!waveOffVerified || (isFollowUpAlreadySaved && !isFollowUpEditMode)" />
+          </div>
 
-        <!-- ── Next Appointment ── -->
-            <div class="form-grid form-grid--2">
-              <div class="form-section mb-0">
-                <label class="field-label"
-                  >Next Appointment Date
-                  <span class="field-optional">(Optional)</span></label
-                >
-                <input
-                  type="date"
-                  class="fu-input"
-                  [(ngModel)]="nextAppointmentDate"
-                  (ngModelChange)="triggerAutosave()"
-                  [min]="todayDate"
-                />
-              </div>
-              <div class="form-section mb-0">
-                <label class="field-label"
-                  >Next Appointment Time
-                  <span class="field-optional">(Optional)</span></label
-                >
-                <input
-                  type="time"
-                  class="fu-input"
-                  [(ngModel)]="nextAppointmentTime"
-                  (ngModelChange)="triggerAutosave()"
-                />
-              </div>
+          <!-- ── Next Appointment ── -->
+          <div class="form-grid form-grid--2">
+            <div class="form-section mb-0">
+              <label class="field-label">Next Appointment Date
+                <span class="field-optional">(Optional)</span></label>
+              <input type="date" class="fu-input" [(ngModel)]="nextAppointmentDate" (ngModelChange)="triggerAutosave()"
+                [min]="todayDate" />
+            </div>
+            <div class="form-section mb-0">
+              <label class="field-label">Next Appointment Time
+                <span class="field-optional">(Optional)</span></label>
+              <input type="time" class="fu-input" [(ngModel)]="nextAppointmentTime"
+                (ngModelChange)="triggerAutosave()" />
             </div>
           </div>
         </ng-container>
-        <!-- /card-body -->
-        <!-- Card Footer -->
+      <!-- /card-body -->
+      <!-- Card Footer -->
 
-        <div
-          class="card-footer card-footer--right"
-          *ngIf="!isFollowUpAlreadySaved || isFollowUpEditMode"
-        >
-          <!-- <button class="btn btn--ghost">Cancel</button> -->
+      <div class="card-footer card-footer--right" *ngIf="!isFollowUpAlreadySaved || isFollowUpEditMode">
+        <!-- <button class="btn btn--ghost">Cancel</button> -->
 
-          <ng-container *ngIf="!isFollowUpAlreadySaved">
-            <button
-              class="btn btn--primary"
-              (click)="saveFollowUp()"
-              [disabled]="!isFollowUpFormValid()"
-            >
-              💾 Save Follow-Up
-            </button>
-          </ng-container>
+        <ng-container *ngIf="!isFollowUpAlreadySaved">
+          <button class="btn btn--primary" (click)="saveFollowUp()" [disabled]="!isFollowUpFormValid()">
+            💾 Save Follow-Up
+          </button>
+        </ng-container>
 
-          <ng-container *ngIf="isFollowUpAlreadySaved && isFollowUpEditMode">
-            <button
-              class="btn btn--primary"
-              (click)="saveFollowUpEdit()"
-              [disabled]="!isFollowUpFormValid()"
-            >
-              💾 Save Changes
-            </button>
-          </ng-container>
-        </div>
-        <!-- /fu-card record -->
-
-        <!-- /hist-section -->
-
-        <!-- /fu-wrap -->
+        <ng-container *ngIf="isFollowUpAlreadySaved && isFollowUpEditMode">
+          <button class="btn btn--primary" (click)="saveFollowUpEdit()" [disabled]="!isFollowUpFormValid()">
+            💾 Save Changes
+          </button>
+        </ng-container>
       </div>
-      <!-- /fu-container -->
+      <!-- /fu-card record -->
 
-      <!-- ═══════════════════════════════════════════════════
+      <!-- /hist-section -->
+
+      <!-- /fu-wrap -->
+    </div>
+    <!-- /fu-container -->
+
+    <!-- ═══════════════════════════════════════════════════
      ADMIN PASSWORD MODAL
 ═══════════════════════════════════════════════════ -->
-      <div class="modal-overlay" *ngIf="showPasswordModal">
-        <div class="modal-box">
-          <div class="modal-icon">🔐</div>
-          <h3 class="modal-title">Admin Verification</h3>
-          <p class="modal-sub">
-            Enter admin password to apply the wave-off amount.
-          </p>
-          <input
-            type="password"
-            class="fu-input"
-            placeholder="Enter password"
-            [(ngModel)]="adminPassword"
-          />
-          <div class="modal-actions">
-            <button class="btn btn--ghost" (click)="closePasswordModal()">
-              Cancel
-            </button>
-            <button class="btn btn--primary" (click)="verifyAdminPassword()">
-              Verify
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="modal-overlay" *ngIf="showMedicineModal">
-        <div class="modal-box">
-          <div class="modal-icon">💊</div>
-
-          <h3 class="modal-title">Add Medicine</h3>
-          <p class="modal-sub">Enter medicine name</p>
-
-          <input
-            type="text"
-            class="fu-input"
-            placeholder="Enter medicine name"
-            [(ngModel)]="newMedicineName"
-          />
-
-          <div class="modal-actions">
-            <button class="btn btn--ghost" (click)="closeMedicineModal()">
-              Cancel
-            </button>
-
-            <button class="btn btn--primary" (click)="saveNewMedicine()">
-              Save
-            </button>
-          </div>
+    <div class="modal-overlay" *ngIf="showPasswordModal">
+      <div class="modal-box">
+        <div class="modal-icon">🔐</div>
+        <h3 class="modal-title">Admin Verification</h3>
+        <p class="modal-sub">
+          Enter admin password to apply the wave-off amount.
+        </p>
+        <input type="password" class="fu-input" placeholder="Enter password" [(ngModel)]="adminPassword" />
+        <div class="modal-actions">
+          <button class="btn btn--ghost" (click)="closePasswordModal()">
+            Cancel
+          </button>
+          <button class="btn btn--primary" (click)="verifyAdminPassword()">
+            Verify
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════
+    <div class="modal-overlay" *ngIf="showMedicineModal">
+      <div class="modal-box">
+        <div class="modal-icon">💊</div>
+
+        <h3 class="modal-title">Add Medicine</h3>
+        <p class="modal-sub">Enter medicine name</p>
+
+        <input type="text" class="fu-input" placeholder="Enter medicine name" [(ngModel)]="newMedicineName" />
+
+        <div class="modal-actions">
+          <button class="btn btn--ghost" (click)="closeMedicineModal()">
+            Cancel
+          </button>
+
+          <button class="btn btn--primary" (click)="saveNewMedicine()">
+            Save
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
          APPOINTMENT HISTORY
     ═══════════════════════════════════════════════════ -->
-    <div class="hist-section">
-      <div
-        class="hist-head"
-        style="
+  <div class="hist-section">
+    <div class="hist-head" style="
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -662,210 +501,151 @@
           gap: 12px;
           flex-wrap: wrap;
           color: white;
-        "
-      >
-        <div class="hist-head-left">
-          <div class="hist-icon">📋</div>
-          <div>
-            <h2 class="hist-title" style="color: white">Appointment History</h2>
-            <p class="hist-sub" style="color: white">
-              Past visits and treatment records
-            </p>
-          </div>
+        ">
+      <div class="hist-head-left">
+        <div class="hist-icon">📋</div>
+        <div>
+          <h2 class="hist-title" style="color: white">Appointment History</h2>
+          <p class="hist-sub" style="color: white">
+            Past visits and treatment records
+          </p>
         </div>
-        <span class="count-chip" *ngIf="summaryTotalCount > 0">
-          {{ summaryTotalCount }} visit{{ summaryTotalCount > 1 ? 's' : '' }}
-        </span>
       </div>
+      <span class="count-chip" *ngIf="summaryTotalCount > 0">
+        {{ summaryTotalCount }} visit{{ summaryTotalCount > 1 ? 's' : '' }}
+      </span>
+    </div>
 
-      <!-- Loading -->
-      <div class="hist-loading" *ngIf="summaryLoading">
-        <div class="hist-spinner"></div>
-        <span>Loading history…</span>
-      </div>
+    <!-- Loading -->
+    <div class="hist-loading" *ngIf="summaryLoading">
+      <div class="hist-spinner"></div>
+      <span>Loading history…</span>
+    </div>
 
-      <!-- Empty -->
-      <div
-        class="hist-empty"
-        *ngIf="!summaryLoading && summaryHistory.length === 0"
-      >
-        <div class="hist-empty-icon">🗂️</div>
-        <p>No past appointments found for this patient.</p>
-      </div>
+    <!-- Empty -->
+    <div class="hist-empty" *ngIf="!summaryLoading && summaryHistory.length === 0">
+      <div class="hist-empty-icon">🗂️</div>
+      <p>No past appointments found for this patient.</p>
+    </div>
 
-      <!-- Timeline -->
-      <div
-        class="hist-timeline"
-        *ngIf="!summaryLoading && summaryHistory.length > 0"
-      >
-        <div
-          class="hist-item"
-          *ngFor="let appt of summaryHistory; let i = index"
-        >
-          <div class="hist-card">
-            <!-- Top row -->
-            <div
-              class="hist-card-top"
-              style="background: #d3efd7; border-radius: 10px; padding: 10px"
-            >
-              <div class="hist-date-row">
-                <span class="hist-date"
-                  >📅 {{ appt.appointmentDate | date: 'dd MMM yyyy' }}</span
-                >
-                <span class="hist-time" *ngIf="appt.appointmentTime"
-                  >⏰ {{ appt.appointmentTime }}</span
-                >
-              </div>
-              <div class="hist-meta-right">
-                <span
-                  class="hist-status hist-status--{{ appt.status | lowercase }}"
-                  >{{ appt.status }}</span
-                >
-                <span class="hist-remark-tag" *ngIf="appt.remark"
-                  >{{ appt.remark }}</span
-                >
-              </div>
+    <!-- Timeline -->
+    <div class="hist-timeline" *ngIf="!summaryLoading && summaryHistory.length > 0">
+      <div class="hist-item" *ngFor="let appt of summaryHistory; let i = index">
+        <div class="hist-card">
+          <!-- Top row -->
+          <div class="hist-card-top" style="background: #d3efd7; border-radius: 10px; padding: 10px">
+            <div class="hist-date-row">
+              <span class="hist-date">📅 {{ appt.appointmentDate | date: 'dd MMM yyyy' }}</span>
+              <span class="hist-time" *ngIf="appt.appointmentTime">⏰ {{ appt.appointmentTime }}</span>
             </div>
-
-            <div
-              class="hist-divider"
-              *ngIf="appt.followUpEntry || appt.prescribedMedicines?.length || appt.payment"
-            ></div>
-
-            <!-- Follow-up entry -->
-            <div *ngIf="appt.followUpEntry">
-              <div
-                class="hist-block"
-                *ngIf="appt.followUpEntry.statusRecords?.length"
-              >
-                <div class="hist-block-label">
-                  <span>🩺</span> Symptom Status
-                </div>
-                <div class="hist-tbl-wrap">
-                  <table class="hist-tbl">
-                    <thead>
-                      <tr>
-                        <th>Symptom</th>
-                        <th>Remarks</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr *ngFor="let sr of appt.followUpEntry.statusRecords">
-                        <td>{{ sr.criteriaName }}</td>
-                        <td>
-                          <span class="remark-val"
-                            >{{ sr.remarks || '–' }}</span
-                          >
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <div
-                class="hist-meta-row"
-                *ngIf="appt.followUpEntry.interpretation || appt.followUpEntry.charge"
-              >
-                <div
-                  class="hist-meta-item"
-                  *ngIf="appt.followUpEntry.interpretation"
-                >
-                  <span class="hist-meta-lbl"
-                    >Interpretation (1000 characters)</span
-                  >
-                  <span class="hist-meta-val"
-                    >{{ appt.followUpEntry.interpretation }}</span
-                  >
-                </div>
-                <div class="hist-meta-item" *ngIf="appt.followUpEntry.charge">
-                  <span class="hist-meta-lbl">Charge</span>
-                  <span class="hist-meta-val hist-charge"
-                    >₹ {{ appt.followUpEntry.charge }}</span
-                  >
-                </div>
-              </div>
+            <div class="hist-meta-right">
+              <span class="hist-status hist-status--{{ appt.status | lowercase }}">{{ appt.status }}</span>
+              <span class="hist-remark-tag" *ngIf="appt.remark">{{ appt.remark }}</span>
             </div>
+          </div>
 
-            <!-- Medicines -->
-            <div class="hist-block" *ngIf="appt.prescribedMedicines?.length">
+          <div class="hist-divider" *ngIf="appt.followUpEntry || appt.prescribedMedicines?.length || appt.payment">
+          </div>
+
+          <!-- Follow-up entry -->
+          <div *ngIf="appt.followUpEntry">
+            <div class="hist-block" *ngIf="appt.followUpEntry.statusRecords?.length">
               <div class="hist-block-label">
-                <span>💊</span> Prescribed Medicines
+                <span>🩺</span> Symptom Status
               </div>
               <div class="hist-tbl-wrap">
                 <table class="hist-tbl">
                   <thead>
                     <tr>
-                      <th>Medicine</th>
-                      <th>Dosage</th>
-                      <th>Frequency</th>
-                      <th>Duration</th>
-                      <th>Instructions</th>
+                      <th>Symptom</th>
+                      <th>Remarks</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr *ngFor="let med of appt.prescribedMedicines">
-                      <td class="hist-med-name">{{ med.medicineName }}</td>
-                      <td>{{ med.dosage || '–' }}</td>
-                      <td>{{ med.frequency || '–' }}</td>
-                      <td>{{ med.duration || '–' }}</td>
-                      <td>{{ med.instructions || '–' }}</td>
+                    <tr *ngFor="let sr of appt.followUpEntry.statusRecords">
+                      <td>{{ sr.criteriaName }}</td>
+                      <td>
+                        <span class="remark-val">{{ sr.remarks || '–' }}</span>
+                      </td>
                     </tr>
                   </tbody>
                 </table>
               </div>
             </div>
 
-            <!-- Payment -->
-            <div class="hist-payment-row" *ngIf="appt.payment">
-              <!-- <span></span> -->
-              <div class="hist-pills">
-                <span class="hist-pill">
-                  💰 Charges:
-                  <b>₹{{ appt.payment.consultationCharges }}</b></span
-                >
-                <span
-                  class="hist-pill hist-pill--warning"
-                  *ngIf="appt.payment.waveOffAmount"
-                  >Wave Off: <b>₹{{ appt.payment.waveOffAmount }}</b></span
-                >
-                <span class="hist-pill hist-pill--success"
-                  >Paid: <b>₹{{ appt.payment.amountPaid }}</b></span
-                >
-                <span
-                  class="hist-pill hist-pill--danger"
-                  *ngIf="appt.payment.remainingBalance"
-                  >Balance: <b>₹{{ appt.payment.remainingBalance }}</b></span
-                >
+            <div class="hist-meta-row" *ngIf="appt.followUpEntry.interpretation || appt.followUpEntry.charge">
+              <div class="hist-meta-item" *ngIf="appt.followUpEntry.interpretation">
+                <span class="hist-meta-lbl">Interpretation (1000 characters)</span>
+                <span class="hist-meta-val">{{ appt.followUpEntry.interpretation }}</span>
+              </div>
+              <div class="hist-meta-item" *ngIf="appt.followUpEntry.charge">
+                <span class="hist-meta-lbl">Charge</span>
+                <span class="hist-meta-val hist-charge">₹ {{ appt.followUpEntry.charge }}</span>
               </div>
             </div>
           </div>
-          <!-- /hist-card -->
-        </div>
-        <!-- /hist-item -->
-      </div>
-      <!-- /timeline -->
 
-      <!-- Pagination -->
-      <div class="hist-pagination" *ngIf="summaryTotalPages > 1">
-        <button
-          class="pg-btn"
-          [disabled]="summaryPage === 1 || summaryLoading"
-          (click)="onSummaryPageChange(summaryPage - 1)"
-        >
-          ← Prev
-        </button>
-        <span class="pg-info"
-          >Page {{ summaryPage }} of {{ summaryTotalPages }}</span
-        >
-        <button
-          class="pg-btn"
-          [disabled]="summaryPage === summaryTotalPages || summaryLoading"
-          (click)="onSummaryPageChange(summaryPage + 1)"
-        >
-          Next →
-        </button>
+          <!-- Medicines -->
+          <div class="hist-block" *ngIf="appt.prescribedMedicines?.length">
+            <div class="hist-block-label">
+              <span>💊</span> Prescribed Medicines
+            </div>
+            <div class="hist-tbl-wrap">
+              <table class="hist-tbl">
+                <thead>
+                  <tr>
+                    <th>Medicine</th>
+                    <th>Dosage</th>
+                    <th>Frequency</th>
+                    <th>Duration</th>
+                    <th>Instructions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let med of appt.prescribedMedicines">
+                    <td class="hist-med-name">{{ med.medicineName }}</td>
+                    <td>{{ med.dosage || '–' }}</td>
+                    <td>{{ med.frequency || '–' }}</td>
+                    <td>{{ med.duration || '–' }}</td>
+                    <td>{{ med.instructions || '–' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Payment -->
+          <div class="hist-payment-row" *ngIf="appt.payment">
+            <!-- <span></span> -->
+            <div class="hist-pills">
+              <span class="hist-pill">
+                💰 Charges:
+                <b>₹{{ appt.payment.consultationCharges }}</b></span>
+              <span class="hist-pill hist-pill--warning" *ngIf="appt.payment.waveOffAmount">Wave Off: <b>₹{{
+                  appt.payment.waveOffAmount }}</b></span>
+              <span class="hist-pill hist-pill--success">Paid: <b>₹{{ appt.payment.amountPaid }}</b></span>
+              <span class="hist-pill hist-pill--danger" *ngIf="appt.payment.remainingBalance">Balance: <b>₹{{
+                  appt.payment.remainingBalance }}</b></span>
+            </div>
+          </div>
+        </div>
+        <!-- /hist-card -->
       </div>
+      <!-- /hist-item -->
+    </div>
+    <!-- /timeline -->
+
+    <!-- Pagination -->
+    <div class="hist-pagination" *ngIf="summaryTotalPages > 1">
+      <button class="pg-btn" [disabled]="summaryPage === 1 || summaryLoading"
+        (click)="onSummaryPageChange(summaryPage - 1)">
+        ← Prev
+      </button>
+      <span class="pg-info">Page {{ summaryPage }} of {{ summaryTotalPages }}</span>
+      <button class="pg-btn" [disabled]="summaryPage === summaryTotalPages || summaryLoading"
+        (click)="onSummaryPageChange(summaryPage + 1)">
+        Next →
+      </button>
     </div>
   </div>
 </div>

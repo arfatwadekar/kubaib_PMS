@@ -17,9 +17,11 @@ const AUTO_ADD_ROWS = 2;
   standalone: false,
 })
 export class FollowupPage implements OnInit, OnDestroy {
+  role: 'Doctor' | 'Receptionist' = 'Receptionist';
+  isReadonly = false;
   showMedicineModal = false;
-newMedicineName = '';
-selectedMedicineIndex: number | null = null;
+  newMedicineName = '';
+  selectedMedicineIndex: number | null = null;
 
   today = new Date();
   todayDate: string = '';
@@ -74,10 +76,10 @@ selectedMedicineIndex: number | null = null;
   summaryLoading = false;
 
   private destroy$ = new Subject<void>();
-  
+
   // ─── Auto-save ───────────────────────────────────────────────────────────
-  private autosaveKey  = '';
-  private autosave$    = new Subject<void>();
+  private autosaveKey = '';
+  private autosave$ = new Subject<void>();
 
   // ─────────────────────────────────────────────────────────────────────────
   // FORM DEFINITION
@@ -117,10 +119,14 @@ selectedMedicineIndex: number | null = null;
         value: ctrl.value,
         criteriaId: ctrl.criteriaId,
       }))
-      .filter((item) => item.value && item.value.trim() !== '' && item.criteriaId);
+      .filter(
+        (item) => item.value && item.value.trim() !== '' && item.criteriaId,
+      );
   }
   get isAppointmentEditable(): boolean {
-    return ['Pending', 'InPatient', 'AwaitingPayment'].includes(this.appointmentStatus);
+    return ['Pending', 'InPatient', 'AwaitingPayment'].includes(
+      this.appointmentStatus,
+    );
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -128,6 +134,7 @@ selectedMedicineIndex: number | null = null;
   // ─────────────────────────────────────────────────────────────────────────
 
   async ngOnInit() {
+    this.loadRole();
     const patientParam = this.route.snapshot.queryParamMap.get('patientId');
 
     this.patientId = patientParam ? Number(patientParam) : 0;
@@ -219,29 +226,30 @@ selectedMedicineIndex: number | null = null;
       this.summary = res;
 
       this.appointmentStatus = res?.status || '';
-      this.existingFollowUpEntryId = res?.followUpEntry?.patientFollowUpEntryId || null;
+      this.existingFollowUpEntryId =
+        res?.followUpEntry?.patientFollowUpEntryId || null;
 
       if (this.existingFollowUpEntryId) {
-        this.isFollowUpAlreadySaved  = true;
-        this.interpretation          = res?.followUpEntry?.interpretation || '';
-        this.consultationCharge      = Number(res?.followUpEntry?.charge  || 0);
-        this.waveOffAmount           = Number(res?.payment?.waveOffAmount  || 0);
-        this.waveOffSelected         = this.waveOffAmount > 0;
-        this.savedStatusRecords      = res?.followUpEntry?.statusRecords  || [];
+        this.isFollowUpAlreadySaved = true;
+        this.interpretation = res?.followUpEntry?.interpretation || '';
+        this.consultationCharge = Number(res?.followUpEntry?.charge || 0);
+        this.waveOffAmount = Number(res?.payment?.waveOffAmount || 0);
+        this.waveOffSelected = this.waveOffAmount > 0;
+        this.savedStatusRecords = res?.followUpEntry?.statusRecords || [];
 
         // ── Prescriptions ──────────────────────────────────────────────
         if (res?.prescribedMedicines?.length) {
           this.prescriptions = res?.prescribedMedicines?.length
-          ? res.prescribedMedicines.map((med: any) => ({
-              prescribedMedicineId: med.prescribedMedicineId ?? null,  // ← ADD THIS
-              medicineId:           med.medicineId,
-              dosage:               med.dosage       || '',
-              frequency:            med.frequency    || '',
-              duration:             med.duration     || '',
-              type:                 med.type         || 'Tablet',
-              instructions:         med.instructions || '',
-            }))
-          : [];
+            ? res.prescribedMedicines.map((med: any) => ({
+                prescribedMedicineId: med.prescribedMedicineId ?? null, // ← ADD THIS
+                medicineId: med.medicineId,
+                dosage: med.dosage || '',
+                frequency: med.frequency || '',
+                duration: med.duration || '',
+                type: med.type || 'Tablet',
+                instructions: med.instructions || '',
+              }))
+            : [];
         }
       } else {
         if (res?.payment?.consultationCharges && !this.consultationCharge) {
@@ -385,6 +393,7 @@ selectedMedicineIndex: number | null = null;
   // ─────────────────────────────────────────────────────────────────────────
 
   enableEdit() {
+     if (this.isReadonly) return; 
     console.log('🔓 ENABLING EDIT MODE');
 
     this.isEditMode = true;
@@ -399,108 +408,109 @@ selectedMedicineIndex: number | null = null;
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-// ENABLE FOLLOW-UP EDIT MODE
-// Allows editing symptom status, interpretation, charge, waveoff
-// ─────────────────────────────────────────────────────────────────────────
+  // ENABLE FOLLOW-UP EDIT MODE
+  // Allows editing symptom status, interpretation, charge, waveoff
+  // ─────────────────────────────────────────────────────────────────────────
 
-enableFollowUpEdit() {
-  this.isFollowUpEditMode = true;
-  this.showToast('You can now modify the follow-up entry.');
-}
-
-// ─────────────────────────────────────────────────────────────────────────
-// SAVE FOLLOW-UP EDIT
-// Calls PUT /api/FollowUp to update existing entry + payment
-// ─────────────────────────────────────────────────────────────────────────
-
-async saveFollowUpEdit() {
-  if (!this.isFollowUpFormValid()) {
-    this.showToast('Please fill all required fields.');
-    return;
+  enableFollowUpEdit() {
+     if (this.isReadonly) return; 
+    this.isFollowUpEditMode = true;
+    this.showToast('You can now modify the follow-up entry.');
   }
 
-  const consultation = parseFloat(String(this.consultationCharge)) || 0;
-  const waveOff      = parseFloat(String(this.waveOffAmount))      || 0;
+  // ─────────────────────────────────────────────────────────────────────────
+  // SAVE FOLLOW-UP EDIT
+  // Calls PUT /api/FollowUp to update existing entry + payment
+  // ─────────────────────────────────────────────────────────────────────────
 
-  if (waveOff > consultation) {
-    this.showToast('Wave off cannot exceed consultation charges');
-    return;
-  }
+  async saveFollowUpEdit() {
+    if (!this.isFollowUpFormValid()) {
+      this.showToast('Please fill all required fields.');
+      return;
+    }
 
-  try {
-    // ── 1. Update follow-up entry (status records + interpretation + charge)
-    const followUpPayload = {
-      patientFollowUpEntryId: this.existingFollowUpEntryId,
-      patientId:              this.patientId,
-      appointmentId:          this.currentAppointmentId,
-      followUpDate:           new Date().toISOString(),
-      interpretation:         this.interpretation,
-      temporaryProblems:      this.temporaryProblems,
-      charge:                 consultation,
-      statusRecords:          this.buildStatusRecords(),
-    };
+    const consultation = parseFloat(String(this.consultationCharge)) || 0;
+    const waveOff = parseFloat(String(this.waveOffAmount)) || 0;
 
-    await firstValueFrom(this.api.updateFollowUp(followUpPayload as any));
-    console.log('✓ Follow-up entry updated');
+    if (waveOff > consultation) {
+      this.showToast('Wave off cannot exceed consultation charges');
+      return;
+    }
 
-    // ── 2. ✅ UPDATE PRESCRIPTIONS (was completely missing) ───────────
-    console.log('💊 Updating prescriptions...');
-    for (const med of this.prescriptions) {
-      if (!med.medicineId) {
-        console.log('Skipped — no medicine selected');
-        continue;
-      }
-
-      const payload = {
+    try {
+      // ── 1. Update follow-up entry (status records + interpretation + charge)
+      const followUpPayload = {
+        patientFollowUpEntryId: this.existingFollowUpEntryId,
+        patientId: this.patientId,
         appointmentId: this.currentAppointmentId,
-        medicineId: Number(med.medicineId),
-        dosage: med.dosage,
-        frequency: med.frequency,
-        duration: med.duration,
-        type: med.type || 'Capsule',
-        instructions: med.instructions,
+        followUpDate: new Date().toISOString(),
+        interpretation: this.interpretation,
+        temporaryProblems: this.temporaryProblems,
+        charge: consultation,
+        statusRecords: this.buildStatusRecords(),
       };
 
-      console.log('Prescription payload:', payload);
-      await firstValueFrom(this.api.addPrescription(payload));
+      await firstValueFrom(this.api.updateFollowUp(followUpPayload as any));
+      console.log('✓ Follow-up entry updated');
+
+      // ── 2. ✅ UPDATE PRESCRIPTIONS (was completely missing) ───────────
+      console.log('💊 Updating prescriptions...');
+      for (const med of this.prescriptions) {
+        if (!med.medicineId) {
+          console.log('Skipped — no medicine selected');
+          continue;
+        }
+
+        const payload = {
+          appointmentId: this.currentAppointmentId,
+          medicineId: Number(med.medicineId),
+          dosage: med.dosage,
+          frequency: med.frequency,
+          duration: med.duration,
+          type: med.type || 'Capsule',
+          instructions: med.instructions,
+        };
+
+        console.log('Prescription payload:', payload);
+        await firstValueFrom(this.api.addPrescription(payload));
+      }
+      console.log('✓ Prescriptions updated');
+
+      // ── 3. Update payment (consultation charge + waveoff)
+      const paymentPayload: any = {
+        patientId: this.patientId,
+        appointmentId: this.currentAppointmentId,
+        consultationCharges: consultation,
+        waveOffAmount: waveOff,
+        waveOffPassword: this.adminPassword,
+      };
+
+      await firstValueFrom(this.api.createPayment(paymentPayload));
+      console.log('✓ Payment updated');
+
+      this.isFollowUpEditMode = false;
+      this.clearDraft();
+      this.showToast('Follow-up updated successfully.');
+
+      // Reload summary to get fresh data
+      await this.loadSummary();
+      await this.loadPatientSummary();
+    } catch (err: any) {
+      console.error('Update follow-up error:', err);
+      const message =
+        typeof err?.error === 'string'
+          ? err.error
+          : (err?.error?.message ?? err?.message ?? 'Update failed.');
+      this.showToast(message);
     }
-    console.log('✓ Prescriptions updated');
-
-    // ── 3. Update payment (consultation charge + waveoff)
-    const paymentPayload: any = {
-      patientId:           this.patientId,
-      appointmentId:       this.currentAppointmentId,
-      consultationCharges: consultation,
-      waveOffAmount:       waveOff,
-      waveOffPassword:     this.adminPassword,
-    };
-
-    await firstValueFrom(this.api.createPayment(paymentPayload));
-    console.log('✓ Payment updated');
-
-    this.isFollowUpEditMode = false;
-    this.clearDraft();  
-    this.showToast('Follow-up updated successfully.');
-
-    // Reload summary to get fresh data
-    await this.loadSummary();
-    await this.loadPatientSummary();
-
-  } catch (err: any) {
-    console.error('Update follow-up error:', err);
-    const message =
-      typeof err?.error === 'string'
-        ? err.error
-        : err?.error?.message ?? err?.message ?? 'Update failed.';
-    this.showToast(message);
   }
-}
   // ─────────────────────────────────────────────────────────────────────────
-// DELETE CRITERIA ROW
-// Calls DELETE API then removes the row from the form array
-// ─────────────────────────────────────────────────────────────────────────
+  // DELETE CRITERIA ROW
+  // Calls DELETE API then removes the row from the form array
+  // ─────────────────────────────────────────────────────────────────────────
 
   async deleteCriteria(index: number) {
+      if (this.isReadonly) return;
     const ctrl = this.fuSymptomsArr.at(index) as any;
     const criteriaId = ctrl.criteriaId;
 
@@ -515,20 +525,20 @@ async saveFollowUpEdit() {
 
       this.showToast('Symptom deleted successfully');
 
-        await this.loadCriteria();
+      await this.loadCriteria();
     } catch (err: any) {
-        console.error('Delete criteria error:', err);
+      console.error('Delete criteria error:', err);
 
-        // Extract backend error message
-        const message =
-          typeof err?.error === 'string'
-            ? err.error                          // plain string response from backend
-            : err?.error?.message               // { message: "..." } object
-            ?? err?.message                     // JS error
-            ?? 'Failed to delete symptom';      // fallback
+      // Extract backend error message
+      const message =
+        typeof err?.error === 'string'
+          ? err.error // plain string response from backend
+          : (err?.error?.message ?? // { message: "..." } object
+            err?.message ?? // JS error
+            'Failed to delete symptom'); // fallback
 
-        this.showToast(message);
-      } finally {
+      this.showToast(message);
+    } finally {
       this.criteriaLoading = false;
     }
   }
@@ -542,6 +552,7 @@ async saveFollowUpEdit() {
   // ─────────────────────────────────────────────────────────────────────────
 
   async saveCriteria() {
+      if (this.isReadonly) return;
     console.log('💾 SAVING CRITERIA');
 
     const createList: string[] = [];
@@ -660,28 +671,27 @@ async saveFollowUpEdit() {
   // ADD NEW MEDICINE (Dialog-based)
   // ─────────────────────────────────────────────────────────────────────────
 
- 
   // ─────────────────────────────────────────────────────────────────────────
   // ON MEDICINE CHANGE (Dropdown)
   // Handles adding new medicine from dropdown selection
   // ─────────────────────────────────────────────────────────────────────────
 
-//  async onMedicineChange(event: any, index: number) {
-//   const value = event.target.value;
+  //  async onMedicineChange(event: any, index: number) {
+  //   const value = event.target.value;
 
-//   if (value === 'add_new') {
-//     this.openMedicineModal(index); // ✅ modal open
-//   }
-// }
-async onMedicineChange(event: any, index: number) {
-  const value = event.target.value;
+  //   if (value === 'add_new') {
+  //     this.openMedicineModal(index); // ✅ modal open
+  //   }
+  // }
+  async onMedicineChange(event: any, index: number) {
+    const value = event.target.value;
 
-  if (value === 'add_new') {
-    this.prescriptions[index].medicineId = null;  // reset model
-    event.target.value = null;                    // reset DOM select
-    this.openMedicineModal(index);
+    if (value === 'add_new') {
+      this.prescriptions[index].medicineId = null; // reset model
+      event.target.value = null; // reset DOM select
+      this.openMedicineModal(index);
+    }
   }
-}
 
   // ─────────────────────────────────────────────────────────────────────────
   // ADD MEDICINE ROW TO PRESCRIPTION TABLE
@@ -699,45 +709,52 @@ async onMedicineChange(event: any, index: number) {
   // }
 
   addMedicineRow() {
-  this.prescriptions.push({
-    medicineId: null,
-    dosage: '',
-    frequency: '',
-    duration: '',
-    type: '',
-    instructions: '',
-  });
-  // No auto-open modal here — that was never the issue
-}
+    if (this.isReadonly) return;
+    this.prescriptions.push({
+      medicineId: null,
+      dosage: '',
+      frequency: '',
+      duration: '',
+      type: '',
+      instructions: '',
+    });
+    // No auto-open modal here — that was never the issue
+  }
 
   // ─────────────────────────────────────────────────────────────────────────
   // REMOVE MEDICINE ROW FROM PRESCRIPTION TABLE
   // ─────────────────────────────────────────────────────────────────────────
 
   async removeMedicineRow(index: number) {
+      if (this.isReadonly) return;
     const med = this.prescriptions[index];
 
     if (!med.prescribedMedicineId) {
       // New unsaved row — just remove from UI and re-save draft
       this.prescriptions.splice(index, 1);
-      this.saveDraft();  // ✅ update draft
+      this.saveDraft(); // ✅ update draft
       return;
     }
 
     this.isDeletingPrescription = true;
     try {
-      await firstValueFrom(this.api.deletePrescription(med.prescribedMedicineId));
+      await firstValueFrom(
+        this.api.deletePrescription(med.prescribedMedicineId),
+      );
       console.log('✅ Prescription deleted from DB:', med.prescribedMedicineId);
 
-      this.prescriptions.splice(index, 1);  // remove from UI array
-      this.saveDraft();                      // ✅ re-save draft WITHOUT this medicine
+      this.prescriptions.splice(index, 1); // remove from UI array
+      this.saveDraft(); // ✅ re-save draft WITHOUT this medicine
 
       this.showToast('Medicine removed.');
     } catch (err: any) {
       console.error('DELETE API failed:', err);
-      const message = typeof err?.error === 'string'
-        ? err.error
-        : err?.error?.message ?? err?.message ?? 'Failed to delete prescription.';
+      const message =
+        typeof err?.error === 'string'
+          ? err.error
+          : (err?.error?.message ??
+            err?.message ??
+            'Failed to delete prescription.');
       this.showToast(message);
       // ❌ Do NOT splice or update draft — medicine stays
     } finally {
@@ -792,6 +809,7 @@ async onMedicineChange(event: any, index: number) {
   // ─────────────────────────────────────────────────────────────────────────
 
   validateSymptom(event: any, index: number) {
+    if (this.isReadonly) return;
     const value = event.target.value;
     this.symptomStatus[index] = value;
   }
@@ -801,12 +819,13 @@ async onMedicineChange(event: any, index: number) {
   // ─────────────────────────────────────────────────────────────────────────
 
   onWaveOffChange(value: string) {
+    if (this.isReadonly) return;
     if (value === 'yes') {
       this.waveOffSelected = true;
 
       if (!this.waveOffVerified) {
         this.showPasswordModal = true;
-       this.adminPassword = '';
+        this.adminPassword = '';
       }
     } else {
       this.waveOffSelected = false;
@@ -827,16 +846,16 @@ async onMedicineChange(event: any, index: number) {
   // }
 
   // AFTER
-closePasswordModal() {
-  this.showPasswordModal = false;
-  this.adminPassword = '';
-  
-  // If password not verified, revert wave-off selection back to No
-  if (!this.waveOffVerified) {
-    this.waveOffSelected = false;
-    this.waveOffAmount = 0;
+  closePasswordModal() {
+    this.showPasswordModal = false;
+    this.adminPassword = '';
+
+    // If password not verified, revert wave-off selection back to No
+    if (!this.waveOffVerified) {
+      this.waveOffSelected = false;
+      this.waveOffAmount = 0;
+    }
   }
-}
 
   async verifyAdminPassword() {
     if (!this.adminPassword) {
@@ -859,7 +878,7 @@ closePasswordModal() {
     } catch (err) {
       console.error(err);
 
-  this.adminPassword = ''; 
+      this.adminPassword = '';
       this.showToast('Invalid password');
     }
   }
@@ -896,29 +915,28 @@ closePasswordModal() {
   //   return true;
   // }
 
-isFollowUpFormValid(): boolean {
-  
-  // ❌ Consultation charge cannot be 0 or empty
-  if (!this.consultationCharge || this.consultationCharge <= 0) {
-    return false;
+  isFollowUpFormValid(): boolean {
+    // ❌ Consultation charge cannot be 0 or empty
+    if (!this.consultationCharge || this.consultationCharge <= 0) {
+      return false;
+    }
+
+    console.log('isFollowUpFormValid', this);
+
+    // ✅ Check if at least ONE symptom has status
+    const hasAtLeastOneStatus = this.symptomsArray.some((sym) => {
+      const status = this.symptomStatus[sym.index];
+      return status && status.toString().trim() !== '';
+    });
+
+    console.log('hasAtLeastOneStatus', hasAtLeastOneStatus);
+    console.log('this.symptomStatus.length', this.symptomStatus.length);
+    if (!hasAtLeastOneStatus && this.symptomStatus.length != 0) {
+      return false;
+    }
+
+    return true;
   }
-  
-  console.log("isFollowUpFormValid", this);
-
-  // ✅ Check if at least ONE symptom has status
-  const hasAtLeastOneStatus = this.symptomsArray.some((sym) => {
-    const status = this.symptomStatus[sym.index];
-    return status && status.toString().trim() !== '';
-  }); 
-
-  console.log("hasAtLeastOneStatus", hasAtLeastOneStatus);
-  console.log("this.symptomStatus.length", this.symptomStatus.length);
-  if ((!hasAtLeastOneStatus) && this.symptomStatus.length != 0) {
-    return false;
-  }
-
-  return true;
-}
 
   // ─────────────────────────────────────────────────────────────────────────
   // SAVE FOLLOW-UP (Main save function)
@@ -931,7 +949,8 @@ isFollowUpFormValid(): boolean {
   // 6. Schedule next appointment (if applicable)
   // ─────────────────────────────────────────────────────────────────────────
 
-async saveFollowUp() {
+  async saveFollowUp() {
+    if (this.isReadonly) return;
     console.log('===== SAVE FOLLOW-UP STARTED =====');
     console.log('PATIENT ID:', this.patientId);
     console.log('APPOINTMENT ID:', this.currentAppointmentId);
@@ -939,19 +958,19 @@ async saveFollowUp() {
     // ═════════════════════════════════════════════════════════════════════
     // VALIDATION: Check that all required fields are filled
     // ═════════════════════════════════════════════════════════════════════
-   if (!this.isFollowUpFormValid()) {
+    if (!this.isFollowUpFormValid()) {
       console.log('❌ VALIDATION FAILED - Form incomplete');
 
       if (this.symptomsArray.length === 0) {
         this.showToast('Please add at least one symptom');
-      } 
-      else if (!this.symptomsArray.some((sym) => {
-        const status = this.symptomStatus[sym.index];
-        return status && status.toString().trim() !== '';
-      })) {
+      } else if (
+        !this.symptomsArray.some((sym) => {
+          const status = this.symptomStatus[sym.index];
+          return status && status.toString().trim() !== '';
+        })
+      ) {
         this.showToast('Please rate at least one symptom (1-10)');
-      } 
-      else if (!this.interpretation || this.interpretation.trim() === '') {
+      } else if (!this.interpretation || this.interpretation.trim() === '') {
         this.showToast('Please provide interpretation');
       }
 
@@ -1154,7 +1173,7 @@ async saveFollowUp() {
       // ═════════════════════════════════════════════════════════════════════
 
       this.showToast('Follow-Up saved successfully');
-      this.clearDraft(); 
+      this.clearDraft();
       console.log('===== SAVE FOLLOW-UP COMPLETED SUCCESSFULLY =====');
 
       // Navigate to payment page
@@ -1165,19 +1184,32 @@ async saveFollowUp() {
           tab: 'payment',
         },
       });
-    } catch (err) {
+    } catch (err: any) {
+      // catch (err) {
+      //   console.error('===== SAVE FOLLOW-UP ERROR =====', err);
+      //   this.showToast('Save failed. Please check the console for details.');
+      //   return;
+      // }
+
       console.error('===== SAVE FOLLOW-UP ERROR =====', err);
-      this.showToast('Save failed. Please check the console for details.');
-      return;
+
+      const message =
+        typeof err?.error === 'string'
+          ? err.error
+          : (err?.error?.message ?? err?.message ?? 'Something went wrong');
+
+      this.showToast(message);
     }
-}
+  }
 
   onConsultationChange(value: any) {
+      if (this.isReadonly) return; 
     const num = parseFloat(value);
     this.consultationCharge = isNaN(num) ? 0 : num;
   }
 
   onWaveOffAmountChange(value: any) {
+      if (this.isReadonly) return; 
     const num = parseFloat(value);
     this.waveOffAmount = isNaN(num) ? 0 : num;
   }
@@ -1220,7 +1252,7 @@ async saveFollowUp() {
       // this.summaryTotalCount = res?.totalCount || 0;
 
       this.summaryHistory = res?.appointments || [];
-this.summaryTotalCount = this.summaryHistory.length;
+      this.summaryTotalCount = this.summaryHistory.length;
 
       console.log(this.currentAppointmentId);
       console.log(this.summaryHistory);
@@ -1237,37 +1269,37 @@ this.summaryTotalCount = this.summaryHistory.length;
     if (page < 1 || page > this.summaryTotalPages) return;
     this.loadPatientSummary(page);
   }
-// ─────────────────────────────────────────────────────────────────────────
-// AUTO-SAVE: SETUP
-// ─────────────────────────────────────────────────────────────────────────
-private setupAutosave() {
-  this.autosaveKey = `draft_followup_${this.patientId}_${this.currentAppointmentId}`;
+  // ─────────────────────────────────────────────────────────────────────────
+  // AUTO-SAVE: SETUP
+  // ─────────────────────────────────────────────────────────────────────────
+  private setupAutosave() {
+    this.autosaveKey = `draft_followup_${this.patientId}_${this.currentAppointmentId}`;
 
-  // Load draft first
-  this.loadDraft();
+    // Load draft first
+    this.loadDraft();
 
-  // Save on every trigger with 1 second debounce
-  this.autosave$
-    .pipe(debounceTime(1000), takeUntil(this.destroy$))
-    .subscribe(() => this.saveDraft());
-}
+    // Save on every trigger with 1 second debounce
+    this.autosave$
+      .pipe(debounceTime(1000), takeUntil(this.destroy$))
+      .subscribe(() => this.saveDraft());
+  }
 
   // ─────────────────────────────────────────────────────────────────────────
   // AUTO-SAVE: SAVE DRAFT TO LOCALSTORAGE
   // ─────────────────────────────────────────────────────────────────────────
   private saveDraft() {
     const draft = {
-      interpretation:      this.interpretation,
-      temporaryProblems:   this.temporaryProblems,
-      consultationCharge:  this.consultationCharge,
-      waveOffAmount:       this.waveOffAmount,
-      waveOffSelected:     this.waveOffSelected,
-      waveOffVerified:     this.waveOffVerified,
+      interpretation: this.interpretation,
+      temporaryProblems: this.temporaryProblems,
+      consultationCharge: this.consultationCharge,
+      waveOffAmount: this.waveOffAmount,
+      waveOffSelected: this.waveOffSelected,
+      waveOffVerified: this.waveOffVerified,
       nextAppointmentDate: this.nextAppointmentDate,
       nextAppointmentTime: this.nextAppointmentTime,
-      prescriptions:       this.prescriptions,
-      symptomStatus:       this.symptomStatus,
-      savedAt:             new Date().toISOString(),
+      prescriptions: this.prescriptions,
+      symptomStatus: this.symptomStatus,
+      savedAt: new Date().toISOString(),
     };
 
     try {
@@ -1286,15 +1318,17 @@ private setupAutosave() {
     if (!raw) return;
     try {
       const draft = JSON.parse(raw);
-      this.interpretation      = draft.interpretation      ?? this.interpretation;
-      this.temporaryProblems   = draft.temporaryProblems   ?? this.temporaryProblems;
-      this.consultationCharge  = draft.consultationCharge  ?? this.consultationCharge;
-      this.waveOffAmount       = draft.waveOffAmount       ?? this.waveOffAmount;
-      this.waveOffSelected     = draft.waveOffSelected     ?? false;
-      this.waveOffVerified     = draft.waveOffVerified     ?? false;
+      this.interpretation = draft.interpretation ?? this.interpretation;
+      this.temporaryProblems =
+        draft.temporaryProblems ?? this.temporaryProblems;
+      this.consultationCharge =
+        draft.consultationCharge ?? this.consultationCharge;
+      this.waveOffAmount = draft.waveOffAmount ?? this.waveOffAmount;
+      this.waveOffSelected = draft.waveOffSelected ?? false;
+      this.waveOffVerified = draft.waveOffVerified ?? false;
       this.nextAppointmentDate = draft.nextAppointmentDate ?? null;
       this.nextAppointmentTime = draft.nextAppointmentTime ?? null;
-      this.symptomStatus       = draft.symptomStatus       ?? this.symptomStatus;
+      this.symptomStatus = draft.symptomStatus ?? this.symptomStatus;
 
       // ✅ SMART MERGE — preserve new unsaved rows, but always use prescribedMedicineId from API
       if (draft.prescriptions?.length) {
@@ -1303,7 +1337,8 @@ private setupAutosave() {
         this.prescriptions = draft.prescriptions.map((draftMed: any) => {
           // Try to find a matching row in API data by medicineId
           const apiMatch = apiPrescriptions.find(
-            (apiMed: any) => Number(apiMed.medicineId) === Number(draftMed.medicineId)
+            (apiMed: any) =>
+              Number(apiMed.medicineId) === Number(draftMed.medicineId),
           );
 
           return {
@@ -1338,81 +1373,92 @@ private setupAutosave() {
     this.autosave$.next();
   }
   onInterpretationChange(value: string) {
-  if (!value) {
-    this.interpretation = '';
-    return;
-  }
-
-  // 1. Remove multiple line breaks
-  let cleaned = value.replace(/\n\s*\n/g, '\n');
-
-  // 2. Replace multiple spaces with single space
-  cleaned = cleaned.replace(/\s+/g, ' ');
-
-  // 3. Trim start/end
-  cleaned = cleaned.trim();
-
-  // 4. Enforce max length (extra safety)
-  if (cleaned.length > 1000) {
-    cleaned = cleaned.substring(0, 1000);
-  }
-
-  this.interpretation = cleaned;
-  this.triggerAutosave();
-}
-
-openMedicineModal(index?: number) {
-  this.selectedMedicineIndex = index ?? null;
-  this.newMedicineName = '';
-  this.showMedicineModal = true;
-}
-
-// closeMedicineModal() {
-//   this.showMedicineModal = false;
-//   this.newMedicineName = '';
-// }
-
-closeMedicineModal() {
-  this.showMedicineModal = false;
-  this.newMedicineName = '';
-
-  // Reset dropdown to null only if opened from a dropdown row
-  if (this.selectedMedicineIndex !== null && this.selectedMedicineIndex >= 0) {
-    this.prescriptions[this.selectedMedicineIndex].medicineId = null;
-  }
-
-  this.selectedMedicineIndex = null;
-}
-
-async saveNewMedicine() {
-  if (!this.newMedicineName || !this.newMedicineName.trim()) {
-    this.showToast('Medicine name cannot be empty');
-    return;
-  }
-
-  try {
-    const payload = {
-      name: this.newMedicineName.trim(),
-      notes: 'Added from prescription',
-    };
-
-    const res: any = await firstValueFrom(this.api.createMedicine(payload));
-    const newMed = res?.data || res;
-
-    // list me add karo
-    this.medicines.unshift(newMed);
-
-    // auto select in row
-    if (this.selectedMedicineIndex !== null) {
-      this.prescriptions[this.selectedMedicineIndex].medicineId =
-        newMed.medicineId;
+    if (!value) {
+      this.interpretation = '';
+      return;
     }
 
-    this.showToast('Medicine added successfully');
-    this.closeMedicineModal();
-  } catch (err) {
-    console.error(err);
-    this.showToast('Failed to add medicine');
+    // 1. Remove multiple line breaks
+    let cleaned = value.replace(/\n\s*\n/g, '\n');
+
+    // 2. Replace multiple spaces with single space
+    cleaned = cleaned.replace(/\s+/g, ' ');
+
+    // 3. Trim start/end
+    cleaned = cleaned.trim();
+
+    // 4. Enforce max length (extra safety)
+    if (cleaned.length > 1000) {
+      cleaned = cleaned.substring(0, 1000);
+    }
+
+    this.interpretation = cleaned;
+    this.triggerAutosave();
   }
-}
+
+  openMedicineModal(index?: number) {
+    if (this.isReadonly) return;
+    this.selectedMedicineIndex = index ?? null;
+    this.newMedicineName = '';
+    this.showMedicineModal = true;
+  }
+
+  // closeMedicineModal() {
+  //   this.showMedicineModal = false;
+  //   this.newMedicineName = '';
+  // }
+
+  closeMedicineModal() {
+    this.showMedicineModal = false;
+    this.newMedicineName = '';
+
+    // Reset dropdown to null only if opened from a dropdown row
+    if (
+      this.selectedMedicineIndex !== null &&
+      this.selectedMedicineIndex >= 0
+    ) {
+      this.prescriptions[this.selectedMedicineIndex].medicineId = null;
+    }
+
+    this.selectedMedicineIndex = null;
+  }
+
+  async saveNewMedicine() {
+    if(this.isReadonly) return;
+    if (!this.newMedicineName || !this.newMedicineName.trim()) {
+      this.showToast('Medicine name cannot be empty');
+      return;
+    }
+
+    try {
+      const payload = {
+        name: this.newMedicineName.trim(),
+        notes: 'Added from prescription',
+      };
+
+      const res: any = await firstValueFrom(this.api.createMedicine(payload));
+      const newMed = res?.data || res;
+
+      // list me add karo
+      this.medicines.unshift(newMed);
+
+      // auto select in row
+      if (this.selectedMedicineIndex !== null) {
+        this.prescriptions[this.selectedMedicineIndex].medicineId =
+          newMed.medicineId;
+      }
+
+      this.showToast('Medicine added successfully');
+      this.closeMedicineModal();
+    } catch (err) {
+      console.error(err);
+      this.showToast('Failed to add medicine');
+    }
+  }
+  private loadRole() {
+    const raw = (localStorage.getItem('mhc_role') || '').toLowerCase();
+    this.role = raw === 'doctor' ? 'Doctor' : 'Receptionist';
+
+    this.isReadonly = this.role === 'Receptionist';
+  }
 }
