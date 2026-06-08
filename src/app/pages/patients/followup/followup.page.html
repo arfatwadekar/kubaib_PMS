@@ -23,7 +23,7 @@
     <!-- ═══════════════════════════════════════════════════
          CARD 1 — INITIAL SYMPTOMS (CRITERIA)
     ═══════════════════════════════════════════════════ -->
-    <div class="fu-card">
+    <div class="fu-card" *ngIf="!fromList">
       <!-- Card Header -->
       <div class="card-header">
         <div class="card-header-left">
@@ -104,7 +104,7 @@
     <!-- ═══════════════════════════════════════════════════
          CARD 2 — FOLLOW-UP RECORD
     ═══════════════════════════════════════════════════ -->
-    <div class="fu-card">
+    <div class="fu-card" *ngIf="!fromList">
       <!-- Gradient header -->
       <div class="record-header">
         <div class="record-header-left">

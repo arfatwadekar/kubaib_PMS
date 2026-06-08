@@ -21,6 +21,8 @@ export class PaymentPage implements OnInit, OnDestroy {
 
   loading = false;
 
+  fromList = false; // Flag to check if navigated from patient list
+
   /* ================= PAYMENT HISTORY ================= */
 
   paymentHistory: any[] = [];
@@ -70,6 +72,7 @@ export class PaymentPage implements OnInit, OnDestroy {
       this.route.queryParams.subscribe(params => {
         this.patientId    = Number(params['patientId']);
         this.appointmentId = Number(params['appointmentId']);
+        this.fromList = params['from'] === 'list';
 
         // ✅ Always load history if patientId exists
         if (this.patientId) {

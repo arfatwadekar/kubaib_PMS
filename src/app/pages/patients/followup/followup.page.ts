@@ -75,6 +75,8 @@ export class FollowupPage implements OnInit, OnDestroy {
   summaryTotalCount = 0;
   summaryLoading = false;
 
+  fromList = false; 
+
   private destroy$ = new Subject<void>();
 
   // ─── Auto-save ───────────────────────────────────────────────────────────
@@ -138,6 +140,8 @@ export class FollowupPage implements OnInit, OnDestroy {
     const patientParam = this.route.snapshot.queryParamMap.get('patientId');
 
     this.patientId = patientParam ? Number(patientParam) : 0;
+
+    this.fromList = this.route.snapshot.queryParamMap.get('from') === 'list';
 
     console.log('PATIENT ID:', this.patientId);
 

@@ -231,6 +231,37 @@ export class PrelimPage implements OnInit, OnDestroy, CanComponentDeactivate {
       this.toast('Phone Number must be exactly 10 digits.');
       return;
     }
+
+    // Additional validation for duplicate phone number (only for create mode)
+    if (!this.isEditMode) {
+      this.checkDuplicatePhone(phone).then(isDuplicate => {
+        if (isDuplicate) {
+          this.toast('A patient with this phone number already exists.');
+          return;
+        }
+        this.performSubmit();
+      }).catch(() => {
+        // If duplicate check fails, proceed anyway
+        this.performSubmit();
+      });
+    } else {
+      this.performSubmit();
+    }
+  }
+
+  private async checkDuplicatePhone(phone: string): Promise<boolean> {
+    try {
+      const res: any = await this.patient.searchPatients(phone).toPromise();
+      const patients = res?.data || res || [];
+      return patients.length > 0;
+    } catch {
+      // If search fails, allow submission but log the issue
+      console.warn('Could not check for duplicate phone number');
+      return false;
+    }
+  }
+
+  private performSubmit(retryCount = 0): void {
     this.loading = true;
     const payload = this.isEditMode ? this.buildUpdatePayload() : this.buildCreatePayload();
     const request$ = this.isEditMode && this.patientId
@@ -244,7 +275,6 @@ export class PrelimPage implements OnInit, OnDestroy, CanComponentDeactivate {
 
         if (this.isEditMode) {
           // UPDATE: just show toast, no modal
-          // markAsPristine so guard resets — if user edits again, guard triggers again
           this.form.markAsPristine();
           this.form.markAsUntouched();
           this.toast('Patient data updated successfully.');
@@ -260,7 +290,40 @@ export class PrelimPage implements OnInit, OnDestroy, CanComponentDeactivate {
       },
       error: err => {
         this.loading = false;
-        this.toast(err?.error?.message || err?.message || 'Operation failed');
+
+        // Log error for debugging
+        console.error('Patient creation/update error:', err);
+
+        // Retry logic for server errors (up to 2 retries)
+        if ((err?.status === 500 || err?.status === 503) && retryCount < 2) {
+          this.toast(`Server error occurred. Retrying... (${retryCount + 1}/2)`);
+          setTimeout(() => this.performSubmit(retryCount + 1), 2000);
+          return;
+        }
+
+        let errorMessage = 'Operation failed';
+
+        if (err?.status === 400) {
+          // Bad Request - likely validation or duplicate data
+          errorMessage = err?.error?.message || err?.error?.title || err?.error || 'Invalid data provided. Please check all fields.';
+        } else if (err?.status === 409) {
+          // Conflict - duplicate patient
+          errorMessage = 'Patient with this phone number already exists.';
+        } else if (err?.status === 422) {
+          // Unprocessable Entity - validation errors
+          errorMessage = err?.error?.message || 'Validation failed. Please check your input.';
+        } else if (err?.status === 500) {
+          // Server error - PID generation might have failed
+          errorMessage = 'Server error occurred. Please try again in a moment.';
+        } else if (err?.status === 0 || !navigator.onLine) {
+          // Network error
+          errorMessage = 'Network connection error. Please check your internet connection.';
+        } else {
+          // Use server message if available
+          errorMessage = err?.error?.message || err?.error?.title || err?.error || err?.message || errorMessage;
+        }
+
+        this.toast(errorMessage);
       },
     });
   }
