@@ -1,0 +1,180 @@
+<app-header title="Mumbra Health Care" [showNotification]="true" [notificationCount]="unreadCount"
+  (notificationClick)="openNotifications()">
+</app-header>
+
+<ion-content [fullscreen]="true">
+
+  <div class="analytics-container">
+
+    <!-- FILTER CARD -->
+
+    <div class="filter-card">
+
+      <div class="filter-header">
+
+        <div class="period-section">
+
+          <div class="filter-icon">
+            <ion-icon name="filter-outline"></ion-icon>
+          </div>
+
+          <div>
+            <div class="label">
+              OPERATIONAL PERIOD
+            </div>
+
+            <div class="title">
+              Active Cohort Period:
+              <strong>MONTHLY</strong>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="header-actions">
+
+          <div class="period-switcher">
+            <button>Daily</button>
+            <button>Weekly</button>
+            <button class="active">Monthly</button>
+            <button>Custom</button>
+          </div>
+
+          <button class="hub-btn" (click)="toggleFilters()">
+
+            <ion-icon name="layers-outline"></ion-icon>
+
+            <span>Filters Hub</span>
+
+            <ion-icon [name]="showFilters ? 'chevron-up-outline' : 'chevron-down-outline'">
+            </ion-icon>
+
+          </button>
+
+          <button class="refresh-btn">
+            <ion-icon name="refresh-outline"></ion-icon>
+          </button>
+
+        </div>
+
+      </div>
+
+      <div class="filters-wrapper" *ngIf="showFilters">
+
+        <div class="divider"></div>
+
+        <div class="filters-grid">
+
+          <div class="field">
+            <label>START DATE LIMIT</label>
+            <div class="input-box">
+              <ion-icon name="calendar-outline"></ion-icon>
+              <span>05/01/2026</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>END DATE LIMIT</label>
+            <div class="input-box">
+              <ion-icon name="calendar-outline"></ion-icon>
+              <span>06/14/2026</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>GENDER COHORT</label>
+            <div class="input-box">
+              <span>Total Population (All)</span>
+              <ion-icon name="chevron-down-outline"></ion-icon>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>INFLOW RETENTION STATUS</label>
+            <div class="input-box">
+              <span>Total Registration Flow (All)</span>
+              <ion-icon name="chevron-down-outline"></ion-icon>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- TABS -->
+
+    <div class="analytics-tabs">
+
+      <button *ngFor="let tab of tabs" [class.active]="activeTab === tab.id" (click)="setTab(tab.id)">
+
+        <ion-icon [name]="tab.icon"></ion-icon>
+
+        <span>
+          {{ tab.label }}
+        </span>
+
+      </button>
+
+    </div>
+
+    <!-- OVERVIEW -->
+
+    <ng-container *ngIf="activeTab === 'overview'">
+
+      <div class="kpi-grid">
+
+        <div *ngFor="let card of kpiCards" class="kpi-card" [ngClass]="'border-' + card.color">
+
+          <div class="card-header">
+
+            <div>
+
+              <div class="card-title">
+                {{ card.title }}
+              </div>
+
+              <div class="card-value">
+                {{ card.value }}
+              </div>
+
+            </div>
+
+            <div class="icon-box" [ngClass]="'icon-' + card.color">
+
+              <ion-icon [name]="card.icon"></ion-icon>
+
+            </div>
+
+          </div>
+
+          <div class="divider"></div>
+
+          <div *ngIf="!card.stats" class="card-footer">
+
+            <span>{{ card.footerLeft }}</span>
+            <strong>{{ card.footerRight }}</strong>
+
+          </div>
+
+          <div *ngIf="card.stats" class="stats-footer">
+
+            <div *ngFor="let stat of card.stats" class="stat">
+
+              <strong>{{ stat.value }}</strong>
+              <span>{{ stat.label }}</span>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </ng-container>
+
+  </div>
+
+</ion-content>

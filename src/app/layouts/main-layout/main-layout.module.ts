@@ -76,10 +76,8 @@ const routes: Routes = [
           import('../../pages/report/report.module').then(
             (m) => m.ReportPageModule,
           ),
-               canActivate: [RoleGuard],
+        canActivate: [RoleGuard],
         data: { roles: ['Doctor', 'Receptionist'] },
-            
-
       },
 
       {
@@ -106,6 +104,20 @@ const routes: Routes = [
       },
 
       // ======================
+      // Analytics
+      // ======================
+
+      {
+        path: 'analytics',
+        loadChildren: () =>
+          import('../../pages/analytics/analytics.module').then(
+            (m) => m.AnalyticsPageModule,
+          ),
+        canActivate: [RoleGuard],
+        data: { roles: ['Doctor', 'Receptionist'] },
+      },
+
+      // ======================
       // Doctor Only
       // ======================
       {
@@ -114,7 +126,7 @@ const routes: Routes = [
           import('../../pages/medicine/medicine.module').then(
             (m) => m.MedicineModule,
           ),
-             canActivate: [RoleGuard],
+        canActivate: [RoleGuard],
         data: { roles: ['Doctor', 'Receptionist'] },
       },
       {

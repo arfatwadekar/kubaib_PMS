@@ -83,6 +83,13 @@ export class SideMenuComponent implements OnInit {
         { title: 'Reports', icon: 'bar-chart-outline', url: '/reports' },
       ],
     },
+    {
+  title: 'ANALYTICS',
+  roles: ['Doctor', 'Receptionist'],
+  items: [
+    { title: 'Analytics Dashboard', icon: 'analytics-outline', url: '/analytics' },
+  ],
+},
   ];
 
   constructor(

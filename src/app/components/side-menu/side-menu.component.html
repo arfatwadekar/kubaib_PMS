@@ -48,6 +48,11 @@
     <!-- ================= MEDICINE INVENTORY ================= -->
     <div class="menu-section-title">MEDICINE INVENTORY</div>
 
+      <div class="menu-item" (click)="go('/medicines')">
+      <ion-icon name="medkit-outline"></ion-icon>
+      <span>OTC List</span>
+    </div>
+
     <div class="menu-item" (click)="go('/medicines')">
       <ion-icon name="medkit-outline"></ion-icon>
       <span>Medicine List</span>
@@ -64,6 +69,11 @@
     <div class="menu-item" (click)="go('/notifications')">
       <ion-icon name="notifications-outline"></ion-icon>
       <span>Notifications</span>
+    </div>
+
+     <div class="menu-item" (click)="go('/analytics')">
+      <ion-icon name="analytics-outline"></ion-icon>
+      <span>Analytics</span>
     </div>
 
     <div class="menu-item" (click)="go('/announcements')">
