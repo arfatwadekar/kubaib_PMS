@@ -1,9 +1,4 @@
-<ion-menu
-  menuId="mainMenu"
-  contentId="main-content"
-  side="start"
-  class="glass-menu"
->
+<ion-menu menuId="mainMenu" contentId="main-content" side="start" class="glass-menu">
   <ion-content class="menu-content">
 
     <!-- ================= BRAND ================= -->
@@ -48,9 +43,9 @@
     <!-- ================= MEDICINE INVENTORY ================= -->
     <div class="menu-section-title">MEDICINE INVENTORY</div>
 
-      <div class="menu-item" (click)="go('/medicines')">
+    <div class="menu-item" (click)="go('/otc-medicine')">
       <ion-icon name="medkit-outline"></ion-icon>
-      <span>OTC List</span>
+      <span>OTC Medicines</span>
     </div>
 
     <div class="menu-item" (click)="go('/medicines')">
@@ -71,7 +66,7 @@
       <span>Notifications</span>
     </div>
 
-     <div class="menu-item" (click)="go('/analytics')">
+    <div class="menu-item" (click)="go('/analytics')">
       <ion-icon name="analytics-outline"></ion-icon>
       <span>Analytics</span>
     </div>

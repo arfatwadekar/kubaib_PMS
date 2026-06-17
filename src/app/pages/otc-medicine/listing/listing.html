@@ -1,0 +1,138 @@
+<app-header title="OTC Medicines" [showNotification]="true" [notificationCount]="unreadCount"
+  (notificationClick)="openNotifications()"></app-header>
+
+<ion-content class="medicine-bg">
+  <div class="medicine-container">
+
+    <div class="page-header">
+      <div class="header-left">
+        <h1>Medicine Directory – OTC Medicines</h1>
+        <p>Manage OTC medicine sales</p>
+      </div>
+
+      <div class="header-right">
+        <div class="search-box">
+          <ion-icon name="search-outline"></ion-icon>
+
+          <input type="text" [(ngModel)]="search" (ngModelChange)="onSearchChange()"
+            placeholder="Search medicine or patient..." />
+        </div>
+
+        <button class="btn-primary" (click)="create()">
+          Add New Entry
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading -->
+
+    <div *ngIf="loading" class="state-box">
+      <ion-spinner></ion-spinner>
+      <span>Loading OTC medicines...</span>
+    </div>
+
+    <!-- Error -->
+
+    <div *ngIf="!loading && errorMessage" class="state-box error">
+      {{ errorMessage }}
+    </div>
+
+    <!-- Empty -->
+
+    <div *ngIf="!loading && otcMedicines.length === 0" class="state-box">
+      No OTC medicine records found.
+    </div>
+
+    <!-- Desktop Table -->
+
+    <div class="table-wrapper desktop-view" *ngIf="!loading && otcMedicines.length">
+      <div class="table-head">
+        <div>Name of Medicine</div>
+        <div>Amount Paid</div>
+        <div>Patient Name</div>
+        <div>Date of Purchase</div>
+        <div>Actions</div>
+      </div>
+
+      <div class="table-row" *ngFor="let item of otcMedicines">
+        <div>{{ item.nameOfMedicine || '-' }}</div>
+
+        <div>
+          ₹{{ item.totalAmountPaid | number:'1.0-2' }}
+        </div>
+
+        <div>{{ item.patientName }}</div>
+
+        <div>
+          {{ item.dateOfPurchase | date:'dd MMM yyyy' }}
+        </div>
+
+        <div class="actions">
+          <button class="btn-view" (click)="view(item.id)">
+            View
+          </button>
+
+          <button class="btn-edit" (click)="edit(item.id)">
+            Edit
+          </button>
+
+          <button class="btn-delete" (click)="delete(item.id)">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Cards -->
+
+    <div class="mobile-view" *ngIf="!loading && otcMedicines.length">
+      <div class="medicine-card" *ngFor="let item of otcMedicines">
+        <div class="card-header">
+          <div class="card-title">
+            {{ item.nameOfMedicine || '-' }}
+          </div>
+        </div>
+
+        <div class="card-body">
+
+          <div class="info-row">
+            <span class="label">Amount Paid</span>
+            <span class="value">
+              ₹{{ item.totalAmountPaid }}
+            </span>
+          </div>
+
+          <div class="info-row">
+            <span class="label">Patient</span>
+            <span class="value">
+              {{ item.patientName }}
+            </span>
+          </div>
+
+          <div class="info-row">
+            <span class="label">Purchase Date</span>
+            <span class="value">
+              {{ item.dateOfPurchase | date:'dd MMM yyyy' }}
+            </span>
+          </div>
+
+        </div>
+
+        <div class="card-actions">
+          <button class="btn-view" (click)="view(item.id)">
+            View
+          </button>
+
+          <button class="btn-edit" (click)="edit(item.id)">
+            Edit
+          </button>
+
+          <button class="btn-delete" (click)="delete(item.id)">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</ion-content>

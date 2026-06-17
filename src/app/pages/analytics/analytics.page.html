@@ -1,180 +1,704 @@
-<app-header title="Mumbra Health Care" [showNotification]="true" [notificationCount]="unreadCount"
-  (notificationClick)="openNotifications()">
+<app-header
+  title="Mumbra Health Care"
+  [showNotification]="true"
+  [notificationCount]="unreadCount"
+  (notificationClick)="openNotifications()"
+>
 </app-header>
 
-<ion-content [fullscreen]="true">
-
+<ion-content>
   <div class="analytics-container">
-
-    <!-- FILTER CARD -->
-
-    <div class="filter-card">
-
-      <div class="filter-header">
-
-        <div class="period-section">
-
-          <div class="filter-icon">
-            <ion-icon name="filter-outline"></ion-icon>
-          </div>
-
-          <div>
-            <div class="label">
-              OPERATIONAL PERIOD
-            </div>
-
-            <div class="title">
-              Active Cohort Period:
-              <strong>MONTHLY</strong>
-            </div>
-          </div>
-
-        </div>
-
-        <div class="header-actions">
-
-          <div class="period-switcher">
-            <button>Daily</button>
-            <button>Weekly</button>
-            <button class="active">Monthly</button>
-            <button>Custom</button>
-          </div>
-
-          <button class="hub-btn" (click)="toggleFilters()">
-
-            <ion-icon name="layers-outline"></ion-icon>
-
-            <span>Filters Hub</span>
-
-            <ion-icon [name]="showFilters ? 'chevron-up-outline' : 'chevron-down-outline'">
-            </ion-icon>
-
-          </button>
-
-          <button class="refresh-btn">
-            <ion-icon name="refresh-outline"></ion-icon>
-          </button>
-
-        </div>
-
-      </div>
-
-      <div class="filters-wrapper" *ngIf="showFilters">
-
-        <div class="divider"></div>
-
-        <div class="filters-grid">
-
-          <div class="field">
-            <label>START DATE LIMIT</label>
-            <div class="input-box">
-              <ion-icon name="calendar-outline"></ion-icon>
-              <span>05/01/2026</span>
-            </div>
-          </div>
-
-          <div class="field">
-            <label>END DATE LIMIT</label>
-            <div class="input-box">
-              <ion-icon name="calendar-outline"></ion-icon>
-              <span>06/14/2026</span>
-            </div>
-          </div>
-
-          <div class="field">
-            <label>GENDER COHORT</label>
-            <div class="input-box">
-              <span>Total Population (All)</span>
-              <ion-icon name="chevron-down-outline"></ion-icon>
-            </div>
-          </div>
-
-          <div class="field">
-            <label>INFLOW RETENTION STATUS</label>
-            <div class="input-box">
-              <span>Total Registration Flow (All)</span>
-              <ion-icon name="chevron-down-outline"></ion-icon>
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
+    <!-- LOADING STATE -->
+    <div *ngIf="isLoading" class="loading-state">
+      <ion-spinner></ion-spinner>
+      <p>Loading analytics data...</p>
     </div>
 
-    <!-- TABS -->
-
-    <div class="analytics-tabs">
-
-      <button *ngFor="let tab of tabs" [class.active]="activeTab === tab.id" (click)="setTab(tab.id)">
-
-        <ion-icon [name]="tab.icon"></ion-icon>
-
-        <span>
-          {{ tab.label }}
-        </span>
-
+    <!-- ERROR STATE -->
+    <div *ngIf="error && !isLoading" class="error-state">
+      <ion-icon name="alert-circle-outline"></ion-icon>
+      <p>{{ error }}</p>
+      <button (click)="refreshData()" class="retry-btn">
+        <ion-icon name="refresh-outline"></ion-icon>
+        Retry
       </button>
-
     </div>
 
-    <!-- OVERVIEW -->
-
-    <ng-container *ngIf="activeTab === 'overview'">
-
-      <div class="kpi-grid">
-
-        <div *ngFor="let card of kpiCards" class="kpi-card" [ngClass]="'border-' + card.color">
-
-          <div class="card-header">
+    <ng-container *ngIf="!isLoading && !error">
+      <!-- FILTER CARD -->
+      <div class="filter-card">
+        <div class="filter-header">
+          <div class="period-section">
+            <div class="filter-icon">
+              <ion-icon name="filter-outline"></ion-icon>
+            </div>
 
             <div>
+              <div class="label">PERIOD</div>
 
-              <div class="card-title">
-                {{ card.title }}
+              <div class="title">
+                Period:
+                <strong>{{ filterType | uppercase }}</strong>
               </div>
-
-              <div class="card-value">
-                {{ card.value }}
-              </div>
-
             </div>
-
-            <div class="icon-box" [ngClass]="'icon-' + card.color">
-
-              <ion-icon [name]="card.icon"></ion-icon>
-
-            </div>
-
           </div>
 
-          <div class="divider"></div>
-
-          <div *ngIf="!card.stats" class="card-footer">
-
-            <span>{{ card.footerLeft }}</span>
-            <strong>{{ card.footerRight }}</strong>
-
-          </div>
-
-          <div *ngIf="card.stats" class="stats-footer">
-
-            <div *ngFor="let stat of card.stats" class="stat">
-
-              <strong>{{ stat.value }}</strong>
-              <span>{{ stat.label }}</span>
-
+          <div class="header-actions">
+            <div class="period-switcher">
+              <button
+                [class.active]="filterType === 'Daily'"
+                (click)="setFilterType('Daily')"
+              >
+                Daily
+              </button>
+              <button
+                [class.active]="filterType === 'Weekly'"
+                (click)="setFilterType('Weekly')"
+              >
+                Weekly
+              </button>
+              <button
+                [class.active]="filterType === 'Monthly'"
+                (click)="setFilterType('Monthly')"
+              >
+                Monthly
+              </button>
+              <button
+                [class.active]="filterType === 'Custom'"
+                (click)="setFilterType('Custom')"
+              >
+                Custom
+              </button>
             </div>
 
-          </div>
+            <button class="hub-btn" (click)="toggleFilters()">
+              <ion-icon name="layers-outline"></ion-icon>
 
+              <span>Filters</span>
+
+              <ion-icon
+                [name]="showFilters ? 'chevron-up-outline' : 'chevron-down-outline'"
+              >
+              </ion-icon>
+            </button>
+
+            <button class="refresh-btn" (click)="refreshData()">
+              <ion-icon name="refresh-outline"></ion-icon>
+            </button>
+          </div>
         </div>
 
+        <div class="filters-wrapper" *ngIf="showFilters">
+          <div class="divider"></div>
+
+          <div class="filters-grid">
+            <div class="field">
+              <label>Start Date</label>
+              <div class="input-box">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <input
+                  type="text"
+                  [value]="fromDate"
+                  (change)="setStartDate($any($event).target.value)"
+                  placeholder="MM/DD/YYYY"
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label>End Date</label>
+              <div class="input-box">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <input
+                  type="text"
+                  [value]="toDate"
+                  (change)="setEndDate($any($event).target.value)"
+                  placeholder="MM/DD/YYYY"
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Gender</label>
+              <div class="input-box">
+                <select
+                  [(ngModel)]="selectedGender"
+                  (change)="setGenderFilter(selectedGender)"
+                >
+                  <option value="All">All</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+                <ion-icon name="chevron-down-outline"></ion-icon>
+              </div>
+            </div>
+
+            <div class="field">
+              <label>Flow Type</label>
+              <div class="input-box">
+                <select
+                  [(ngModel)]="selectedRetentionStatus"
+                  (change)="setRetentionStatusFilter(selectedRetentionStatus)"
+                >
+                  <option value="All">All</option>
+                  <option value="Fresh">Fresh Intake</option>
+                  <option value="Returning">Returning</option>
+                </select>
+                <ion-icon name="chevron-down-outline"></ion-icon>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
+      <!-- TABS -->
+
+      <div class="analytics-tabs">
+        <button
+          *ngFor="let tab of tabs"
+          [class.active]="activeTab === tab.id"
+          (click)="setTab(tab.id)"
+        >
+          <ion-icon [name]="tab.icon"></ion-icon>
+
+          <span> {{ tab.label }} </span>
+        </button>
+      </div>
+
+      <!-- OVERVIEW -->
+      <ng-container *ngIf="activeTab === 'overview'">
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+          <div
+            *ngFor="let card of kpiCards"
+            class="kpi-card"
+            [ngClass]="'border-' + card.color"
+          >
+            <div class="card-header">
+              <div>
+                <div class="card-title">{{ card.title }}</div>
+
+                <div class="card-value">{{ card.value }}</div>
+              </div>
+
+              <div class="icon-box" [ngClass]="'icon-' + card.color">
+                <ion-icon [name]="card.icon"></ion-icon>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div *ngIf="!card.stats" class="card-footer">
+              <span>{{ card.footerLeft }}</span>
+              <strong>{{ card.footerRight }}</strong>
+            </div>
+
+            <div *ngIf="card.stats" class="stats-footer">
+              <div *ngFor="let stat of card.stats" class="stat">
+                <strong>{{ stat.value }}</strong>
+                <span>{{ stat.label }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Revenue Dashboard -->
+
+        <div class="revenue-dashboard">
+          <!-- Left Card -->
+
+          <div class="revenue-card revenue-progress">
+            <div class="revenue-header">
+              <div>
+                <h3>Revenue Trend</h3>
+
+                <p>Billing vs collected cash</p>
+              </div>
+
+              <button class="filter-btn">MONTHLY</button>
+            </div>
+
+            <!-- Line Chart -->
+
+            <apx-chart
+              [series]="lineChart.series"
+              [chart]="lineChart.chart"
+              [stroke]="lineChart.stroke"
+              [colors]="lineChart.colors"
+              [xaxis]="lineChart.xaxis"
+              [yaxis]="lineChart.yaxis"
+              [grid]="lineChart.grid"
+              [legend]="lineChart.legend"
+              [markers]="lineChart.markers"
+              [dataLabels]="lineChart.dataLabels"
+            >
+            </apx-chart>
+          </div>
+
+          <!-- Right Card -->
+
+          <div class="revenue-card revenue-segment">
+            <div class="revenue-header">
+              <div>
+                <h3>Revenue Split</h3>
+
+                <p>Consult vs OTC share</p>
+              </div>
+            </div>
+
+            <div class="donut-wrapper">
+              <apx-chart
+                [series]="donutChart.series"
+                [chart]="donutChart.chart"
+                [labels]="donutChart.labels"
+                [colors]="donutChart.colors"
+                [plotOptions]="donutChart.plotOptions"
+                [legend]="donutChart.legend"
+                [dataLabels]="donutChart.dataLabels"
+              >
+              </apx-chart>
+
+              <div class="center-text">
+                <span>TOTAL POOL</span>
+
+                <h2>{{ grossPool | currency:'INR':'symbol':'1.0-0' }}</h2>
+              </div>
+            </div>
+
+            <div class="segment-divider"></div>
+
+            <div class="segment-list">
+              <div class="segment-item">
+                <div class="segment-left">
+                  <span class="dot blue"></span>
+
+                  <span>Consults</span>
+                </div>
+
+                <div class="segment-right">
+                  <strong
+                    >{{ consultationAmount | currency:'INR':'symbol':'1.0-0'
+                    }}</strong
+                  >
+
+                  <small>({{ consultationPercent }}%)</small>
+                </div>
+              </div>
+
+              <div class="segment-item">
+                <div class="segment-left">
+                  <span class="dot green"></span>
+
+                  <span>OTC</span>
+                </div>
+
+                <div class="segment-right">
+                  <strong
+                    >{{ otcAmount | currency:'INR':'symbol':'1.0-0' }}</strong
+                  >
+
+                  <small>({{ otcPercent }}%)</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- BILLING -->
+      <ng-container *ngIf="activeTab === 'billing'">
+        <div class="billing-dashboard">
+          <!-- Left Card -->
+          <div class="billing-card billing-chart">
+            <div class="billing-header">
+              <div>
+                <h3>Collections</h3>
+                <p>Charges vs cash received and pending amounts</p>
+              </div>
+            </div>
+
+            <apx-chart
+              [series]="billingChart.series"
+              [chart]="billingChart.chart"
+              [plotOptions]="billingChart.plotOptions"
+              [colors]="billingChart.colors"
+              [xaxis]="billingChart.xaxis"
+              [yaxis]="billingChart.yaxis"
+              [grid]="billingChart.grid"
+              [legend]="billingChart.legend"
+              [dataLabels]="billingChart.dataLabels"
+            >
+            </apx-chart>
+          </div>
+
+          <!-- Right Card -->
+
+          <div class="billing-card ledger-card">
+            <div class="billing-header">
+              <div>
+                <h3>Ledger Status</h3>
+                <p>Unpaid consult & OTC dues</p>
+              </div>
+            </div>
+
+            <!-- Consultation Due -->
+
+            <div class="audit-box">
+              <div class="audit-left">
+                <div class="audit-icon blue">
+                  <ion-icon name="medical-outline"></ion-icon>
+                </div>
+
+                <div>
+                  <h4>Dues from Consultations</h4>
+                  <p>Consult dues</p>
+                </div>
+              </div>
+
+              <div class="audit-right">
+                <strong
+                  >{{ consultationDue | currency:'INR':'symbol':'1.0-0'
+                  }}</strong
+                >
+
+                <span class="badge warning">Pending</span>
+              </div>
+            </div>
+
+            <!-- OTC -->
+
+            <div class="audit-box">
+              <div class="audit-left">
+                <div class="audit-icon green">
+                  <ion-icon name="medical-outline"></ion-icon>
+                </div>
+
+                <div>
+                  <h4>OTC dues</h4>
+                  <p>Medicine dues</p>
+                </div>
+              </div>
+
+              <div class="audit-right">
+                <strong>{{ otcDue | currency:'INR':'symbol':'1.0-0' }}</strong>
+
+                <span class="badge danger">Pending</span>
+              </div>
+            </div>
+
+            <!-- Status -->
+
+            <div class="health-box">
+              <div class="health-title">
+                <ion-icon name="checkmark-circle-outline"></ion-icon>
+
+                <span>Billing Health</span>
+              </div>
+
+              <p>
+                Financial collection rates are standing tall inside high
+                margins. Dues are stable.
+              </p>
+            </div>
+
+            <div class="pool-total">
+              Pool:
+              <strong>{{ grossPool | currency:'INR':'symbol':'1.0-0' }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Cards -->
+
+        <div class="billing-summary">
+          <div class="summary-card">
+            <span>Avg consult fee</span>
+
+            <h2>
+              {{ averageConsultationFee | currency:'INR':'symbol':'1.0-0' }}
+            </h2>
+
+            <p>Normalized practitioner billing</p>
+          </div>
+
+          <div class="summary-card">
+            <span>Avg visit value</span>
+
+            <h2>
+              {{ combinedCheckValue | currency:'INR':'symbol':'1.0-0' }} / Visit
+            </h2>
+
+            <p>Average customer check with OTC</p>
+          </div>
+
+          <div class="summary-card">
+            <span>Realization rate</span>
+
+            <h2 class="success">{{ averageRealizationRate }}% success</h2>
+
+            <p>Realized bank cash deposit</p>
+          </div>
+
+          <div class="summary-card">
+            <span>Total deposits</span>
+
+            <h2 class="primary">
+              {{ totalRealizedDeposits | currency:'INR':'symbol':'1.0-0' }}
+            </h2>
+
+            <p>Combined financial cash pool</p>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- ====================================== PATIENT ===================================== -->
+
+      <ng-container *ngIf="activeTab === 'patient'">
+        <div class="patient-dashboard">
+          <!-- Left Card -->
+
+          <div class="patient-card patient-chart">
+            <div class="patient-header">
+              <div>
+                <h3>Patient Flow</h3>
+
+                <p>New vs returning patient volume</p>
+              </div>
+            </div>
+
+            <apx-chart
+              [series]="patientChart.series"
+              [chart]="patientChart.chart"
+              [plotOptions]="patientChart.plotOptions"
+              [colors]="patientChart.colors"
+              [xaxis]="patientChart.xaxis"
+              [yaxis]="patientChart.yaxis"
+              [grid]="patientChart.grid"
+              [legend]="patientChart.legend"
+              [stroke]="patientChart.stroke"
+              [dataLabels]="patientChart.dataLabels"
+            >
+            </apx-chart>
+          </div>
+
+          <!-- Right Card -->
+
+          <div class="patient-card demographics-card">
+            <div class="patient-header">
+              <div>
+                <h3>Gender Share</h3>
+
+                <p>Cases by gender</p>
+              </div>
+            </div>
+
+            <div class="demographic-donut">
+              <apx-chart
+                [series]="demographicChart.series"
+                [chart]="demographicChart.chart"
+                [labels]="demographicChart.labels"
+                [colors]="demographicChart.colors"
+                [plotOptions]="demographicChart.plotOptions"
+                [legend]="demographicChart.legend"
+                [dataLabels]="demographicChart.dataLabels"
+              >
+              </apx-chart>
+
+              <div class="donut-center">
+                <span>TOTAL</span>
+
+                <h2>{{ demographicTotal > 0 ? demographicTotal : '—' }}</h2>
+              </div>
+            </div>
+
+            <div class="segment-divider"></div>
+
+            <div class="gender-list">
+              <div
+                class="gender-item"
+                *ngFor="let label of demographicChart.labels; let i = index"
+              >
+                <div class="left">
+                  <span class="dot" [ngClass]="label.toLowerCase()"></span>
+
+                  {{ label }}
+                </div>
+
+                <div class="right">
+                  <strong>{{ demographicChart.series[i] || 0 }} cases</strong>
+
+                  <small>
+                    ({{ (demographicChart.series[i] && demographicTotal > 0 ?
+                    ((demographicChart.series[i] / demographicTotal) * 100) : 0)
+                    | number:'1.0-0' }}%)
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bottom Summary -->
+
+        <div class="patient-summary">
+          <div class="summary-left">
+            <div class="summary-icon">
+              <ion-icon name="people-outline"></ion-icon>
+            </div>
+
+            <div>
+              <h4>Growth Summary</h4>
+
+              <p>New and returning patient counts for the selected period.</p>
+            </div>
+          </div>
+
+          <div class="summary-right">
+            <div>
+              <label>New</label>
+
+              <h3 class="primary">{{ newPatientCount }}</h3>
+            </div>
+
+            <div class="divider-vertical"></div>
+
+            <div>
+              <label>Returning</label>
+
+              <h3 class="success">{{ returningPatientCount }}</h3>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- ====================================== HISTORY ===================================== -->
+      <ng-container *ngIf="activeTab === 'history'">
+        <div class="history-card">
+          <!-- ================= Header ================= -->
+
+          <div class="history-header">
+            <div class="header-left">
+              <h2>Daily Ledger</h2>
+              <p>Search daily cases and revenue</p>
+            </div>
+
+            <div class="header-right">
+              <div class="search-box">
+                <ion-icon name="search-outline"></ion-icon>
+
+                <input
+                  type="text"
+                  [(ngModel)]="historySearch"
+                  (ngModelChange)="historyPage = 1"
+                  placeholder="Search dates..."
+                />
+              </div>
+
+              <button class="action-btn">XLS</button>
+              <button class="action-btn">PDF</button>
+            </div>
+          </div>
+
+          <!-- ================= Loading State ================= -->
+          <div *ngIf="isLoadingHistory" class="table-loading">
+            <ion-spinner></ion-spinner>
+            <p>Loading history data...</p>
+          </div>
+
+          <!-- ================= Table ================= -->
+          <div *ngIf="!isLoadingHistory" class="table-scroll">
+            <div class="ledger-table">
+              <!-- Header -->
+
+              <div class="ledger-head">
+                <div>Date</div>
+                <div>Cases</div>
+                <div>Consult</div>
+                <div>Collected</div>
+                <div>Pending</div>
+                <div>OTC Sales</div>
+                <div>OTC Collected</div>
+                <div>OTC Due</div>
+              </div>
+
+              <!-- Rows -->
+              <div *ngIf="paginatedHistoryData.length > 0">
+                <div
+                  class="ledger-row"
+                  *ngFor="let item of paginatedHistoryData"
+                >
+                  <div class="date">{{ item.date }}</div>
+
+                  <div>{{ item.appointmentCount }}</div>
+
+                  <div class="blue">
+                    ₹{{ item.consultationCharges?.toLocaleString('en-IN') }}
+                  </div>
+
+                  <div class="green">
+                    ₹{{ item.consultationReceived?.toLocaleString('en-IN') }}
+                  </div>
+
+                  <div class="orange">
+                    ₹{{ item.pendingConsultation?.toLocaleString('en-IN') }}
+                  </div>
+
+                  <div>₹{{ item.otcSales?.toLocaleString('en-IN') }}</div>
+
+                  <div class="green">
+                    ₹{{ item.otcReceived?.toLocaleString('en-IN') }}
+                  </div>
+
+                  <div class="red">
+                    ₹{{ item.pendingOtc?.toLocaleString('en-IN') }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Empty State -->
+              <div
+                *ngIf="paginatedHistoryData.length === 0"
+                class="empty-state"
+              >
+                <ion-icon name="document-outline"></ion-icon>
+                <p>No data available for the selected period</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ================= Footer ================= -->
+
+          <div class="table-footer">
+            <div class="page-count">
+              Page {{ historyPage }} of {{ historyTotalPages || 1 }} ({{
+              filteredHistoryData.length }}
+            </div>
+
+            <div class="pagination">
+              <button
+                class="page-btn"
+                (click)="prevHistoryPage()"
+                [disabled]="historyPage === 1"
+              >
+                <ion-icon name="chevron-back-outline"></ion-icon>
+
+                Prev
+              </button>
+
+              <button
+                class="page-btn"
+                (click)="nextHistoryPage()"
+                [disabled]="historyPage === historyTotalPages"
+              >
+                Next
+
+                <ion-icon name="chevron-forward-outline"></ion-icon>
+              </button>
+            </div>
+          </div>
+        </div>
+      </ng-container>
     </ng-container>
-
   </div>
-
 </ion-content>

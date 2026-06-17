@@ -130,6 +130,15 @@ const routes: Routes = [
         data: { roles: ['Doctor', 'Receptionist'] },
       },
       {
+        path: 'otc-medicine',
+        loadChildren: () =>
+          import('../../pages/otc-medicine/otc-medicine.module').then(
+            (m) => m.OtcMedicineModule,
+          ),
+        canActivate: [RoleGuard],
+        data: { roles: ['Doctor', 'Receptionist'] },
+      },
+      {
         path: 'notifications',
         loadChildren: () =>
           import('../../pages/notifications/notification.module').then(

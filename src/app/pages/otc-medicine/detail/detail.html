@@ -1,0 +1,123 @@
+<app-header [title]="
+    mode === 'create'
+      ? 'Create OTC Medicine'
+      : mode === 'edit'
+      ? 'Edit OTC Medicine'
+      : 'View OTC Medicine'
+  " [showNotification]="true" [notificationCount]="unreadCount" (notificationClick)="openNotifications()"></app-header>
+
+<ion-content fullscreen="true" style="--background: linear-gradient(180deg, #f8fafc, #eef2f7);">
+
+  <div class="detail-bg">
+
+    <div class="medicine-wrapper">
+
+      <div class="medicine-card">
+
+        <div class="card-top">
+          <a class="back-link" (click)="cancel()">
+            ← Back to Listing
+          </a>
+        </div>
+
+        <!-- Loading -->
+
+        <div *ngIf="loading" class="loading-state">
+          <ion-spinner name="crescent"></ion-spinner>
+        </div>
+
+        <!-- Form -->
+
+        <form *ngIf="!loading" [formGroup]="form" (ngSubmit)="save()">
+
+          <div class="section-title">
+            OTC Medicine Details
+          </div>
+
+          <div class="form-group">
+            <label>Name Of Medicine</label>
+
+            <input type="text" formControlName="nameOfMedicine" maxlength="100" [readonly]="mode === 'view'" />
+          </div>
+
+          <div class="form-row">
+
+            <div class="form-group">
+              <label>
+                Amount Of Medicine *
+              </label>
+
+              <input type="number" formControlName="amountOfMedicine" [readonly]="mode === 'view'" />
+            </div>
+
+            <div class="form-group">
+              <label>
+                Amount Paid *
+              </label>
+
+              <input type="number" formControlName="amountPaid" [readonly]="mode === 'view'" />
+            </div>
+
+          </div>
+
+          <div class="form-row">
+
+            <div class="form-group">
+              <label>
+                Pending Balance
+              </label>
+
+              <input type="number" formControlName="pendingBalance" readonly />
+            </div>
+
+            <div class="form-group">
+              <label>
+                Date Of Purchase *
+              </label>
+
+              <input type="date" formControlName="dateOfPurchase" [readonly]="mode === 'view'" />
+            </div>
+
+          </div>
+
+          <div class="form-group">
+            <label>
+              Patient Name *
+            </label>
+
+            <input type="text" formControlName="patientName" [readonly]="mode === 'view'" />
+          </div>
+
+          <div class="form-group">
+            <label>
+              Payment Notes
+            </label>
+
+            <textarea rows="3" formControlName="paymentNotes" [readonly]="mode === 'view'"></textarea>
+          </div>
+
+          <div *ngIf="mode !== 'view'" class="form-actions">
+
+            <button type="button" class="btn-cancel" (click)="cancel()">
+              Cancel
+            </button>
+
+            <button type="submit" class="btn-save" [disabled]="form.invalid">
+              {{
+              mode === 'edit'
+              ? 'Update OTC Medicine'
+              : 'Create OTC Medicine'
+              }}
+            </button>
+
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</ion-content>
