@@ -101,7 +101,7 @@
 
   <!-- ================= PAYMENT FORM ================= -->
 
-  <div class="billing-card" *ngIf="!isPaymentDone && !fromList">
+  <div class="billing-card" *ngIf="!isPaymentDone && (!fromList || pendingBalance > 0)">
     <div class="card-title">New Payment</div>
 
     <div class="form-grid">
@@ -144,7 +144,7 @@
 
   <!-- ================= BALANCE ================= -->
 
-  <div class="balance-preview" *ngIf="!isPaymentDone && !fromList">
+<div class="balance-preview" *ngIf="!isPaymentDone && (!fromList || pendingBalance > 0)">
     <span>New Pending Balance</span>
 
     <span class="balance-value"> ₹ {{ newPendingBalance }} </span>
@@ -152,7 +152,7 @@
 
   <!-- ================= FOOTER ================= -->
 
-  <div class="billing-footer" *ngIf="!isPaymentDone && !fromList">
+  <!-- <div class="billing-footer" *ngIf="!isPaymentDone && !fromList">
     <button class="btn-outline" (click)="goBack()">Previous: Follow Up</button>
 
     <button
@@ -162,7 +162,14 @@
     >
       Save Payment
     </button>
-  </div>
+  </div> -->
+
+  <div class="billing-footer" *ngIf="!isPaymentDone && (!fromList || pendingBalance > 0)">
+  <button class="btn-outline" *ngIf="!fromList" (click)="goBack()">Previous: Follow Up</button>
+  <button class="btn-success" [disabled]="!amountPaid || amountPaid <= 0" (click)="finalizePayment()">
+    Save Payment
+  </button>
+</div>
 
   <!-- ================= PAYMENT HISTORY ================= -->
 

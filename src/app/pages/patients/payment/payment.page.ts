@@ -83,9 +83,53 @@ export class PaymentPage implements OnInit, OnDestroy {
         if (this.appointmentId) {
           this.loadPaymentData();
         }
+
+         // ✅ NEW: Bina appointment ke sirf balance load karo
+      if (this.fromList && !this.appointmentId && this.patientId) {
+        this.loadBalanceOnly();
+      }
+
       })
     );
   }
+
+//   async loadBalanceOnly() {
+//   this.loading = true;
+//   try {
+//     const balanceRes: any = await firstValueFrom(
+//       this.paymentApi.getBalance(this.patientId)
+//     );
+//     this.pendingBalance    = Math.max(0, Number(balanceRes?.pendingBalance ?? 0));
+//     this.totalPayable      = this.pendingBalance;
+//     this.newPendingBalance = this.pendingBalance;
+//      // ✅ paymentId bhi set karo
+//     this.paymentId = balanceRes?.paymentId ?? balanceRes?.data?.paymentId;
+//   } catch {
+//     await this.toast('Failed to load balance');
+//   } finally {
+//     this.loading = false;
+//   }
+// }
+
+async loadBalanceOnly() {
+  this.loading = true;
+  try {
+    const balanceRes: any = await firstValueFrom(
+      this.paymentApi.getBalance(this.patientId)
+    );
+    
+    console.log('Balance API response:', balanceRes); // ✅ YEH DEKHO
+
+    this.pendingBalance    = Math.max(0, Number(balanceRes?.pendingBalance ?? 0));
+    this.totalPayable      = this.pendingBalance;
+    this.newPendingBalance = this.pendingBalance;
+
+  } catch {
+    await this.toast('Failed to load balance');
+  } finally {
+    this.loading = false;
+  }
+}
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
@@ -293,23 +337,86 @@ async loadPaymentData() {
   /* FINALIZE PAYMENT */
   /* ================================================= */
 
-  async finalizePayment() {
+  // async finalizePayment() {
 
-    if (!this.amountPaid || this.amountPaid <= 0) {
-      await this.toast('Enter payment amount');
-      return;
-    }
+  //   if (!this.amountPaid || this.amountPaid <= 0) {
+  //     await this.toast('Enter payment amount');
+  //     return;
+  //   }
 
-    // ── Amount cannot exceed total payable ──────────────────────────────
-    if (this.amountPaid > this.totalPayable) {
-      await this.toast(`Amount cannot exceed total payable ₹${this.totalPayable}`);
-      return;
-    }
+  //   // ── Amount cannot exceed total payable ──────────────────────────────
+  //   if (this.amountPaid > this.totalPayable) {
+  //     await this.toast(`Amount cannot exceed total payable ₹${this.totalPayable}`);
+  //     return;
+  //   }
 
-    try {
-      console.log(this);
+  //   try {
+  //     console.log(this);
+  //     await firstValueFrom(
+  //       this.paymentApi.updatePayment(this.paymentId,{
+  //         amountPaid: this.amountPaid,
+  //         paymentMode: this.paymentMode,
+  //         paymentDate: new Date(this.paymentDate).toISOString(),
+  //         notes: ''
+  //       })
+  //     );
+
+  //     /* ================= AFTER PAYMENT ================= */
+
+
+  //       await firstValueFrom(
+  //         this.paymentApi.updateAppointmentStatus(
+  //           this.appointmentId,
+  //           4
+  //         )
+  //       );
+
+  //     this.isSaved = true;
+  //     await this.toast('Payment recorded successfully');
+
+  //     this.router.navigate(['/dashboard']);
+
+  //   }
+  //   catch {
+
+  //     await this.toast('Payment failed');
+
+  //   }
+
+  // }
+
+async finalizePayment() {
+
+  if (!this.amountPaid || this.amountPaid <= 0) {
+    await this.toast('Enter payment amount');
+    return;
+  }
+
+  if (this.amountPaid > this.totalPayable) {
+    await this.toast(`Amount cannot exceed total payable ₹${this.totalPayable}`);
+    return;
+  }
+
+  try {
+
+    if (this.fromList) {
+      // ✅ Bina appointment ke — naya payment create karo
       await firstValueFrom(
-        this.paymentApi.updatePayment(this.paymentId,{
+        this.paymentApi.createPayment({
+          patientId: this.patientId,
+          appointmentId: null,
+          consultationCharges: 0,
+          waveOffAmount: 0,
+          amountPaid: this.amountPaid,
+          paymentMode: this.paymentMode,
+          paymentDate: new Date(this.paymentDate).toISOString(),
+          notes: ''
+        })
+      );
+    } else {
+      // ✅ Appointment ke saath — existing payment update karo
+      await firstValueFrom(
+        this.paymentApi.updatePayment(this.paymentId, {
           amountPaid: this.amountPaid,
           paymentMode: this.paymentMode,
           paymentDate: new Date(this.paymentDate).toISOString(),
@@ -317,29 +424,33 @@ async loadPaymentData() {
         })
       );
 
-      /* ================= AFTER PAYMENT ================= */
-
-
+      // Appointment status update
+      if (this.appointmentId) {
         await firstValueFrom(
-          this.paymentApi.updateAppointmentStatus(
-            this.appointmentId,
-            4
-          )
+          this.paymentApi.updateAppointmentStatus(this.appointmentId, 4)
         );
+      }
+    }
 
-      this.isSaved = true;
-      await this.toast('Payment recorded successfully');
+    this.isSaved = true;
+    await this.toast('Payment recorded successfully');
 
+    if (this.fromList) {
+      // ✅ Page refresh — fresh balance + history
+      this.amountPaid = null;
+      this.paymentMode = 'Cash';
+      this.paymentDate = new Date().toISOString().split('T')[0];
+      this.isFormDirty = false;
+      await this.loadBalanceOnly();
+      await this.loadPaymentHistory();
+    } else {
       this.router.navigate(['/dashboard']);
-
-    }
-    catch {
-
-      await this.toast('Payment failed');
-
     }
 
+  } catch {
+    await this.toast('Payment failed');
   }
+}
 
   /* ================================================= */
   /* ADD PAYMENT RESET */
