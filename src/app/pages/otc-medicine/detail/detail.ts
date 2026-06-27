@@ -6,6 +6,7 @@ import { Subject, takeUntil } from 'rxjs';
 
 import {
   OtcMedicine,
+  OtcMedicinePayment,
   OtcMedicineService,
 } from 'src/app/services/otc-medicine.service';
 
@@ -30,7 +31,8 @@ export class DetailPage implements OnInit, OnDestroy {
   unreadCount = 0;
   notifications: any[] = [];
 
-  isFullyPaid = false; // ⭐ IMPORTANT FLAG
+  isFullyPaid = false;
+  payments: OtcMedicinePayment[] = []; // ⭐ Payment history
 
   private destroy$ = new Subject<void>();
 
@@ -79,7 +81,6 @@ export class DetailPage implements OnInit, OnDestroy {
       pendingBalance: [{ value: 0, disabled: true }],
       patientName: [''],
       dateOfPurchase: [new Date().toISOString().split('T')[0]],
-      paymentNotes: [''],
     });
 
     this.registerCalculationListeners();
@@ -94,11 +95,11 @@ export class DetailPage implements OnInit, OnDestroy {
       pendingBalance: 0,
       patientName: '',
       dateOfPurchase: new Date().toISOString().split('T')[0],
-      paymentNotes: '',
     });
 
     this.form.enable();
     this.isFullyPaid = false;
+    this.payments = [];
   }
 
   private registerCalculationListeners(): void {
@@ -135,7 +136,8 @@ export class DetailPage implements OnInit, OnDestroy {
         next: (res: OtcMedicine) => {
           const totalPaid = res.totalAmountPaid ?? 0;
 
-          this.isFullyPaid = totalPaid >= (res.amountOfMedicine ?? 0); // ⭐ KEY FIX
+          this.isFullyPaid = totalPaid >= (res.amountOfMedicine ?? 0);
+          this.payments = res.payments ?? [];
 
           this.form.patchValue({
             id: res.id,
@@ -145,13 +147,8 @@ export class DetailPage implements OnInit, OnDestroy {
             pendingBalance: res.pendingBalance,
             patientName: res.patientName,
             dateOfPurchase: res.dateOfPurchase?.split('T')[0],
-          // ✅ Naya - replace karo is se
-paymentNotes: res.payments?.length
-  ? res.payments[res.payments.length - 1].notes ?? ''
-  : '',
           });
 
-          // ⭐ LOCK PAYMENT FIELD IF FULLY PAID
           if (this.isFullyPaid) {
             this.form.get('amountPaid')?.disable();
           }
@@ -172,10 +169,10 @@ paymentNotes: res.payments?.length
   // ================= SAVE =================
 
   save(): void {
-    this.performSave(false);
+    this.performSave();
   }
 
-  private performSave(saveAndNew: boolean): void {
+  private performSave(): void {
     if (this.mode === 'view') return;
 
     if (this.form.invalid) {
@@ -192,14 +189,10 @@ paymentNotes: res.payments?.length
       dateOfPurchase: data.dateOfPurchase
         ? new Date(data.dateOfPurchase).toISOString()
         : undefined,
-      paymentNotes: data.paymentNotes,
     };
 
-    // ⭐ IMPORTANT RULE
-    // If fully paid → DO NOT TOUCH PAYMENT
     if (!this.isFullyPaid) {
       const amountPaidNum = Number(data.amountPaid);
-
       if (amountPaidNum > 0) {
         payload.amountPaid = amountPaidNum;
         payload.paymentDate = new Date().toISOString();

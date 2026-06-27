@@ -1,21 +1,13 @@
-<app-header
-  [title]="
+<app-header [title]="
     mode === 'create'
       ? 'Create OTC Medicine'
       : mode === 'edit'
       ? 'Edit OTC Medicine'
       : 'View OTC Medicine'
-  "
-  [showNotification]="true"
-  [notificationCount]="unreadCount"
-  (notificationClick)="openNotifications()"
->
+  " [showNotification]="true" [notificationCount]="unreadCount" (notificationClick)="openNotifications()">
 </app-header>
 
-<ion-content
-  fullscreen="true"
-  style="--background: linear-gradient(180deg, #f8fafc, #eef2f7)"
->
+<ion-content fullscreen="true" style="--background: linear-gradient(180deg, #f8fafc, #eef2f7)">
   <div class="detail-bg">
     <div class="medicine-wrapper">
       <div class="medicine-card">
@@ -35,103 +27,81 @@
         <form *ngIf="!loading" [formGroup]="form" (ngSubmit)="save()">
           <div class="section-title">OTC Medicine Details</div>
 
-          <!-- Medicine Name -->
-          <div class="form-group">
-            <label>Name Of Medicine</label>
-            <input
-              type="text"
-              formControlName="nameOfMedicine"
-              maxlength="100"
-              [readonly]="mode === 'view'"
-              placeholder="Enter medicine name"
-            />
-          </div>
+
 
           <!-- Amount Row -->
-          <div class="form-row">
+          <div class="form-row"> <!-- Medicine Name -->
+            <div class="form-group">
+              <label>Name Of Medicine</label>
+              <input type="text" formControlName="nameOfMedicine" maxlength="100" [readonly]="mode === 'view'"
+                placeholder="Enter medicine name" />
+            </div>
+
             <div class="form-group">
               <label>Amount Of Medicine (₹) *</label>
-              <input
-                type="number"
-                formControlName="amountOfMedicine"
-                [readonly]="mode === 'view'"
-                min="0"
-                placeholder="Enter total amount"
-              />
+              <input type="number" formControlName="amountOfMedicine" [readonly]="mode === 'view'" min="0"
+                placeholder="Enter total amount" />
+            </div>
+          </div>
+
+
+          <div class="form-row">
+            <!-- Patient -->
+            <div class="form-group">
+              <label>Patient Name</label>
+              <input type="text" formControlName="patientName" [readonly]="mode === 'view'"
+                placeholder="Enter patient name" />
             </div>
 
             <div class="form-group">
               <label>Amount Paid (₹) *</label>
-              <input
-                type="number"
-                formControlName="amountPaid"
-                [readonly]="mode === 'view'"
-                min="0"
-                placeholder="Enter paid amount"
-                [class.input-error]="
+              <input type="number" formControlName="amountPaid" [readonly]="mode === 'view'" min="0"
+                placeholder="Enter paid amount" [class.input-error]="
                   form.get('amountPaid')?.value >
                   form.get('amountOfMedicine')?.value &&
                   form.get('amountOfMedicine')?.value
-                "
-              />
+                " />
 
-              <small
-                class="error-message"
-                *ngIf="
+              <small class="error-message" *ngIf="
                   form.get('amountPaid')?.value >
                   form.get('amountOfMedicine')?.value &&
                   form.get('amountOfMedicine')?.value
-                "
-              >
+                ">
                 Amount Paid cannot exceed Amount of Medicine
               </small>
             </div>
           </div>
 
+
+
+
+
           <!-- Balance + Date -->
           <div class="form-row">
             <div class="form-group">
               <label>Pending Balance</label>
-              <input
-                type="number"
-                formControlName="pendingBalance"
-                readonly
-                placeholder="Auto calculated"
-              />
+              <input type="number" formControlName="pendingBalance" readonly placeholder="Auto calculated" />
             </div>
 
             <div class="form-group">
               <label>Date Of Purchase</label>
-              <input
-                type="date"
-                formControlName="dateOfPurchase"
-                [readonly]="mode === 'view'"
-                placeholder="Select date"
-              />
+              <input type="date" formControlName="dateOfPurchase" [readonly]="mode === 'view'"
+                placeholder="Select date" />
             </div>
           </div>
 
-          <!-- Patient -->
-          <div class="form-group">
-            <label>Patient Name</label>
-            <input
-              type="text"
-              formControlName="patientName"
-              [readonly]="mode === 'view'"
-              placeholder="Enter patient name"
-            />
-          </div>
+
 
           <!-- Notes -->
-          <div class="form-group">
+          <!-- <div class="form-group">
             <label>Payment Notes</label>
             <textarea
               rows="3"
-              formControlName="paymentNotes"
+              formControlName="notes"
               [readonly]="mode === 'view'"
               placeholder="Add payment notes (optional)"
             ></textarea>
-          </div>
+          </div> -->
 
           <!-- ACTIONS: CREATE / EDIT -->
           <div *ngIf="mode !== 'view'" class="form-actions">
@@ -150,11 +120,7 @@
               Back
             </button>
 
-            <button
-              type="button"
-              class="btn-edit"
-              (click)="editCurrentRecord()"
-            >
+            <button type="button" class="btn-edit" (click)="editCurrentRecord()">
               Edit
             </button>
           </div>

@@ -36,22 +36,44 @@ export class MedicineService {
 
   constructor(private http: HttpClient) {}
 
+  // getAll(
+  //   page = 1,
+  //   pageSize = 10,
+  //   search = ''
+  // ): Observable<MedicineListResponse> {
+
+  //   let params = new HttpParams()
+  //     .set('page', page)
+  //     .set('pageSize', pageSize);
+
+  //   if (search) {
+  //     params = params.set('search', search);
+  //   }
+
+  //   return this.http.get<MedicineListResponse>(this.baseUrl, { params });
+  // }
+
   getAll(
-    page = 1,
-    pageSize = 10,
-    search = ''
-  ): Observable<MedicineListResponse> {
+  page = 1,
+  pageSize = 10,
+  search = '',
+  dosageForm = ''
+): Observable<MedicineListResponse> {
 
-    let params = new HttpParams()
-      .set('page', page)
-      .set('pageSize', pageSize);
+  let params = new HttpParams()
+    .set('page', page)
+    .set('pageSize', pageSize);
 
-    if (search) {
-      params = params.set('search', search);
-    }
-
-    return this.http.get<MedicineListResponse>(this.baseUrl, { params });
+  if (search) {
+    params = params.set('search', search);
   }
+
+  if (dosageForm) {
+    params = params.set('dosageForm', dosageForm);
+  }
+
+  return this.http.get<MedicineListResponse>(this.baseUrl, { params });
+}
 
   getById(id: number) {
     return this.http.get<Medicine>(`${this.baseUrl}/${id}`);
