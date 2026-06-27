@@ -145,7 +145,10 @@ export class DetailPage implements OnInit, OnDestroy {
             pendingBalance: res.pendingBalance,
             patientName: res.patientName,
             dateOfPurchase: res.dateOfPurchase?.split('T')[0],
-            paymentNotes: '',
+          // ✅ Naya - replace karo is se
+paymentNotes: res.payments?.length
+  ? res.payments[res.payments.length - 1].notes ?? ''
+  : '',
           });
 
           // ⭐ LOCK PAYMENT FIELD IF FULLY PAID

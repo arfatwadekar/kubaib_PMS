@@ -116,7 +116,7 @@ export interface OtcMedicine {
   pendingBalance: number;
   patientName: string;
   dateOfPurchase: string;
-  payments: OtcMedicinePayment[];
+payments: OtcMedicinePayment[]; // ✅ Ye line add karo
 }
 
 export interface CreateUpdateOtcMedicineRequest {
