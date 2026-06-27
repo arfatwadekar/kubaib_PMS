@@ -114,7 +114,7 @@ const routes: Routes = [
             (m) => m.AnalyticsPageModule,
           ),
         canActivate: [RoleGuard],
-        data: { roles: ['Doctor', 'Receptionist'] },
+        data: { roles: ['Doctor'] },
       },
 
       // ======================

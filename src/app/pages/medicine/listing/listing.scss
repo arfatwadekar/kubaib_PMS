@@ -220,13 +220,13 @@ $bg-soft: #f9fafb;
 /* MOBILE ONLY */
 
 @media (max-width: 576px) {
-  .desktop-view {
-    display: none;
-  }
+  // .desktop-view {
+  //   display: none;
+  // }
 
-  .mobile-view {
-    display: block;
-  }
+  // .mobile-view {
+  //   display: block;
+  // }
 
   .medicine-container {
     padding: 16px;

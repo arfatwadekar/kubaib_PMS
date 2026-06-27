@@ -171,6 +171,9 @@ export class OtcMedicineService {
 
   // ================= GET ALL =================
 
+  /**
+   * Get all OTC medicines with optional search.
+   */
   getAll(search?: string): Observable<OtcMedicine[]> {
     let params = new HttpParams();
 
@@ -210,9 +213,24 @@ export class OtcMedicineService {
       return throwError(() => 'Record id is required.');
     }
 
-    return this.http
-      .put<OtcMedicine>(this.baseUrl, data)
-      .pipe(catchError((error) => this.handleError(error)));
+    // Try the conventional `/api/OtcMedicine` update first; some backends
+    // expose a different update route (`/api/OtcMedicineUpdate`) so fall
+    // back to it on 404 to handle both server variants.
+    const primaryUrl = this.baseUrl; // e.g. /api/OtcMedicine
+    const fallbackUrl = `${environment.apiBaseUrl}/api/OtcMedicineUpdate`;
+
+    return this.http.put<OtcMedicine>(primaryUrl, data).pipe(
+      catchError((error: HttpErrorResponse) => {
+        if (error?.status === 404) {
+          // try fallback endpoint
+          return this.http
+            .put<OtcMedicine>(fallbackUrl, data)
+            .pipe(catchError((err) => this.handleError(err)));
+        }
+
+        return this.handleError(error);
+      })
+    );
   }
 
   // ================= DELETE =================
