@@ -25,9 +25,16 @@ export class ListingPage implements OnInit, OnDestroy {
 
   unreadCount = 0;
   notifications: any[] = [];
+  
+  allMedicines: OtcMedicine[] = [];
+
+currentPage = 1;
+pageSize = 10;
 
   private destroy$ = new Subject<void>();
   private searchTrigger$ = new Subject<string>();
+
+  
 
   constructor(
     private otcMedicineService: OtcMedicineService,
@@ -59,24 +66,79 @@ export class ListingPage implements OnInit, OnDestroy {
     this.searchTrigger$.next(this.search);
   }
 
-  loadData(): void {
-    this.loading = true;
-    this.errorMessage = '';
+  // loadData(): void {
+  //   this.loading = true;
+  //   this.errorMessage = '';
 
-    this.otcMedicineService
-      .getAll(this.search)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (res) => {
-          this.otcMedicines = res || [];
-          this.loading = false;
-        },
-        error: () => {
-          this.errorMessage = 'Failed to load OTC medicines.';
-          this.loading = false;
-        },
-      });
+  //   this.otcMedicineService
+  //     .getAll(this.search)
+  //     .pipe(takeUntil(this.destroy$))
+  //     .subscribe({
+  //       next: (res) => {
+  //         this.otcMedicines = res || [];
+  //         this.loading = false;
+  //       },
+  //       error: () => {
+  //         this.errorMessage = 'Failed to load OTC medicines.';
+  //         this.loading = false;
+  //       },
+  //     });
+  // }
+
+  loadData(): void {
+  this.loading = true;
+  this.errorMessage = '';
+
+  this.otcMedicineService
+    .getAll(this.search)
+    .pipe(takeUntil(this.destroy$))
+    .subscribe({
+      next: (res) => {
+        this.allMedicines = res || [];
+        this.currentPage = 1;
+        this.updatePagination();
+        this.loading = false;
+      },
+      error: () => {
+        this.errorMessage = 'Failed to load OTC medicines.';
+        this.loading = false;
+      },
+    });
+}
+
+updatePagination(): void {
+  const start = (this.currentPage - 1) * this.pageSize;
+  const end = start + this.pageSize;
+
+  this.otcMedicines = this.allMedicines.slice(start, end);
+}
+
+get totalPages(): number {
+  return Math.ceil(this.allMedicines.length / this.pageSize);
+}
+
+get pages(): number[] {
+  return Array.from({ length: this.totalPages }, (_, i) => i + 1);
+}
+
+previousPage(): void {
+  if (this.currentPage > 1) {
+    this.currentPage--;
+    this.updatePagination();
   }
+}
+
+nextPage(): void {
+  if (this.currentPage < this.totalPages) {
+    this.currentPage++;
+    this.updatePagination();
+  }
+}
+
+goToPage(page: number): void {
+  this.currentPage = page;
+  this.updatePagination();
+}
 
   refresh(): void {
     this.search = '';

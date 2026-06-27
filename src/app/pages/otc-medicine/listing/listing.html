@@ -134,5 +134,27 @@
       </div>
     </div>
 
+  <div class="pagination" *ngIf="!loading && totalPages > 1">
+
+  <button
+    class="page-btn"
+    (click)="previousPage()"
+    [disabled]="currentPage === 1">
+    ← Previous
+  </button>
+
+  <span class="page-info">
+    Page {{ currentPage }} of {{ totalPages }}
+  </span>
+
+  <button
+    class="page-btn"
+    (click)="nextPage()"
+    [disabled]="currentPage === totalPages">
+    Next →
+  </button>
+
+</div>
+
   </div>
 </ion-content>
