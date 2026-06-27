@@ -25,7 +25,9 @@ ion-content {
 
 .detail-bg {
   padding: 24px 16px;
-  padding-bottom: calc(100px + env(safe-area-inset-bottom)); /* 🔥 prevent crop */
+  padding-bottom: calc(
+    100px + env(safe-area-inset-bottom)
+  ); /* 🔥 prevent crop */
   background: $bg-page;
 }
 
@@ -35,7 +37,6 @@ ion-content {
   width: 100%;
   max-width: 1400px;
   margin: 0 auto; /* ✅ center fix */
-  
 }
 
 /* ================= CARD ================= */
@@ -101,7 +102,7 @@ ion-content {
 
   border-radius: 10px;
   border: 1px solid $border;
-  background: $bg-soft;
+  // background: $bg-soft;
 
   transition: 0.2s ease;
 }
@@ -278,7 +279,6 @@ ion-content {
 /* TABLET */
 
 @media (max-width: 992px) {
-
   .detail-bg {
     padding: 16px;
     padding-bottom: calc(90px + env(safe-area-inset-bottom));
@@ -287,13 +287,11 @@ ion-content {
   .medicine-card {
     padding: 24px;
   }
-
 }
 
 /* MOBILE */
 
 @media (max-width: 576px) {
-
   .detail-bg {
     padding: 12px;
     padding-bottom: calc(70px + env(safe-area-inset-bottom));
@@ -327,21 +325,21 @@ ion-content {
   .btn-cancel {
     width: 100%;
   }
-
 }
 
-.back-link{
+.back-link {
   color: $primary;
+  cusror: pointer;
 }
 
 /* Chrome, Safari, Edge */
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button {
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
 /* Firefox */
-input[type=number] {
+input[type="number"] {
   -moz-appearance: textfield;
 }

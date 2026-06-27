@@ -17,7 +17,6 @@ import { NotificationService } from 'src/app/services/notification.service';
   standalone: false,
 })
 export class ListingPage implements OnInit, OnDestroy {
-
   otcMedicines: OtcMedicine[] = [];
   allMedicines: OtcMedicine[] = [];
   filteredMedicines: OtcMedicine[] = [];
@@ -79,9 +78,10 @@ export class ListingPage implements OnInit, OnDestroy {
     let filtered = this.allMedicines;
 
     if (term) {
-      filtered = this.allMedicines.filter(item =>
-        (item.nameOfMedicine || '').toLowerCase().includes(term) ||
-        (item.patientName || '').toLowerCase().includes(term)
+      filtered = this.allMedicines.filter(
+        (item) =>
+          (item.nameOfMedicine || '').toLowerCase().includes(term) ||
+          (item.patientName || '').toLowerCase().includes(term),
       );
     }
 
@@ -191,7 +191,7 @@ export class ListingPage implements OnInit, OnDestroy {
       .toPromise();
 
     this.notifications = res || [];
-    this.unreadCount = this.notifications.filter(x => !x.isRead).length;
+    this.unreadCount = this.notifications.filter((x) => !x.isRead).length;
   }
 
   openNotifications() {

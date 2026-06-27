@@ -1,10 +1,13 @@
-<app-header title="OTC Medicines" [showNotification]="true" [notificationCount]="unreadCount"
-  (notificationClick)="openNotifications()">
+<app-header
+  title="OTC Medicines"
+  [showNotification]="true"
+  [notificationCount]="unreadCount"
+  (notificationClick)="openNotifications()"
+>
 </app-header>
 
 <ion-content class="medicine-bg">
   <div class="medicine-container">
-
     <!-- HEADER -->
     <div class="page-header">
       <div class="header-left">
@@ -16,15 +19,15 @@
         <div class="search-box">
           <ion-icon name="search-outline"></ion-icon>
 
-          <input type="text"
+          <input
+            type="text"
             [(ngModel)]="search"
             (ngModelChange)="onSearchChange()"
-            placeholder="Search medicine or patient..." />
+            placeholder="Search medicine or patient..."
+          />
         </div>
 
-        <button class="btn-primary" (click)="create()">
-          Add New Entry
-        </button>
+        <button class="btn-primary" (click)="create()">Add New Entry</button>
       </div>
     </div>
 
@@ -45,8 +48,10 @@
     </div>
 
     <!-- DESKTOP TABLE -->
-    <div class="table-wrapper desktop-view" *ngIf="!loading && otcMedicines.length">
-
+    <div
+      class="table-wrapper desktop-view"
+      *ngIf="!loading && otcMedicines.length"
+    >
       <div class="table-head">
         <div>Name of Medicine</div>
         <div>Amount Paid</div>
@@ -56,17 +61,18 @@
       </div>
 
       <div class="table-row" *ngFor="let item of otcMedicines">
-
         <div>{{ item.nameOfMedicine || 'N/A' }}</div>
 
         <div>
-          ₹{{ item.totalAmountPaid != null ? (item.totalAmountPaid | number:'1.0-2') : 'N/A' }}
+          ₹{{ item.totalAmountPaid != null ? (item.totalAmountPaid |
+          number:'1.0-2') : 'N/A' }}
         </div>
 
         <div>{{ item.patientName || 'N/A' }}</div>
 
         <div>
-          {{ item.dateOfPurchase ? (item.dateOfPurchase | date:'dd MMM yyyy') : 'N/A' }}
+          {{ item.dateOfPurchase ? (item.dateOfPurchase | date:'dd MMM yyyy') :
+          'N/A' }}
         </div>
 
         <div class="actions">
@@ -74,23 +80,17 @@
           <button class="btn-edit" (click)="edit(item.id)">Edit</button>
           <button class="btn-delete" (click)="delete(item.id)">Delete</button>
         </div>
-
       </div>
     </div>
 
     <!-- MOBILE CARDS -->
     <div class="mobile-view" *ngIf="!loading && otcMedicines.length">
-
       <div class="medicine-card" *ngFor="let item of otcMedicines">
-
         <div class="card-header">
-          <div class="card-title">
-            {{ item.nameOfMedicine || 'N/A' }}
-          </div>
+          <div class="card-title">{{ item.nameOfMedicine || 'N/A' }}</div>
         </div>
 
         <div class="card-body">
-
           <div class="info-row">
             <span class="label">Amount Paid</span>
             <span class="value">
@@ -100,18 +100,16 @@
 
           <div class="info-row">
             <span class="label">Patient</span>
-            <span class="value">
-              {{ item.patientName || 'N/A' }}
-            </span>
+            <span class="value"> {{ item.patientName || 'N/A' }} </span>
           </div>
 
           <div class="info-row">
             <span class="label">Purchase Date</span>
             <span class="value">
-              {{ item.dateOfPurchase ? (item.dateOfPurchase | date:'dd MMM yyyy') : 'N/A' }}
+              {{ item.dateOfPurchase ? (item.dateOfPurchase | date:'dd MMM
+              yyyy') : 'N/A' }}
             </span>
           </div>
-
         </div>
 
         <div class="card-actions">
@@ -119,16 +117,16 @@
           <button class="btn-edit" (click)="edit(item.id)">Edit</button>
           <button class="btn-delete" (click)="delete(item.id)">Delete</button>
         </div>
-
       </div>
     </div>
 
     <!-- PAGINATION -->
     <div class="pagination" *ngIf="!loading && totalPages > 1">
-
-      <button class="page-btn"
+      <button
+        class="page-btn"
         (click)="previousPage()"
-        [disabled]="currentPage === 1">
+        [disabled]="currentPage === 1"
+      >
         ← Previous
       </button>
 
@@ -136,13 +134,13 @@
         Page {{ currentPage }} of {{ totalPages }}
       </span>
 
-      <button class="page-btn"
+      <button
+        class="page-btn"
         (click)="nextPage()"
-        [disabled]="currentPage === totalPages">
+        [disabled]="currentPage === totalPages"
+      >
         Next →
       </button>
-
     </div>
-
   </div>
 </ion-content>

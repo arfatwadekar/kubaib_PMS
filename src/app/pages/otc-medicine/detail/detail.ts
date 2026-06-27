@@ -30,8 +30,7 @@ export class DetailPage implements OnInit, OnDestroy {
   unreadCount = 0;
   notifications: any[] = [];
 
-  // Holds the total amount already paid for the record (used during edit)
-  private originalTotalPaid = 0;
+  isFullyPaid = false; // ⭐ IMPORTANT FLAG
 
   private destroy$ = new Subject<void>();
 
@@ -43,8 +42,6 @@ export class DetailPage implements OnInit, OnDestroy {
     private toastCtrl: ToastController,
     private notificationService: NotificationService,
   ) {}
-
-  // ================= INIT =================
 
   ngOnInit(): void {
     this.initializeForm();
@@ -76,19 +73,12 @@ export class DetailPage implements OnInit, OnDestroy {
   private initializeForm(): void {
     this.form = this.fb.group({
       id: [''],
-
       nameOfMedicine: ['', [Validators.maxLength(100)]],
-
       amountOfMedicine: [null, [Validators.required, Validators.min(0)]],
-
-      amountPaid: [null, [Validators.min(0)]],
-
+      amountPaid: [0, [Validators.min(0)]],
       pendingBalance: [{ value: 0, disabled: true }],
-
       patientName: [''],
-
       dateOfPurchase: [new Date().toISOString().split('T')[0]],
-
       paymentNotes: [''],
     });
 
@@ -100,7 +90,7 @@ export class DetailPage implements OnInit, OnDestroy {
       id: '',
       nameOfMedicine: '',
       amountOfMedicine: null,
-      amountPaid: null,
+      amountPaid: 0,
       pendingBalance: 0,
       patientName: '',
       dateOfPurchase: new Date().toISOString().split('T')[0],
@@ -108,45 +98,27 @@ export class DetailPage implements OnInit, OnDestroy {
     });
 
     this.form.enable();
+    this.isFullyPaid = false;
   }
-
-  // ================= CALCULATIONS =================
 
   private registerCalculationListeners(): void {
     this.form
       .get('amountOfMedicine')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
-      .subscribe((value) => {
-        // Auto-populate Amount Paid with Amount of Medicine (default to full payment)
-        const currentAmountPaid = this.form.get('amountPaid')?.value;
-        if (!currentAmountPaid || currentAmountPaid === 0 || currentAmountPaid === null) {
-          this.form.patchValue(
-            {
-              amountPaid: value,
-            },
-            { emitEvent: false }
-          );
-        }
-        this.calculatePending();
-      });
+      .subscribe(() => this.calculatePending());
 
     this.form
       .get('amountPaid')
       ?.valueChanges.pipe(takeUntil(this.destroy$))
-      .subscribe(() => {
-        this.calculatePending();
-      });
+      .subscribe(() => this.calculatePending());
   }
 
   private calculatePending(): void {
     const amount = Number(this.form.get('amountOfMedicine')?.value) || 0;
-
     const paid = Number(this.form.get('amountPaid')?.value) || 0;
 
     this.form.patchValue(
-      {
-        pendingBalance: amount - paid,
-      },
+      { pendingBalance: amount - paid },
       { emitEvent: false },
     );
   }
@@ -161,30 +133,34 @@ export class DetailPage implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res: OtcMedicine) => {
+          const totalPaid = res.totalAmountPaid ?? 0;
+
+          this.isFullyPaid = totalPaid >= (res.amountOfMedicine ?? 0); // ⭐ KEY FIX
+
           this.form.patchValue({
             id: res.id,
             nameOfMedicine: res.nameOfMedicine,
             amountOfMedicine: res.amountOfMedicine,
-            // Prefill `amountPaid` with total paid so far for visibility during edit.
-            amountPaid: res.totalAmountPaid ?? 0,
+            amountPaid: totalPaid,
             pendingBalance: res.pendingBalance,
             patientName: res.patientName,
             dateOfPurchase: res.dateOfPurchase?.split('T')[0],
             paymentNotes: '',
           });
 
+          // ⭐ LOCK PAYMENT FIELD IF FULLY PAID
+          if (this.isFullyPaid) {
+            this.form.get('amountPaid')?.disable();
+          }
+
           if (this.mode === 'view') {
             this.form.disable();
           }
-
-          // store original total paid for later delta calculation when saving edits
-          this.originalTotalPaid = res.totalAmountPaid ?? 0;
 
           this.loading = false;
         },
         error: () => {
           this.loading = false;
-
           this.showToast('Failed to load OTC medicine.', 'danger');
         },
       });
@@ -196,114 +172,49 @@ export class DetailPage implements OnInit, OnDestroy {
     this.performSave(false);
   }
 
-  saveAndNew(): void {
-    if (this.mode !== 'create') {
-      this.showToast('Save & New is only available in Create mode.', 'warning');
-      return;
-    }
-    this.performSave(true);
-  }
-
-  private performSave(saveAndNew: boolean = false): void {
-    if (this.mode === 'view') {
-      return;
-    }
+  private performSave(saveAndNew: boolean): void {
+    if (this.mode === 'view') return;
 
     if (this.form.invalid) {
       this.showToast('Please fill all mandatory fields.', 'warning');
-
       return;
     }
 
     const data = this.form.getRawValue();
 
-    const amountOfMedicineNum = Number(data.amountOfMedicine);
-    const amountPaidNum = Number(data.amountPaid ?? 0);
-
-    if (amountPaidNum > amountOfMedicineNum) {
-      this.showToast('Amount Paid cannot exceed Amount Of Medicine.', 'danger');
-
-      return;
-    }
-
     const payload: any = {
-      amountOfMedicine: amountOfMedicineNum,
-      ...(data.nameOfMedicine?.trim()
-        ? { nameOfMedicine: data.nameOfMedicine.trim() }
-        : {}),
-      ...(data.patientName?.trim()
-        ? { patientName: data.patientName.trim() }
-        : {}),
-      ...(data.dateOfPurchase
-        ? { dateOfPurchase: new Date(data.dateOfPurchase).toISOString() }
-        : {}),
-      ...(data.paymentNotes?.trim()
-        ? { paymentNotes: data.paymentNotes.trim() }
-        : {}),
+      amountOfMedicine: Number(data.amountOfMedicine),
+      nameOfMedicine: data.nameOfMedicine,
+      patientName: data.patientName,
+      dateOfPurchase: data.dateOfPurchase
+        ? new Date(data.dateOfPurchase).toISOString()
+        : undefined,
+      paymentNotes: data.paymentNotes,
     };
 
-    // Handle amountPaid differently for create vs edit:
-    if (this.mode === 'create') {
-      // On create, amountPaid is the initial payment (can be 0)
+    // ⭐ IMPORTANT RULE
+    // If fully paid → DO NOT TOUCH PAYMENT
+    if (!this.isFullyPaid) {
+      const amountPaidNum = Number(data.amountPaid);
+
       if (amountPaidNum > 0) {
         payload.amountPaid = amountPaidNum;
         payload.paymentDate = new Date().toISOString();
       }
-    } else if (this.mode === 'edit') {
-      // On edit, the form shows total paid so far. Only send the delta (new payment)
-      if (amountPaidNum < this.originalTotalPaid) {
-        this.showToast(
-          'Amount Paid cannot be less than already recorded payments.',
-          'danger',
-        );
-
-        return;
-      }
-
-      const newPayment = amountPaidNum - this.originalTotalPaid;
-
-      if (newPayment > 0) {
-        payload.amountPaid = newPayment;
-        payload.paymentDate = new Date().toISOString();
-        if (data.paymentNotes?.trim()) {
-          payload.paymentNotes = data.paymentNotes.trim();
-        }
-      }
     }
-
-    if (this.mode === 'edit') {
-      payload.id = this.id;
-    }
-
-    this.loading = true;
 
     const request$ =
       this.mode === 'edit'
-        ? this.otcMedicineService.update(payload)
+        ? this.otcMedicineService.update({ ...payload, id: this.id })
         : this.otcMedicineService.create(payload);
 
     request$.pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
-        this.loading = false;
-
-        this.showToast(
-          this.mode === 'edit'
-            ? 'OTC medicine updated successfully.'
-            : 'OTC medicine created successfully.',
-          'success',
-        );
-
-        if (saveAndNew) {
-          // Reset form for next entry
-          this.resetForm();
-        } else {
-          this.router.navigate(['/otc-medicine']);
-        }
+        this.showToast('Saved successfully', 'success');
+        this.router.navigate(['/otc-medicine']);
       },
       error: () => {
-        this.loading = false;
-
-        this.showToast('Operation failed.', 'danger');
+        this.showToast('Save failed', 'danger');
       },
     });
   }
@@ -315,41 +226,30 @@ export class DetailPage implements OnInit, OnDestroy {
   }
 
   editCurrentRecord(): void {
-    if (this.mode === 'view' && this.id) {
-      this.router.navigate(['/otc-medicine/edit', this.id]);
-    }
+    this.router.navigate(['/otc-medicine/edit', this.id]);
   }
 
   openNotifications(): void {
     this.router.navigate(['/notifications']);
   }
 
-  // ================= NOTIFICATIONS =================
-
   async loadNotifications() {
     const res: any = await this.notificationService
       .getNotifications()
       .toPromise();
-
     this.notifications = res || [];
-
     this.unreadCount = this.notifications.filter((x: any) => !x.isRead).length;
   }
 
-  // ================= TOAST =================
-
-  private async showToast(message: string, color: string = 'primary') {
-    const toast = await this.toastCtrl.create({
+  private async showToast(message: string, color: string) {
+    const t = await this.toastCtrl.create({
       message,
-      duration: 2500,
+      duration: 2000,
       color,
       position: 'top',
     });
-
-    await toast.present();
+    t.present();
   }
-
-  // ================= DESTROY =================
 
   ngOnDestroy(): void {
     this.destroy$.next();
