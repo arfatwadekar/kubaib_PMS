@@ -602,18 +602,32 @@ export class DashboardPage {
       const patientId = this.toNum(
         x?.patientId ?? patient?.patientId ?? patient?.patientsId,
       );
-      const pidRaw =
-        x?.pid ??
-        x?.patientPid ??
-        patient?.pid ??
-        patient?.patientPid ??
-        patient?.patientCode ??
-        x?.patientCode ??
-        x?.patientUID ??
-        '';
+      // const pidRaw =
+      //   x?.patientIdFormatted  ??
+      //   x?.patientPid ??
+      //   patient?.pid ??
+      //   patient?.patientPid ??
+      //   patient?.patientCode ??
+      //   x?.patientCode ??
+      //   x?.patientUID ??
+      //   '';
+      // const pid =
+      //   this.normalizePid(pidRaw) ||
+      //   (patientId ? `PID${String(patientId).padStart(3, '0')}` : '-');
+        
       const pid =
-        this.normalizePid(pidRaw) ||
-        (patientId ? `PID${String(patientId).padStart(3, '0')}` : '-');
+  patient?.patientIdFormatted ??
+  x?.patientIdFormatted ??
+  this.normalizePid(
+    x?.pid ??
+    x?.patientPid ??
+    patient?.pid ??
+    patient?.patientPid ??
+    patient?.patientCode ??
+    x?.patientCode ??
+    x?.patientUID
+  ) ??
+  (patientId ? `P-${String(patientId).padStart(4, '0')}` : '-');
       const name = String(
         patient?.fullName ?? x?.fullName ?? x?.patientName ?? 'NA',
       ).trim();
