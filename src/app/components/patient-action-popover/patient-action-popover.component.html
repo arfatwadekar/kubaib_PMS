@@ -10,6 +10,13 @@
       Edit
     </button>
 
+ <button
+  class="popover-item delete"
+  [style.display]="role === 'Receptionist' ? 'none' : 'block'"
+  (click)="delete()">
+  Delete Patient
+</button>
+
     <button class="popover-item" (click)="appointment()">
       {{ patient.hasActiveAppointment ? 'View Appointment' : 'Create Appointment' }}
     </button>

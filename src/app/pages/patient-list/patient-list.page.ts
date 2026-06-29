@@ -1,6 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { ToastController, PopoverController } from '@ionic/angular';
+import {
+  ToastController,
+  PopoverController,
+  AlertController,
+} from '@ionic/angular';
 import { FormBuilder, FormControl, Validators } from '@angular/forms';
 import {
   firstValueFrom,
@@ -99,6 +103,7 @@ export class PatientListPage implements OnInit, OnDestroy {
     private toastCtrl: ToastController,
     private router: Router,
     private popoverCtrl: PopoverController,
+    private alertCtrl: AlertController,
   ) {}
 
   // ─────────────────────────────────────────────────────────────
@@ -268,6 +273,10 @@ export class PatientListPage implements OnInit, OnDestroy {
         this.openAppointmentPanel(row);
         break;
 
+      case 'delete':
+        this.confirmDelete(row);
+        break;
+
       case 'status':
         console.log('Change status clicked');
         break;
@@ -331,7 +340,7 @@ export class PatientListPage implements OnInit, OnDestroy {
   // Add this method — same logic as the edit case in openActions()
   navigateToPatient(row: Row): void {
     this.router.navigate(['patients'], {
-      queryParams: { patientId: row.id, tab: 'prelim', from: 'list' }
+      queryParams: { patientId: row.id, tab: 'prelim', from: 'list' },
     });
   }
   closeAppointmentPanel(): void {
@@ -540,5 +549,53 @@ export class PatientListPage implements OnInit, OnDestroy {
       position: 'top',
     });
     await toast.present();
+  }
+
+  async confirmDelete(row: Row) {
+    const alert = await this.alertCtrl.create({
+      header: 'Delete Patient',
+      message: `Are you sure you want to delete <b>${row.name}</b>?`,
+      buttons: [
+        {
+          text: 'Cancel',
+          role: 'cancel',
+        },
+        {
+          text: 'Delete',
+          role: 'destructive',
+          handler: () => this.deletePatient(row.id),
+        },
+      ],
+    });
+
+    await alert.present();
+  }
+
+  async deletePatient(id: number) {
+    try {
+      const res: any = await firstValueFrom(
+        this.patientService.deletePatient(id),
+      );
+
+      const toast = await this.toastCtrl.create({
+        message: res?.message || 'Patient deleted successfully',
+        duration: 2500,
+        position: 'top',
+        color: 'success',
+      });
+
+      await toast.present();
+
+      this.loadPatients(true);
+    } catch (err: any) {
+      const toast = await this.toastCtrl.create({
+        message: err?.error?.message || 'Failed to delete patient',
+        duration: 2500,
+        position: 'top',
+        color: 'danger',
+      });
+
+      await toast.present();
+    }
   }
 }
