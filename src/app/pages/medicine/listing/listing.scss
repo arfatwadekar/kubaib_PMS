@@ -663,3 +663,23 @@ $bg-soft: #f9fafb;
   max-height: calc(1.4em * 2); /* safety */
   max-width: 85%;
 }
+
+
+.filter-select {
+  width: 180px;
+  height: 44px;
+  padding: 0 42px 0 16px;   /* right padding badhao */
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background-color: #fff;
+
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+
+  /* Custom arrow */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 14px;
+}

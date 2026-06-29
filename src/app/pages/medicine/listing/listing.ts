@@ -22,6 +22,9 @@ import { NotificationService } from 'src/app/services/notification.service';
 })
 export class ListingPage implements OnInit, OnDestroy {
 
+  selectedForm = '';
+allMedicines: Medicine[] = [];
+
   medicines: Medicine[] = [];
 
   page = 1;
@@ -88,19 +91,36 @@ export class ListingPage implements OnInit, OnDestroy {
       .getAll(this.page, this.pageSize, this.search)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
+        // next: (res: MedicineListResponse) => {
+
+        //   if (res?.success && res?.data) {
+        //     this.medicines = res.data.items ?? [];
+        //     this.totalCount = res.data.totalCount ?? 0;
+        //     this.totalPages = res.data.totalPages ?? 0;
+        //     this.buildPageNumbers();
+        //   } else {
+        //     this.resetData();
+        //   }
+
+        //   this.loading = false;
+        // },
+
         next: (res: MedicineListResponse) => {
+  if (res?.success && res?.data) {
+    this.allMedicines = res.data.items ?? [];
 
-          if (res?.success && res?.data) {
-            this.medicines = res.data.items ?? [];
-            this.totalCount = res.data.totalCount ?? 0;
-            this.totalPages = res.data.totalPages ?? 0;
-            this.buildPageNumbers();
-          } else {
-            this.resetData();
-          }
+    this.medicines = this.selectedForm
+      ? this.allMedicines.filter(m => m.dosageForm === this.selectedForm)
+      : [...this.allMedicines];
 
-          this.loading = false;
-        },
+    this.totalCount = res.data.totalCount ?? 0;
+    this.totalPages = res.data.totalPages ?? 0;
+    this.buildPageNumbers();
+  } else {
+    this.resetData();
+  }
+  this.loading = false;
+},
         error: () => {
           this.resetData();
           this.errorMessage = 'Failed to load medicines.';
@@ -175,11 +195,18 @@ private buildPageNumbers(): void {
 
   // ================= REFRESH =================
 
+  // refresh(): void {
+  //   this.search = '';
+  //   this.page = 1;
+  //   this.loadMedicines();
+  // }
+
   refresh(): void {
-    this.search = '';
-    this.page = 1;
-    this.loadMedicines();
-  }
+  this.search = '';
+  this.selectedForm = '';
+  this.page = 1;
+  this.loadMedicines();
+}
 
   // ================= NAVIGATION =================
 
@@ -264,5 +291,11 @@ async loadNotifications() {
 
 openNotifications() {
   this.router.navigate(['/notifications']);
+}
+
+onFilterChange(): void {
+  this.medicines = this.selectedForm
+    ? this.allMedicines.filter(m => m.dosageForm === this.selectedForm)
+    : [...this.allMedicines];
 }
 }

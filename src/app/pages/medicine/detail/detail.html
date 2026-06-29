@@ -1,98 +1,78 @@
-<app-header
-  [title]="mode === 'create' ? 'Create Medicine' : (mode === 'edit' ? 'Edit Medicine' : 'View Medicine')"
-    [showNotification]="true"
-  [notificationCount]="unreadCount"
-  (notificationClick)="openNotifications()"
-></app-header>
+<app-header [title]="mode === 'create' ? 'Create Medicine' : (mode === 'edit' ? 'Edit Medicine' : 'View Medicine')"
+  [showNotification]="true" [notificationCount]="unreadCount" (notificationClick)="openNotifications()"></app-header>
 
 <ion-content fullscreen="true" style="--background: linear-gradient(180deg, #f8fafc, #eef2f7);">
 
-    <div class="detail-bg">
- <div class="medicine-wrapper">
+  <div class="detail-bg">
+    <div class="medicine-wrapper">
 
-    <div class="medicine-card">
+      <div class="medicine-card">
 
-      <!-- BACK LINK -->
-      <div class="card-top">
-        <a class="back-link" (click)="cancel()">
-          ← Back to Listing
-        </a>
-      </div>
+        <!-- BACK LINK -->
+        <div class="card-top">
+          <a class="back-link" (click)="cancel()">
+            ← Back to Listing
+          </a>
+        </div>
 
-      <!-- LOADING -->
-      <div *ngIf="loading" class="loading-state">
-        <ion-spinner name="crescent"></ion-spinner>
-      </div>
+        <!-- LOADING -->
+        <div *ngIf="loading" class="loading-state">
+          <ion-spinner name="crescent"></ion-spinner>
+        </div>
 
-      <!-- FORM -->
-  <form
-  *ngIf="!loading"
-  [formGroup]="form"
-  (ngSubmit)="save()"
->
+        <!-- FORM -->
+        <form *ngIf="!loading" [formGroup]="form" (ngSubmit)="save()">
 
-  <!-- ================= BASIC INFO ================= -->
+          <!-- ================= BASIC INFO ================= -->
 
-  <div class="section-title">Basic Information</div>
+          <div class="section-title">Basic Information</div>
 
-  <div class="form-group">
-    <label>Medicine Name *</label>
-    <input
-      type="text"
-      formControlName="name"
-      placeholder="Enter medicine name (e.g., Paracetamol)"
-      [readonly]="mode === 'view'"   
-        (keydown.enter)="$event.preventDefault()"
-    />
-  </div>
+          <div class="form-group">
+            <label>Medicine Name *</label>
+            <input type="text" formControlName="name" placeholder="Enter medicine name (e.g., Paracetamol)"
+              [readonly]="mode === 'view'" (keydown.enter)="$event.preventDefault()" />
+          </div>
 
-  <div class="form-row">
+          <div class="form-row">
 
-    <div class="form-group">
-      <label>Strength *</label>
-      <input
-        type="text"
-        formControlName="strength"
-        placeholder="Enter strength (e.g., 500 mg)"
-        [readonly]="mode === 'view'"
-          (keydown.enter)="$event.preventDefault()"
-      />
-    </div>
+            <div class="form-group">
+              <label>Strength *</label>
+              <input type="text" formControlName="strength" placeholder="Enter strength (e.g., 500 mg)"
+                [readonly]="mode === 'view'" (keydown.enter)="$event.preventDefault()" />
+            </div>
 
-    <div class="form-group">
-      <label>Dosage Form *</label>
-      <select
-        formControlName="dosageForm"
-        [disabled]="mode === 'view'"
-          (keydown.enter)="$event.preventDefault()"
-      >
-        <option value="">Select dosage form</option>
-        <option value="Tablet">Tablet</option>
-        <option value="Capsule">Capsule</option>
-        <option value="Syrup">Syrup</option>
-        <option value="Injection">Injection</option>
-      </select>
-    </div>
+            <div class="form-group">
+              <label>Dosage Form *</label>
+              <select formControlName="dosageForm" [disabled]="mode === 'view'"
+                (keydown.enter)="$event.preventDefault()">
+                <option value="">Select dosage form</option>
+                <option value="Tablet">Tablet</option>
+                <option value="Capsule">Capsule</option>
+                <option value="Syrup">Syrup</option>
+                <option value="Pills">Pills</option>
+                <option value="Drops">Drops</option>
+                <option value="Ointment">Ointment</option>
+                <option value="Lotion">Lotion</option>
+                <option value="Majun">Majun</option>
+                <option value="Malt">Malt</option>
+              </select>
+            </div>
 
-  </div>
+          </div>
 
-  <div class="form-row">
+          <div class="form-row">
 
-    <div class="form-group">
-      <label>Stock Quantity *</label>
+            <div class="form-group">
+              <label>Stock Quantity *</label>
 
-      <div class="quantity-control">
+              <div class="quantity-control">
 
-        <button
-          type="button"
-          class="qty-btn"
-          (click)="changeQuantity(-1)"
-          [disabled]="mode === 'view' || form.get('stockQuantity')?.value <= 0"
-        >
-          −
-        </button>
+                <button type="button" class="qty-btn" (click)="changeQuantity(-1)"
+                  [disabled]="mode === 'view' || form.get('stockQuantity')?.value <= 0">
+                  −
+                </button>
 
-        <!-- <input
+                <!-- <input
           type="number"
           formControlName="stockQuantity"
           class="qty-input"
@@ -101,111 +81,69 @@
           [readonly]="mode === 'view'"
         /> -->
 
-        <input
-  type="number"
-  formControlName="stockQuantity"
-  class="qty-input"
-  placeholder="0"
-  min="0"
-  (keydown.enter)="$event.preventDefault()"
-  (keydown)=" $event.key === '-' ? $event.preventDefault() : null "
-  [readonly]="mode === 'view'"
-/>
+                <input type="number" formControlName="stockQuantity" class="qty-input" placeholder="0" min="0"
+                  (keydown.enter)="$event.preventDefault()"
+                  (keydown)=" $event.key === '-' ? $event.preventDefault() : null " [readonly]="mode === 'view'" />
 
-        <button
-          type="button"
-          class="qty-btn"
-          (click)="changeQuantity(1)"
-          [disabled]="mode === 'view'"
-        >
-          +
-        </button>
+                <button type="button" class="qty-btn" (click)="changeQuantity(1)" [disabled]="mode === 'view'">
+                  +
+                </button>
+
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Unit *</label>
+              <input type="text" formControlName="unit" placeholder="Enter unit (e.g., ml)" [readonly]="mode === 'view'"
+                (keydown.enter)="$event.preventDefault()" />
+            </div>
+
+          </div>
+
+          <!-- ================= ADDITIONAL DETAILS ================= -->
+
+          <div class="section-title">Additional Details</div>
+
+          <div class="form-row">
+
+            <div class="form-group">
+              <label>Batch Number</label>
+              <input type="text" formControlName="batchNumber" placeholder="Enter batch number (optional)"
+                [readonly]="mode === 'view'" (keydown.enter)="$event.preventDefault()" />
+            </div>
+
+            <div class="form-group">
+              <label>Expiry Date</label>
+              <input type="date" formControlName="expiryDate" [readonly]="mode === 'view'"
+                (keydown.enter)="$event.preventDefault()" />
+            </div>
+
+          </div>
+
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea rows="3" formControlName="notes" placeholder="Add any additional notes about this medicine..."
+              [readonly]="mode === 'view'" (keydown.enter)="$event.preventDefault()"></textarea>
+          </div>
+
+          <!-- ================= ACTION BUTTONS ================= -->
+
+          <div *ngIf="mode !== 'view'" class="form-actions">
+            <button type="button" class="btn-cancel" (click)="cancel()">
+              Cancel
+            </button>
+
+            <button type="submit" class="btn-save" [disabled]="form.invalid">
+              {{ mode === 'edit' ? 'Update Medicine' : 'Create Medicine' }}
+            </button>
+          </div>
+
+        </form>
 
       </div>
-    </div>
 
-    <div class="form-group">
-      <label>Unit *</label>
-      <input
-        type="text"
-        formControlName="unit"
-        placeholder="Enter unit (e.g., ml)"
-        [readonly]="mode === 'view'"
-          (keydown.enter)="$event.preventDefault()"
-      />
     </div>
-
   </div>
 
-  <!-- ================= ADDITIONAL DETAILS ================= -->
-
-  <div class="section-title">Additional Details</div>
-
-  <div class="form-row">
-
-    <div class="form-group">
-      <label>Batch Number</label>
-      <input
-        type="text"
-        formControlName="batchNumber"
-        placeholder="Enter batch number (optional)"
-        [readonly]="mode === 'view'"
-          (keydown.enter)="$event.preventDefault()"
-      />
-    </div>
-
-    <div class="form-group">
-      <label>Expiry Date</label>
-      <input
-        type="date"
-        formControlName="expiryDate"
-        [readonly]="mode === 'view'"
-          (keydown.enter)="$event.preventDefault()"
-      />
-    </div>
-
-  </div>
-
-  <div class="form-group">
-    <label>Notes</label>
-    <textarea
-      rows="3"
-      formControlName="notes"
-      placeholder="Add any additional notes about this medicine..."
-      [readonly]="mode === 'view'"
-        (keydown.enter)="$event.preventDefault()"
-    ></textarea>
-  </div>
-
-  <!-- ================= ACTION BUTTONS ================= -->
-
-  <div
-    *ngIf="mode !== 'view'"
-    class="form-actions"
-  >
-    <button
-      type="button"
-      class="btn-cancel"
-      (click)="cancel()"
-    >
-      Cancel
-    </button>
-
-    <button
-      type="submit"
-      class="btn-save"
-      [disabled]="form.invalid"
-    >
-      {{ mode === 'edit' ? 'Update Medicine' : 'Create Medicine' }}
-    </button>
-  </div>
-
-</form>
-
-    </div>
-
-  </div>
-    </div>
- 
 
 </ion-content>

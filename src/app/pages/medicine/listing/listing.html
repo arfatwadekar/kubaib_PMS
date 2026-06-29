@@ -1,9 +1,5 @@
-<app-header
-  title="Medicine List"
-  [showNotification]="true"
-  [notificationCount]="unreadCount"
-  (notificationClick)="openNotifications()"
-></app-header>
+<app-header title="Medicine List" [showNotification]="true" [notificationCount]="unreadCount"
+  (notificationClick)="openNotifications()"></app-header>
 
 <ion-content class="medicine-bg">
   <div class="medicine-container">
@@ -15,7 +11,7 @@
         <p>Manage and monitor medicine inventory</p>
       </div>
 
-      <div class="header-right">
+      <!-- <div class="header-right">
         <div class="search-box">
           <ion-icon name="search-outline"></ion-icon>
           <input
@@ -24,6 +20,28 @@
             (ngModelChange)="onSearchChange()"
             placeholder="Search medicine..."
           />
+        </div>
+
+        <button class="btn-primary" (click)="create()">Add Medicine</button>
+      </div> -->
+
+      <div class="header-right">
+        <select class="filter-select" [(ngModel)]="selectedForm" (ngModelChange)="onFilterChange()">
+          <option value="">All Types</option>
+          <option value="Tablet">Tablet</option>
+          <option value="Capsule">Capsule</option>
+          <option value="Syrup">Syrup</option>
+          <option value="Pills">Pills</option>
+          <option value="Drops">Drops</option>
+          <option value="Ointment">Ointment</option>
+          <option value="Lotion">Lotion</option>
+          <option value="Majun">Majun</option>
+          <option value="Malt">Malt</option>
+        </select>
+
+        <div class="search-box">
+          <ion-icon name="search-outline"></ion-icon>
+          <input type="text" [(ngModel)]="search" (ngModelChange)="onSearchChange()" placeholder="Search medicine..." />
         </div>
 
         <button class="btn-primary" (click)="create()">Add Medicine</button>
@@ -41,19 +59,13 @@
       {{ errorMessage }}
     </div>
 
-    <div
-      *ngIf="!loading && medicines.length === 0 && !errorMessage"
-      class="state-box"
-    >
+    <div *ngIf="!loading && medicines.length === 0 && !errorMessage" class="state-box">
       No medicines found.
     </div>
 
     <!-- ================= TABLE (DESKTOP + TABLET) ================= -->
 
-    <div
-      class="table-wrapper desktop-view"
-      *ngIf="!loading && medicines.length > 0"
-    >
+    <div class="table-wrapper desktop-view" *ngIf="!loading && medicines.length > 0">
       <div class="table-head">
         <div>Name</div>
         <div>Strength</div>
@@ -123,21 +135,13 @@
     </div>
 
     <div class="pagination" *ngIf="!loading && totalPages > 1">
-      <button
-        class="page-btn"
-        (click)="prevPage()"
-        [disabled]="page === 1 || loading"
-      >
+      <button class="page-btn" (click)="prevPage()" [disabled]="page === 1 || loading">
         ← Prev
       </button>
 
       <div class="page-info">Page {{ page }} of {{ totalPages }}</div>
 
-      <button
-        class="page-btn"
-        (click)="nextPage()"
-        [disabled]="page === totalPages || loading"
-      >
+      <button class="page-btn" (click)="nextPage()" [disabled]="page === totalPages || loading">
         Next →
       </button>
     </div>
