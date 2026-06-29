@@ -23,7 +23,7 @@
     <!-- ═══════════════════════════════════════════════════
          CARD 1 — INITIAL SYMPTOMS (CRITERIA)
     ═══════════════════════════════════════════════════ -->
-    <div class="fu-card" *ngIf="!fromList">
+    <div class="fu-card" *ngIf="!fromList && role === 'Doctor'">
       <!-- Card Header -->
       <div class="card-header">
         <div class="card-header-left">
@@ -104,7 +104,7 @@
     <!-- ═══════════════════════════════════════════════════
          CARD 2 — FOLLOW-UP RECORD
     ═══════════════════════════════════════════════════ -->
-    <div class="fu-card" *ngIf="!fromList">
+    <div class="fu-card" *ngIf="!fromList && role === 'Doctor'">
       <!-- Gradient header -->
       <div class="record-header">
         <div class="record-header-left">
@@ -562,7 +562,7 @@
             </div>
 
             <!-- Follow-up entry -->
-            <div *ngIf="appt.followUpEntry">
+            <div *ngIf="appt.followUpEntry && role === 'Doctor'">
               <div class="hist-block" *ngIf="appt.followUpEntry.statusRecords?.length">
                 <div class="hist-block-label">
                   <span>🩺</span> Symptom Status
