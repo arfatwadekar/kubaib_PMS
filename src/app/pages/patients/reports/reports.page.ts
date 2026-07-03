@@ -677,6 +677,7 @@ import {
   PatientReportService,
   PatientReportPayload,
 } from 'src/app/services/patient-report.service';
+import { getErrorMessage } from 'src/app/shared/utils/error-message.util';
 
 // =====================
 // HELPER FUNCTIONS
@@ -1061,8 +1062,7 @@ export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
       this.buildMatrixFromCache();
       this.refreshMatrixCssCols();
     } catch (e: any) {
-      const msg = e?.error?.message || e?.message || 'Failed to load reports';
-      await this.showToast(msg);
+      await this.showToast(getErrorMessage(e, 'Failed to load reports'));
     } finally {
       this.reportLoading = false;
     }
@@ -1242,18 +1242,7 @@ export class ReportsPage implements OnInit, OnDestroy, CanComponentDeactivate {
   // ERROR HANDLING
   // =====================
   private extractErrorMessage(err: any): string {
-    // Try multiple paths to find the error message
-    const message =
-      err?.error?.message || // { error: { message: '...' } }
-      err?.error?.detail || // { error: { detail: '...' } }
-      err?.error?.error || // { error: { error: '...' } }
-      (typeof err?.error === 'string' ? err.error : null) || // error as plain string
-      err?.message || // Direct error message
-      err?.statusText || // HTTP status text (e.g., 'Bad Request')
-      'Failed to save report'; // Default fallback
-
-    // Return the message, trimmed and cleaned
-    return safeStr(message);
+    return safeStr(getErrorMessage(err, 'Failed to save report'));
   }
 
   // =====================

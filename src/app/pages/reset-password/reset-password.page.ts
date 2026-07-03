@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
 import { ToastController } from '@ionic/angular';
 import { AuthService } from 'src/app/services/auth.service';
+import { getErrorMessage } from 'src/app/shared/utils/error-message.util';
 
 @Component({
   selector: 'app-reset-password',
@@ -79,7 +80,7 @@ export class ResetPasswordPage implements OnInit {
         },
         error: async (err) => {
           const toast = await this.toastCtrl.create({
-            message: err?.error?.message || 'Reset failed.',
+            message: getErrorMessage(err, 'Reset failed.'),
             duration: 2500,
             color: 'danger'
           });

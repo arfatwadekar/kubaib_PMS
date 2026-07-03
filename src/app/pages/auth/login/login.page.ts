@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { finalize } from 'rxjs/operators';
 import { AuthService, UserRole } from '../../../services/auth.service';
+import { getErrorMessage } from '../../../shared/utils/error-message.util';
 
 const ROLE_MASTER_ID: Record<UserRole, number> = {
   Doctor: 1,
@@ -89,18 +90,11 @@ export class LoginPage implements OnInit {
       this.router.navigateByUrl('/dashboard');
 
     },
-    error: () => {
-      this.errorMessage = 'Invalid username or password';
+    error: (err) => {
+      this.errorMessage = getErrorMessage(err, 'Invalid username or password.');
     }
   });
 }
-
-
-  private handleError(err?: any): void {
-    this.errorMessage =
-      err?.error?.message ||
-      'Invalid username or password. Please try again.';
-  }
 
   forgotPassword(): void {
     this.router.navigateByUrl('/forgot-password');

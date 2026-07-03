@@ -8,6 +8,7 @@ import { ToastController } from '@ionic/angular';
 import { Subject, takeUntil } from 'rxjs';
 import { AnnouncementService } from 'src/app/services/announcement.service';
 import { NotificationService } from 'src/app/services/notification.service';
+import { getErrorMessage } from 'src/app/shared/utils/error-message.util';
 
 type PageMode = 'create' | 'edit' | 'view';
 
@@ -210,13 +211,7 @@ export class AnnouncementDetailPage implements OnInit, OnDestroy {
   private handleApiError(err: any): void {
     this.saving = false;
 
-    // Safely extract a searchable string from any error shape
-    const raw    = err?.error;
-    const msg    = typeof raw === 'string'
-                     ? raw
-                     : raw?.message
-                       ?? raw?.title
-                       ?? JSON.stringify(raw ?? '');
+    const msg = getErrorMessage(err, 'Something went wrong. Please try again.');
     const msgLow = msg.toLowerCase();
 
     const isDuplicate =
@@ -230,7 +225,7 @@ export class AnnouncementDetailPage implements OnInit, OnDestroy {
       this.form.get('title')!.setErrors({ duplicate: true });
       this.toast('This title already exists. Please use a unique title.', 'warning');
     } else {
-      this.toast('Something went wrong. Please try again.', 'danger');
+      this.toast(msg, 'danger');
     }
   }
 

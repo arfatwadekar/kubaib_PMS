@@ -6,6 +6,7 @@ import { Injectable } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { getErrorMessage } from 'src/app/shared/utils/error-message.util';
 
 export interface AnalyticsFilterRequest {
   filterType: string;
@@ -48,38 +49,7 @@ export class AnalyticsService {
   // ================= ERROR HANDLER =================
 
   private handleError(error: HttpErrorResponse) {
-    let message = 'Something went wrong.';
-
-    switch (error.status) {
-      case 400:
-        message =
-          error?.error?.detail ||
-          error?.error?.title ||
-          'Invalid request.';
-        break;
-
-      case 401:
-        message =
-          'Your session has expired. Please login again.';
-        break;
-
-      case 403:
-        message =
-          'You do not have permission to perform this action.';
-        break;
-
-      case 404:
-        message = 'Requested data not found.';
-        break;
-
-      case 500:
-        message =
-          error?.error?.detail ||
-          'Internal server error.';
-        break;
-    }
-
-    return throwError(() => message);
+    return throwError(() => getErrorMessage(error, 'Something went wrong.'));
   }
 
   // ================= VALIDATION =================

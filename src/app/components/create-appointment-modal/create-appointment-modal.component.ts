@@ -6,6 +6,7 @@ import {
   AppointmentStatus,
 } from 'src/app/services/appointment.service';
 import { catchError, of, switchMap } from 'rxjs';
+import { getErrorMessage } from 'src/app/shared/utils/error-message.util';
 
 type Mode = 'create' | 'edit';
 
@@ -282,12 +283,7 @@ export class CreateAppointmentModalComponent implements OnInit {
 
   private async showToast(err: any, fallback: string): Promise<void> {
 
-    const message =
-      err?.error?.title ||
-      err?.error?.detail ||
-      err?.error?.message ||
-      err?.message ||
-      fallback;
+    const message = getErrorMessage(err, fallback);
 
     const toast = await this.toastCtrl.create({
       message,

@@ -8,6 +8,7 @@ import {
   MedicalExaminationService,
   ClinicalCasePayload,
 } from 'src/app/services/medical-examination.service';
+import { getErrorMessage } from 'src/app/shared/utils/error-message.util';
 
 // =====================
 // Helpers
@@ -563,7 +564,7 @@ isReadonly = false;
     } catch (e: any) {
       await this.presentSimpleAlert(
         'Save Failed',
-        e?.error?.message || e?.message || 'Failed to save clinical case',
+        getErrorMessage(e, 'Failed to save clinical case'),
       );
     } finally {
       this.loading = false;

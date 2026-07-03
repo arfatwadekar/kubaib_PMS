@@ -44,16 +44,15 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(authReq).pipe(
       catchError((error: HttpErrorResponse) => {
-        // if (error.status === 401) {
-        //   this.handleUnauthorized();
-        // }
         if (error.status === 401) {
-  const isVerifyPasswordCall = req.url.toLowerCase().includes('/auth/verify-admin-password');
-  
-  if (!isVerifyPasswordCall) {
-    this.handleUnauthorized();
-  }
-}
+          const isVerifyPasswordCall = req.url.toLowerCase().includes('/auth/verify-admin-password');
+
+          // A 401 on the login call itself means wrong credentials, not an
+          // expired session — the login page already shows that message.
+          if (!isVerifyPasswordCall && !isLoginCall) {
+            this.handleUnauthorized();
+          }
+        }
         return throwError(() => error);
       })
     );

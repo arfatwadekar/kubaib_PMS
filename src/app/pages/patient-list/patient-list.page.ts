@@ -21,6 +21,7 @@ import { PatientService } from 'src/app/services/patient.service';
 import { PatientActionPopoverComponent } from 'src/app/components/patient-action-popover/patient-action-popover.component';
 import { NotificationService } from 'src/app/services/notification.service';
 import { AppointmentService } from 'src/app/services/appointment.service';
+import { getErrorMessage } from 'src/app/shared/utils/error-message.util';
 
 type Row = {
   srNo: number;
@@ -325,13 +326,8 @@ export class PatientListPage implements OnInit, OnDestroy {
             status: res.status,
           });
         }
-      } catch {
-        this.toastCtrl
-          .create({
-            message: 'Failed to load appointment',
-            duration: 2000,
-          })
-          .then((t) => t.present());
+      } catch (err) {
+        await this.handleError(err, 'Failed to load appointment');
       }
     }
 
@@ -544,7 +540,7 @@ export class PatientListPage implements OnInit, OnDestroy {
 
   private async handleError(err: any, fallback: string): Promise<void> {
     const toast = await this.toastCtrl.create({
-      message: err?.error?.message || err?.message || fallback,
+      message: getErrorMessage(err, fallback),
       duration: 2500,
       position: 'top',
     });
@@ -589,7 +585,7 @@ export class PatientListPage implements OnInit, OnDestroy {
       this.loadPatients(true);
     } catch (err: any) {
       const toast = await this.toastCtrl.create({
-        message: err?.error?.message || 'Failed to delete patient',
+        message: getErrorMessage(err, 'Failed to delete patient'),
         duration: 2500,
         position: 'top',
         color: 'danger',

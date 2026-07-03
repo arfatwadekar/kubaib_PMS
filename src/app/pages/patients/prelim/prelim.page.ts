@@ -5,6 +5,7 @@ import { ToastController } from '@ionic/angular';
 import { Subscription } from 'rxjs';
 import { PatientService } from 'src/app/services/patient.service';
 import { CanComponentDeactivate } from 'src/app/guards/can-deactivate.guard';
+import { getErrorMessage } from 'src/app/shared/utils/error-message.util';
 
 const onlyDigits = (v: string) => (v || '').replace(/\D/g, '');
 const toIso = (date: string): string | null => {
@@ -215,7 +216,7 @@ export class PrelimPage implements OnInit, OnDestroy, CanComponentDeactivate {
         this.form.markAsUntouched();
       },
       error: err =>
-        this.toast(err?.error?.message || err?.message || 'Failed to load patient'),
+        this.toast(getErrorMessage(err, 'Failed to load patient')),
       complete: () => (this.loading = false),
     });
   }
@@ -301,29 +302,13 @@ export class PrelimPage implements OnInit, OnDestroy, CanComponentDeactivate {
           return;
         }
 
-        let errorMessage = 'Operation failed';
+        // Conflict on patient create/update is almost always a duplicate phone number
+        const fallback =
+          err?.status === 409
+            ? 'Patient with this phone number already exists.'
+            : 'Operation failed. Please try again.';
 
-        if (err?.status === 400) {
-          // Bad Request - likely validation or duplicate data
-          errorMessage = err?.error?.message || err?.error?.title || err?.error || 'Invalid data provided. Please check all fields.';
-        } else if (err?.status === 409) {
-          // Conflict - duplicate patient
-          errorMessage = 'Patient with this phone number already exists.';
-        } else if (err?.status === 422) {
-          // Unprocessable Entity - validation errors
-          errorMessage = err?.error?.message || 'Validation failed. Please check your input.';
-        } else if (err?.status === 500) {
-          // Server error - PID generation might have failed
-          errorMessage = 'Server error occurred. Please try again in a moment.';
-        } else if (err?.status === 0 || !navigator.onLine) {
-          // Network error
-          errorMessage = 'Network connection error. Please check your internet connection.';
-        } else {
-          // Use server message if available
-          errorMessage = err?.error?.message || err?.error?.title || err?.error || err?.message || errorMessage;
-        }
-
-        this.toast(errorMessage);
+        this.toast(getErrorMessage(err, fallback));
       },
     });
   }

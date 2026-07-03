@@ -9,6 +9,7 @@ import {
   PatientReportService,
 } from 'src/app/services/patient-report.service';
 import { NotificationService } from 'src/app/services/notification.service';
+import { getErrorMessage } from 'src/app/shared/utils/error-message.util';
 
 type UiRow = { label: string; apiKey: keyof PatientReportPayload };
 
@@ -333,15 +334,9 @@ export class ReportPage implements OnInit, OnDestroy {
       error: async (err) => {
         this.loading = false;
 
-        const msg =
-          err?.error?.message ||
-          err?.error?.detail ||
-          err?.message ||
-          'Failed to create report.';
-
         const a = await this.alertCtrl.create({
           header: 'Save Failed',
-          message: msg,
+          message: getErrorMessage(err, 'Failed to create report.'),
           buttons: ['OK'],
         });
         await a.present();

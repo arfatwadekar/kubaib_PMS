@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import { ToastController } from '@ionic/angular';
 import { AuthService } from 'src/app/services/auth.service';
+import { getErrorMessage } from 'src/app/shared/utils/error-message.util';
 
 @Component({
   selector: 'app-forgot-password',
@@ -53,7 +54,7 @@ export class ForgotPasswordPage implements OnInit {
         },
         error: async (err) => {
           const toast = await this.toastCtrl.create({
-            message: err?.error?.message || 'Failed to send reset link.',
+            message: getErrorMessage(err, 'Failed to send reset link.'),
             duration: 2500,
             color: 'danger'
           });
