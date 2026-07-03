@@ -5,6 +5,7 @@ import { firstValueFrom, Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ToastController } from '@ionic/angular';
 import { FollowUpService } from 'src/app/services/follow-up.service';
+import { getErrorMessage } from 'src/app/shared/utils/error-message.util';
 
 const INIT_ROWS = 10;
 const MAX_ROWS = 30;
@@ -212,7 +213,7 @@ export class FollowupPage implements OnInit, OnDestroy {
       console.log('CURRENT APPOINTMENT ID:', this.currentAppointmentId);
     } catch (err) {
       console.error('Appointment load error:', err);
-      this.showToast('Failed to load appointment');
+      this.showToast(getErrorMessage(err, 'Failed to load appointment'));
     }
   }
 
@@ -387,7 +388,7 @@ export class FollowupPage implements OnInit, OnDestroy {
       console.log('Existing criteria:', this.existingCriteria);
     } catch (err) {
       console.error('Load criteria error:', err);
-      this.showToast('Failed to load symptoms');
+      this.showToast(getErrorMessage(err, 'Failed to load symptoms'));
     }
   }
 
@@ -501,11 +502,7 @@ export class FollowupPage implements OnInit, OnDestroy {
       await this.loadPatientSummary();
     } catch (err: any) {
       console.error('Update follow-up error:', err);
-      const message =
-        typeof err?.error === 'string'
-          ? err.error
-          : (err?.error?.message ?? err?.message ?? 'Update failed.');
-      this.showToast(message);
+      this.showToast(getErrorMessage(err, 'Update failed.'));
     }
   }
   // ─────────────────────────────────────────────────────────────────────────
@@ -532,16 +529,7 @@ export class FollowupPage implements OnInit, OnDestroy {
       await this.loadCriteria();
     } catch (err: any) {
       console.error('Delete criteria error:', err);
-
-      // Extract backend error message
-      const message =
-        typeof err?.error === 'string'
-          ? err.error // plain string response from backend
-          : (err?.error?.message ?? // { message: "..." } object
-            err?.message ?? // JS error
-            'Failed to delete symptom'); // fallback
-
-      this.showToast(message);
+      this.showToast(getErrorMessage(err, 'Failed to delete symptom'));
     } finally {
       this.criteriaLoading = false;
     }
@@ -645,7 +633,7 @@ export class FollowupPage implements OnInit, OnDestroy {
       await this.loadCriteria();
     } catch (err) {
       console.error('Save criteria error:', err);
-      this.showToast('Save failed. Please try again.');
+      this.showToast(getErrorMessage(err, 'Save failed. Please try again.'));
     } finally {
       this.criteriaLoading = false;
     }
@@ -753,13 +741,7 @@ export class FollowupPage implements OnInit, OnDestroy {
       this.showToast('Medicine removed.');
     } catch (err: any) {
       console.error('DELETE API failed:', err);
-      const message =
-        typeof err?.error === 'string'
-          ? err.error
-          : (err?.error?.message ??
-            err?.message ??
-            'Failed to delete prescription.');
-      this.showToast(message);
+      this.showToast(getErrorMessage(err, 'Failed to delete prescription.'));
       // ❌ Do NOT splice or update draft — medicine stays
     } finally {
       this.isDeletingPrescription = false;
@@ -883,7 +865,7 @@ export class FollowupPage implements OnInit, OnDestroy {
       console.error(err);
 
       this.adminPassword = '';
-      this.showToast('Invalid password');
+      this.showToast(getErrorMessage(err, 'Invalid password'));
     }
   }
 
@@ -1189,20 +1171,8 @@ export class FollowupPage implements OnInit, OnDestroy {
         },
       });
     } catch (err: any) {
-      // catch (err) {
-      //   console.error('===== SAVE FOLLOW-UP ERROR =====', err);
-      //   this.showToast('Save failed. Please check the console for details.');
-      //   return;
-      // }
-
       console.error('===== SAVE FOLLOW-UP ERROR =====', err);
-
-      const message =
-        typeof err?.error === 'string'
-          ? err.error
-          : (err?.error?.message ?? err?.message ?? 'Something went wrong');
-
-      this.showToast(message);
+      this.showToast(getErrorMessage(err, 'Something went wrong'));
     }
   }
 
@@ -1263,7 +1233,7 @@ export class FollowupPage implements OnInit, OnDestroy {
       console.log('Follow-up already saved:', this.isFollowUpAlreadySaved);
     } catch (err) {
       console.error('Patient summary load error:', err);
-      this.showToast('Failed to load appointment history');
+      this.showToast(getErrorMessage(err, 'Failed to load appointment history'));
     } finally {
       this.summaryLoading = false;
     }
@@ -1382,22 +1352,192 @@ export class FollowupPage implements OnInit, OnDestroy {
       return;
     }
 
-    // 1. Remove multiple line breaks
-    let cleaned = value.replace(/\n\s*\n/g, '\n');
+    // 1. Collapse blank lines (keeps single line breaks between medicines intact)
+    let cleaned = value.replace(/\n[ \t]*\n/g, '\n');
 
-    // 2. Replace multiple spaces with single space
-    cleaned = cleaned.replace(/\s+/g, ' ');
+    // 2. Replace repeated spaces/tabs within a line with a single space
+    cleaned = cleaned.replace(/[ \t]+/g, ' ');
 
-    // 3. Trim start/end
-    cleaned = cleaned.trim();
+    // 3. Trim trailing spaces at end of each line, then trim start/end
+    cleaned = cleaned
+      .split('\n')
+      .map((line) => line.replace(/[ \t]+$/g, ''))
+      .join('\n')
+      .trim();
 
     // 4. Enforce max length (extra safety)
-    if (cleaned.length > 1000) {
-      cleaned = cleaned.substring(0, 1000);
+    if (cleaned.length > 2000) {
+      cleaned = cleaned.substring(0, 2000);
     }
 
     this.interpretation = cleaned;
     this.triggerAutosave();
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // MEDICINE & INTERPRETATION — AUTO NUMBERING
+  // Pressing Enter continues the numbered list (1. 2. 3. …); pressing Enter
+  // on an empty numbered line exits the list instead of adding another number.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  onInterpretationFocus(event: FocusEvent) {
+    if (this.isReadonly) return;
+    const textarea = event.target as HTMLTextAreaElement;
+    if (textarea.disabled) return;
+
+    if (!this.interpretation || !this.interpretation.trim()) {
+      this.interpretation = '1. ';
+      setTimeout(() => {
+        const len = textarea.value.length;
+        textarea.setSelectionRange(len, len);
+      });
+    }
+  }
+
+  onInterpretationKeydown(event: KeyboardEvent) {
+    if (event.key !== 'Enter' || this.isReadonly) return;
+    const textarea = event.target as HTMLTextAreaElement;
+    if (textarea.disabled) return;
+
+    event.preventDefault();
+
+    const cursorPos = textarea.selectionStart ?? textarea.value.length;
+    const value = textarea.value;
+    const before = value.slice(0, cursorPos);
+    const after = value.slice(cursorPos);
+
+    const lastNewline = before.lastIndexOf('\n');
+    const lineStart = lastNewline + 1;
+    const currentLine = before.slice(lineStart);
+    const match = currentLine.match(/^(\d+)\.\s?(.*)$/);
+
+    let newValue: string;
+    let newCursorPos: number;
+
+    if (match && match[2].trim() === '') {
+      // Empty numbered line — exit the list instead of adding another number
+      newValue = value.slice(0, lineStart) + after;
+      newCursorPos = lineStart;
+    } else if (match) {
+      const nextNumber = parseInt(match[1], 10) + 1;
+      const insertion = `\n${nextNumber}. `;
+      newValue = before + insertion + after;
+      newCursorPos = before.length + insertion.length;
+    } else if (currentLine.trim() === '') {
+      newValue = before + '\n' + after;
+      newCursorPos = before.length + 1;
+    } else {
+      const insertion = '\n1. ';
+      newValue = before + insertion + after;
+      newCursorPos = before.length + insertion.length;
+    }
+
+    if (newValue.length > 2000) {
+      newValue = newValue.slice(0, 2000);
+      newCursorPos = Math.min(newCursorPos, newValue.length);
+    }
+
+    this.interpretation = newValue;
+    this.triggerAutosave();
+
+    setTimeout(() => textarea.setSelectionRange(newCursorPos, newCursorPos));
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // MEDICINE & INTERPRETATION — PASTE AS NUMBERED LIST
+  // Pasted text (already numbered, or one note per line) is normalized into
+  // a clean sequential 1. 2. 3. … list instead of dumping raw clipboard text.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  onInterpretationPaste(event: ClipboardEvent) {
+    if (this.isReadonly) return;
+    const textarea = event.target as HTMLTextAreaElement;
+    if (textarea.disabled) return;
+
+    const pasted = event.clipboardData?.getData('text/plain');
+    if (!pasted || !pasted.trim()) return;
+
+    const items = this.splitIntoListItems(pasted);
+    if (!items.length) return;
+
+    event.preventDefault();
+
+    const value = textarea.value;
+    const isEmptyPlaceholder = value.trim() === '1.';
+
+    const cursorPos = isEmptyPlaceholder
+      ? 0
+      : (textarea.selectionStart ?? value.length);
+    const selEnd = isEmptyPlaceholder
+      ? 0
+      : (textarea.selectionEnd ?? cursorPos);
+
+    const before = isEmptyPlaceholder ? '' : value.slice(0, cursorPos);
+    const after = isEmptyPlaceholder ? '' : value.slice(selEnd);
+
+    // Continue numbering from the last numbered line before the cursor
+    const numberedLineRe = /^(\d+)\.\s/gm;
+    let lastNumber: number | null = null;
+    let lineMatch: RegExpExecArray | null;
+    while ((lineMatch = numberedLineRe.exec(before))) {
+      lastNumber = parseInt(lineMatch[1], 10);
+    }
+    const startNumber = lastNumber !== null ? lastNumber + 1 : 1;
+
+    const formatted = items
+      .map((item, i) => `${startNumber + i}. ${item}`)
+      .join('\n');
+
+    const needsLeadingBreak = before.length > 0 && !before.endsWith('\n');
+    const needsTrailingBreak = after.length > 0 && !after.startsWith('\n');
+
+    let newValue =
+      before +
+      (needsLeadingBreak ? '\n' : '') +
+      formatted +
+      (needsTrailingBreak ? '\n' : '') +
+      after;
+
+    let newCursorPos = (
+      before +
+      (needsLeadingBreak ? '\n' : '') +
+      formatted
+    ).length;
+
+    if (newValue.length > 2000) {
+      newValue = newValue.slice(0, 2000);
+      newCursorPos = Math.min(newCursorPos, newValue.length);
+    }
+
+    this.interpretation = newValue;
+    this.triggerAutosave();
+
+    setTimeout(() => textarea.setSelectionRange(newCursorPos, newCursorPos));
+  }
+
+  // Splits pasted clipboard text into individual list items: prefers existing
+  // "1. " / "1) " numbering, falls back to one item per non-empty line.
+  private splitIntoListItems(text: string): string[] {
+    const normalized = text.replace(/\r\n/g, '\n').trim();
+    if (!normalized) return [];
+
+    const numberedSplit = normalized
+      .split(/\s*\d+[.)]\s+/)
+      .map((s) => s.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+
+    if (numberedSplit.length > 1) {
+      return numberedSplit;
+    }
+
+    const lineSplit = normalized
+      .split('\n')
+      .map((s) => s.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+
+    return lineSplit.length
+      ? lineSplit
+      : [normalized.replace(/\s+/g, ' ').trim()];
   }
 
   openMedicineModal(index?: number) {
@@ -1456,7 +1596,7 @@ export class FollowupPage implements OnInit, OnDestroy {
       this.closeMedicineModal();
     } catch (err) {
       console.error(err);
-      this.showToast('Failed to add medicine');
+      this.showToast(getErrorMessage(err, 'Failed to add medicine'));
     }
   }
   private loadRole() {

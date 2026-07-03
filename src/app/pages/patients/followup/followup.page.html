@@ -185,31 +185,37 @@
           ></textarea>
         </div> -->
 
-          <div class="form-section" *ngIf="!isFirstVisit">
+          <div class="form-section">
             <div style="
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
               ">
               <label style="font-weight: 600; font-size: 14px">
-                Interpretation (Max 1000 characters)
+                Medicine &amp; Interpretation (Max 2000 characters)
               </label>
 
               <span style="font-size: 12px; color: #6c757d">
-                (Max 1000 characters)
+                (Max 2000 characters)
               </span>
             </div>
 
             <textarea [(ngModel)]="interpretation" (ngModelChange)="onInterpretationChange($event)"
-              [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode" maxlength="1000"
-              placeholder="Enter clinical interpretation…" style="
+              (focus)="onInterpretationFocus($event)" (keydown)="onInterpretationKeydown($event)"
+              (paste)="onInterpretationPaste($event)"
+              [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode" maxlength="2000"
+              placeholder="Enter medicine details and clinical interpretation… (press Enter for a new numbered line)"
+              style="
                 width: 100%;
-                min-height: 100px;
+                min-height: 140px;
                 padding: 10px;
                 border-radius: 8px;
                 border: 1px solid #ccc;
                 margin-top: 6px;
                 outline: none;
+                resize: vertical;
+                line-height: 1.6;
+                font-family: inherit;
               "></textarea>
           </div>
 
@@ -589,7 +595,7 @@
 
               <div class="hist-meta-row" *ngIf="appt.followUpEntry.interpretation || appt.followUpEntry.charge">
                 <div class="hist-meta-item" *ngIf="appt.followUpEntry.interpretation">
-                  <span class="hist-meta-lbl">Interpretation (1000 characters)</span>
+                  <span class="hist-meta-lbl">Medicine &amp; Interpretation (2000 characters)</span>
                   <span class="hist-meta-val">{{ appt.followUpEntry.interpretation }}</span>
                 </div>
                 <div class="hist-meta-item" *ngIf="appt.followUpEntry.charge">
