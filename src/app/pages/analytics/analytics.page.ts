@@ -293,8 +293,10 @@ export class AnalyticsPage implements OnInit, OnDestroy {
   // ======================================================
 
   private buildRequest(): AnalyticsFilterRequest {
+    // Backend expects "Week", not "Weekly" — UI label/state stays "Weekly"
+    const apiFilterType = this.filterType === 'Weekly' ? 'Week' : this.filterType;
     return {
-      filterType: this.filterType,
+      filterType: apiFilterType,
       fromDate:   this.fromDateISO || undefined,
       toDate:     this.toDateISO   || undefined,
       gender:     this.selectedGender !== 'All' ? this.selectedGender : undefined,
