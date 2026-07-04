@@ -93,6 +93,13 @@
   </div> -->
   </div>
 
+  <!-- ================= MEDICINE & INTERPRETATION ================= -->
+  <div class="billing-card" *ngIf="!isPaymentDone">
+    <div class="card-title">Medicine &amp; Interpretation</div>
+    <textarea class="interpretation-view" [value]="interpretation" readonly
+      placeholder="No interpretation recorded"></textarea>
+  </div>
+
   <!-- ================= ADD PAYMENT BUTTON ================= -->
 
   <!-- <div class="add-payment-section" *ngIf="!isPaymentDone">

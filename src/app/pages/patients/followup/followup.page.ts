@@ -37,6 +37,7 @@ export class FollowupPage implements OnInit, OnDestroy {
 
   consultationCharge = 0;
   waveOffAmount = 0;
+  pendingBalance = 0; // balance carried over from previous visits
 
   nextAppointmentDate: string | null = null;
   nextAppointmentTime: string | null = null;
@@ -264,6 +265,15 @@ export class FollowupPage implements OnInit, OnDestroy {
     } catch (err) {
       console.error('Summary load error:', err);
     }
+
+    try {
+      const balanceRes: any = await firstValueFrom(
+        this.api.getBalance(this.patientId),
+      );
+      this.pendingBalance = Math.max(0, Number(balanceRes?.pendingBalance ?? 0));
+    } catch (err) {
+      console.error('Balance load error:', err);
+    }
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -436,9 +446,10 @@ export class FollowupPage implements OnInit, OnDestroy {
 
     const consultation = parseFloat(String(this.consultationCharge)) || 0;
     const waveOff = parseFloat(String(this.waveOffAmount)) || 0;
+    const overallCharges = consultation + this.pendingBalance;
 
-    if (waveOff > consultation) {
-      this.showToast('Wave off cannot exceed consultation charges');
+    if (waveOff > overallCharges) {
+      this.showToast('Wave off cannot exceed overall charges');
       return;
     }
 
@@ -1099,12 +1110,13 @@ export class FollowupPage implements OnInit, OnDestroy {
 
       const consultation = parseFloat(String(this.consultationCharge)) || 0;
       const waveOff = parseFloat(String(this.waveOffAmount)) || 0;
+      const overallCharges = consultation + this.pendingBalance;
 
       console.log('CONSULTATION INPUT:', consultation);
       console.log('WAVE OFF INPUT:', waveOff);
 
-      if (waveOff > consultation) {
-        this.showToast('Wave off cannot exceed consultation charges');
+      if (waveOff > overallCharges) {
+        this.showToast('Wave off cannot exceed overall charges');
         return;
       }
 

@@ -39,6 +39,7 @@ export class PaymentPage implements OnInit, OnDestroy {
   /* ================= MEDICINES ================= */
 
   prescriptions: any[] = [];
+  interpretation = '';
 
   /* ================= PAYMENT FORM ================= */
 
@@ -84,8 +85,8 @@ export class PaymentPage implements OnInit, OnDestroy {
           this.loadPaymentData();
         }
 
-         // ✅ NEW: Bina appointment ke sirf balance load karo
-      if (this.fromList && !this.appointmentId && this.patientId) {
+         // ✅ Pending balance should always load, appointment ho ya na ho
+      if (!this.appointmentId && this.patientId) {
         this.loadBalanceOnly();
       }
 
@@ -236,6 +237,7 @@ async loadPaymentData() {
     console.log(payment);
 
     this.paymentId = payment?.paymentId;
+    this.interpretation = summary?.followUpEntry?.interpretation || '';
 
     // ── 2. Check if payment is already done ──────────────────────────────
     const isPaymentDone  = !!payment?.paymentDate;

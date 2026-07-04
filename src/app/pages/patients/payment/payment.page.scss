@@ -147,6 +147,25 @@ tr:hover {
   color: var(--muted);
 }
 
+/* ================= INTERPRETATION ================= */
+
+.interpretation-view {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #f9fafb;
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.interpretation-view:focus {
+  outline: none;
+}
+
 /* ================= FORM ================= */
 
 .form-grid {
