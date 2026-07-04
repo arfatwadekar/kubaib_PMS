@@ -213,6 +213,7 @@
   &.border-cyan    { border-left-color: #06B6D4; }
   &.border-emerald { border-left-color: #059669; }
   &.border-red     { border-left-color: #EF4444; }
+  &.border-purple  { border-left-color: #8B5CF6; }
 }
 
 .kpi-top {
@@ -237,6 +238,7 @@
   &.icon-cyan    { background: #ECFEFF; color: #06B6D4; }
   &.icon-emerald { background: #D1FAE5; color: #059669; }
   &.icon-red     { background: #FEF2F2; color: #EF4444; }
+  &.icon-purple  { background: #F5F3FF; color: #8B5CF6; }
 }
 
 .kpi-label {
@@ -278,6 +280,7 @@
   .tag-cyan    { background: #ECFEFF; color: #0891B2; }
   .tag-emerald { background: #D1FAE5; color: #047857; }
   .tag-red     { background: #FEF2F2; color: #DC2626; }
+  .tag-purple  { background: #F5F3FF; color: #7C3AED; }
 }
 
 // =====================================================

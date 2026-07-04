@@ -12,7 +12,6 @@ export interface AnalyticsFilterRequest {
   filterType: string;
   fromDate?: string;
   toDate?: string;
-  gender?: string;
   retentionStatus?: string;
 }
 
@@ -20,6 +19,7 @@ export interface AnalyticsSummary {
   consultationRevenueTotalAmount: number;
   consultationRevenueAppointmentCount: number;
   patientPaymentsTotalAmountPaid: number;
+  patientPaymentsTotalWaveOffAmount: number;
   totalRemainingBalance: number;
   otcSalesTotalAmountOfMedicine: number;
   pendingOtcAmount: number;

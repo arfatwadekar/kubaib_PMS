@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ToastController } from '@ionic/angular';
 import { firstValueFrom, Subscription } from 'rxjs';
 import { PaymentService } from 'src/app/services/payment.service';
+import { FollowUpService } from 'src/app/services/follow-up.service';
 import { CanComponentDeactivate } from 'src/app/guards/can-deactivate.guard';
 
 @Component({
@@ -28,6 +29,15 @@ export class PaymentPage implements OnInit, OnDestroy {
   paymentHistory: any[] = [];
   currentPage = 1;
   pageSize = 5;
+
+  /* ================= EDIT CONSULTATION CHARGE ================= */
+
+  editingConsultationRow: any = null;   // row currently in inline-edit mode
+  editedConsultationValue: number | null = null;
+
+  showConsultationPasswordModal = false;
+  consultationPassword = '';
+  private pendingConsultationEdit: { row: any; newValue: number } | null = null;
 
   /* ================= SUMMARY ================= */
 
@@ -61,6 +71,7 @@ export class PaymentPage implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private paymentApi: PaymentService,
+    private followUpApi: FollowUpService,
     private toastCtrl: ToastController
   ) {}
 
@@ -505,6 +516,90 @@ async finalizePayment() {
       this.currentPage--;
     }
 
+  }
+
+  /* ================================================= */
+  /* EDIT CONSULTATION CHARGE (password protected, same
+     pattern as the Wave Off admin-password gate)       */
+  /* ================================================= */
+
+  // Step 1 — pencil icon clicked: ask for admin password before unlocking the field.
+  requestConsultationEdit(p: any) {
+    this.pendingConsultationEdit = { row: p, newValue: Number(p.consultationCharges ?? 0) };
+    this.consultationPassword = '';
+    this.showConsultationPasswordModal = true;
+  }
+
+  closeConsultationPasswordModal() {
+    this.showConsultationPasswordModal = false;
+    this.consultationPassword = '';
+    this.pendingConsultationEdit = null;
+  }
+
+  // Step 2 — password verified: unlock inline editing for that row.
+  async verifyConsultationPassword() {
+    if (!this.consultationPassword || !this.pendingConsultationEdit) {
+      await this.toast('Password required');
+      return;
+    }
+
+    try {
+      await firstValueFrom(
+        this.followUpApi.verifyAdminPassword({ password: this.consultationPassword })
+      );
+
+      this.editingConsultationRow = this.pendingConsultationEdit.row;
+      this.editedConsultationValue = this.pendingConsultationEdit.newValue;
+
+      this.showConsultationPasswordModal = false;
+    } catch {
+      this.consultationPassword = '';
+      await this.toast('Invalid password');
+    }
+  }
+
+  cancelConsultationEdit() {
+    this.editingConsultationRow = null;
+    this.editedConsultationValue = null;
+    this.pendingConsultationEdit = null;
+    this.consultationPassword = '';
+  }
+
+  // Step 3 — save icon clicked: persist the new charge, re-sending the
+  // already-verified password for the backend's own audit check.
+  async saveConsultationEdit(p: any) {
+    const newValue = Number(this.editedConsultationValue ?? 0);
+
+    if (newValue < 0) {
+      await this.toast('Consultation charge cannot be negative');
+      return;
+    }
+
+    const paymentId = p.paymentId ?? p.id;
+
+    try {
+      await firstValueFrom(
+        this.paymentApi.adminUpdatePayment({
+          patientId: this.patientId,
+          paymentId,
+          consultationCharges: newValue,
+          waveOffPassword: this.consultationPassword
+        })
+      );
+
+      await this.toast('Consultation charge updated');
+      this.cancelConsultationEdit();
+
+      await this.loadPaymentHistory();
+
+      if (this.appointmentId) {
+        await this.loadPaymentData();
+      } else if (this.patientId) {
+        await this.loadBalanceOnly();
+      }
+    } catch {
+      await this.toast('Failed to update consultation charge');
+    }
   }
 
   /* ================================================= */

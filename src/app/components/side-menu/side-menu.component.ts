@@ -85,11 +85,6 @@ export class SideMenuComponent implements OnInit {
           icon: 'medkit-outline',
           url: '/medicines',
         },
-        {
-          title: 'Create Medicine',
-          icon: 'add-circle-outline',
-          url: '/medicines/create',
-        },
       ],
     },
     {
@@ -100,11 +95,6 @@ export class SideMenuComponent implements OnInit {
           title: 'OTC Medicines',
           icon: 'receipt-outline',
           url: '/otc-medicine',
-        },
-        {
-          title: 'Add OTC Entry',
-          icon: 'add-circle-outline',
-          url: '/otc-medicine/create',
         },
       ],
     },

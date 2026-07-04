@@ -345,6 +345,93 @@ button {
   background: #cbd5e1;
 }
 
+/* ================= CONSULTATION CHARGE INLINE EDIT ================= */
+
+.consultation-cell {
+  white-space: nowrap;
+}
+
+.icon-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+  margin-left: 6px;
+  line-height: 1;
+  border-radius: 6px;
+}
+
+.icon-btn:hover {
+  background: #f1f5f9;
+}
+
+.consultation-edit-input {
+  width: 90px;
+  height: 32px;
+  display: inline-block;
+  padding: 0 8px;
+  font-size: 13px;
+}
+
+/* ================= ADMIN PASSWORD MODAL ================= */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  backdrop-filter: blur(3px);
+  padding: 20px;
+}
+
+.modal-box {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 30px 28px;
+  width: 340px;
+  max-width: 100%;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.modal-icon {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.modal-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.modal-sub {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+
+.modal-input {
+  width: 100%;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+
+  button {
+    flex: 1;
+  }
+}
+
 /* ================= FIXED TABLE SCROLL ================= */
 
 .table-wrapper {

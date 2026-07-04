@@ -42,8 +42,6 @@ export class AnalyticsPage implements OnInit, OnDestroy {
   fromDateISO = '';
   toDateISO   = '';
 
-  selectedGender = 'All';
-
   // ======================================================
   // KPI VALUES — derived from /summary
   // ======================================================
@@ -60,6 +58,8 @@ export class AnalyticsPage implements OnInit, OnDestroy {
   otcDue            = 0;
   otcCollectionRate = 0;
   otcPendingRate    = 0;
+
+  waveOffAmount     = 0;
 
   // ======================================================
   // TABLE STATE
@@ -293,6 +293,9 @@ export class AnalyticsPage implements OnInit, OnDestroy {
     this.otcDue            = otcPending;
     this.otcCollectionRate = otcRate;
     this.otcPendingRate    = 100 - otcRate;
+
+    // ---- Wave Off ----
+    this.waveOffAmount = Math.max(0, data.patientPaymentsTotalWaveOffAmount || 0);
   }
 
   // ======================================================
@@ -306,7 +309,6 @@ export class AnalyticsPage implements OnInit, OnDestroy {
       filterType: apiFilterType,
       fromDate:   this.fromDateISO || undefined,
       toDate:     this.toDateISO   || undefined,
-      gender:     this.selectedGender !== 'All' ? this.selectedGender : undefined,
     };
   }
 
@@ -321,16 +323,15 @@ export class AnalyticsPage implements OnInit, OnDestroy {
     }
   }
 
+  /** Manually editing a date implies a custom range — highlight the Custom pill. */
   setStartDate(iso: string): void {
     this.fromDateISO = iso;
+    this.filterType  = 'Custom';
   }
 
   setEndDate(iso: string): void {
-    this.toDateISO = iso;
-  }
-
-  setGenderFilter(gender: string): void {
-    this.selectedGender = gender;
+    this.toDateISO  = iso;
+    this.filterType = 'Custom';
   }
 
   /** Only fires on button click */
@@ -352,9 +353,8 @@ export class AnalyticsPage implements OnInit, OnDestroy {
   }
 
   resetFilters(): void {
-    this.filterType     = 'Monthly';
-    this.selectedGender = 'All';
-    this.error          = null;
+    this.filterType = 'Monthly';
+    this.error      = null;
     this.applyDateRangeForType('Monthly');
     this.loadAll();
   }
