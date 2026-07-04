@@ -44,6 +44,16 @@
   padding: 6px 10px;
 }
 
+.date-input {
+  --background: transparent;
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
+.date-input::part(native) {
+  background: transparent;
+}
+
 /* table head */
 .thead {
   display: grid;
