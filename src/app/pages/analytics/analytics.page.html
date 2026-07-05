@@ -23,10 +23,10 @@
         </div>
       </div>
 
-      <div class="filter-divider"></div>
+      <div class="filter-divider" *ngIf="filterType === 'Custom'"></div>
 
       <!-- From -->
-      <div class="filter-group">
+      <div class="filter-group" *ngIf="filterType === 'Custom'">
         <span class="filter-label">FROM</span>
         <div class="date-input-box">
           <input
@@ -38,7 +38,7 @@
       </div>
 
       <!-- To -->
-      <div class="filter-group">
+      <div class="filter-group" *ngIf="filterType === 'Custom'">
         <span class="filter-label">TO</span>
         <div class="date-input-box">
           <input
