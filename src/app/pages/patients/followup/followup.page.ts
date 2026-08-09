@@ -31,7 +31,7 @@ export class FollowupPage implements OnInit, OnDestroy {
   // ─────────────────────────────────────────────────────────────────────────
   showPasswordModal = false;
   interpretation = '';
-  temporaryProblems = '';
+  observationsAndSymptoms = '';
   waveOffSelected = false;
   symptomStatus: string[] = [];
 
@@ -252,7 +252,8 @@ export class FollowupPage implements OnInit, OnDestroy {
       if (this.existingFollowUpEntryId) {
         this.isFollowUpAlreadySaved = true;
         this.interpretation = res?.followUpEntry?.interpretation || '';
-        this.temporaryProblems = res?.followUpEntry?.temporaryProblems || '';
+        this.observationsAndSymptoms =
+          res?.followUpEntry?.observationsAndSymptoms || '';
         this.consultationCharge = Number(res?.followUpEntry?.charge || 0);
         this.waveOffAmount = Number(res?.payment?.waveOffAmount || 0);
         this.waveOffSelected = this.waveOffAmount > 0;
@@ -476,7 +477,7 @@ export class FollowupPage implements OnInit, OnDestroy {
         appointmentId: this.currentAppointmentId,
         followUpDate: new Date().toISOString(),
         interpretation: this.interpretation,
-        temporaryProblems: this.temporaryProblems,
+        observationsAndSymptoms: this.observationsAndSymptoms,
         charge: consultation,
         statusRecords: this.buildStatusRecords(),
       };
@@ -1060,7 +1061,7 @@ export class FollowupPage implements OnInit, OnDestroy {
         appointmentId: this.currentAppointmentId,
         followUpDate: new Date().toISOString(),
         interpretation: this.interpretation,
-        temporaryProblems: this.temporaryProblems,
+        observationsAndSymptoms: this.observationsAndSymptoms,
         charge: this.consultationCharge,
         statusRecords: this.buildStatusRecords(),
       };
@@ -1291,7 +1292,7 @@ export class FollowupPage implements OnInit, OnDestroy {
   private saveDraft() {
     const draft = {
       interpretation: this.interpretation,
-      temporaryProblems: this.temporaryProblems,
+      observationsAndSymptoms: this.observationsAndSymptoms,
       consultationCharge: this.consultationCharge,
       waveOffAmount: this.waveOffAmount,
       waveOffSelected: this.waveOffSelected,
@@ -1320,8 +1321,8 @@ export class FollowupPage implements OnInit, OnDestroy {
     try {
       const draft = JSON.parse(raw);
       this.interpretation = draft.interpretation ?? this.interpretation;
-      this.temporaryProblems =
-        draft.temporaryProblems ?? this.temporaryProblems;
+      this.observationsAndSymptoms =
+        draft.observationsAndSymptoms ?? this.observationsAndSymptoms;
       this.consultationCharge =
         draft.consultationCharge ?? this.consultationCharge;
       this.waveOffAmount = draft.waveOffAmount ?? this.waveOffAmount;
@@ -1400,6 +1401,16 @@ export class FollowupPage implements OnInit, OnDestroy {
     }
 
     this.interpretation = cleaned;
+    this.triggerAutosave();
+  }
+
+  onObservationsChange(value: string) {
+    if (this.isReadonly) return;
+    let cleaned = (value || '').replace(/[ \t]+$/gm, '');
+    if (cleaned.length > 2000) {
+      cleaned = cleaned.substring(0, 2000);
+    }
+    this.observationsAndSymptoms = cleaned;
     this.triggerAutosave();
   }
 

@@ -175,7 +175,16 @@
             </div>
           </div>
 
-          <!-- ── Observations and Symptoms ── -->
+          <!-- ── Interpretation ── -->
+          <!-- <div class="form-section" *ngIf="!isFirstVisit">
+          <label class="field-label">Interpretation</label>
+          <textarea
+            class="fu-textarea"
+            [(ngModel)]="interpretation"
+            placeholder="Enter clinical interpretation…"
+          ></textarea>
+        </div> -->
+
           <div class="form-section" *ngIf="role === 'Doctor'">
             <div style="
                 display: flex;
@@ -183,7 +192,7 @@
                 align-items: center;
               ">
               <label style="font-weight: 600; font-size: 14px">
-                Observations and Symptoms (Max 2000 characters)
+                Observations &amp; Symptoms (Max 2000 characters)
               </label>
 
               <span style="font-size: 12px; color: #6c757d">
@@ -191,9 +200,9 @@
               </span>
             </div>
 
-            <textarea [(ngModel)]="temporaryProblems" (ngModelChange)="triggerAutosave()"
+            <textarea [(ngModel)]="observationsAndSymptoms" (ngModelChange)="onObservationsChange($event)"
               [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode" maxlength="2000"
-              placeholder="Enter observations and symptoms noted during this visit…"
+              placeholder="Enter clinical observations and symptoms…"
               style="
                 width: 100%;
                 min-height: 140px;
@@ -207,16 +216,6 @@
                 font-family: inherit;
               "></textarea>
           </div>
-
-          <!-- ── Interpretation ── -->
-          <!-- <div class="form-section" *ngIf="!isFirstVisit">
-          <label class="field-label">Interpretation</label>
-          <textarea
-            class="fu-textarea"
-            [(ngModel)]="interpretation"
-            placeholder="Enter clinical interpretation…"
-          ></textarea>
-        </div> -->
 
           <div class="form-section">
             <div style="
@@ -626,14 +625,14 @@
                 </div>
               </div>
 
-              <div class="hist-meta-row" *ngIf="appt.followUpEntry.temporaryProblems && role === 'Doctor'">
+              <div class="hist-meta-row" *ngIf="appt.followUpEntry.observationsAndSymptoms && role === 'Doctor'">
                 <div class="hist-meta-item">
-                  <span class="hist-meta-lbl">Observations and Symptoms (2000 characters)</span>
-                  <span class="hist-meta-val">{{ appt.followUpEntry.temporaryProblems }}</span>
+                  <span class="hist-meta-lbl">Observations &amp; Symptoms</span>
+                  <span class="hist-meta-val">{{ appt.followUpEntry.observationsAndSymptoms }}</span>
                 </div>
               </div>
 
-              <div class="hist-meta-row" *ngIf="appt.followUpEntry.interpretation || appt.followUpEntry.charge">
+<div class="hist-meta-row" *ngIf="appt.followUpEntry.interpretation || appt.followUpEntry.charge">
                 <div class="hist-meta-item" *ngIf="appt.followUpEntry.interpretation">
                   <span class="hist-meta-lbl">Medicine &amp; Interpretation (2000 characters)</span>
                   <span class="hist-meta-val">{{ appt.followUpEntry.interpretation }}</span>

@@ -47,14 +47,14 @@ export type FollowUpStatusRecord = {
 };
 
 export type FollowUpCreatePayload = {
-  patientFollowUpEntryId: number;
-  patientId:              number;
-  appointmentId:          number;
-  followUpDate:           string;
-  interpretation:         string;
-  temporaryProblems?:     string;
-  charge:                 number;
-  statusRecords:          FollowUpStatusRecord[];
+  patientFollowUpEntryId:  number;
+  patientId:               number;
+  appointmentId:           number;
+  followUpDate:            string;
+  interpretation:          string;
+  observationsAndSymptoms: string;
+  charge:                  number;
+  statusRecords:           FollowUpStatusRecord[];
 };
 
 // ══════════════════════════════════════════
