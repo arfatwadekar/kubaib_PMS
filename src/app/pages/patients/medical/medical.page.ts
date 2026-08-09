@@ -40,6 +40,7 @@ export class MedicalPage implements OnInit, OnDestroy {
   // STATE
   // =====================
   loading = false;
+  initialLoading = false;
   patientId: number | null = null;
   medicalExists = false;
   openSection: string = 's1';
@@ -230,6 +231,7 @@ isReadonly = false;
         if (id > 0) {
           this.patientId = id;
           this.medicalExists = false;
+          this.initialLoading = true;
           void this.loadClinicalCaseIfExists();
         } else {
           this.patientId = null;
@@ -280,7 +282,12 @@ isReadonly = false;
    * Auto-save before navigation with silent success
    */
   private async autoSaveBeforeNavigation(): Promise<void> {
-    if (!this.patientId || this.autoSaveInProgress || !this.medicalForm?.dirty) {
+    if (
+      !this.patientId ||
+      this.autoSaveInProgress ||
+      !this.medicalForm?.dirty ||
+      this.initialLoading
+    ) {
       return;
     }
 
@@ -312,6 +319,201 @@ isReadonly = false;
       this.isAutoSaving = false;
       this.autoSaveInProgress = false;
     }
+  }
+
+  // ============================================================
+  // COMPLAINTS & HISTORY — SHARED ROW HEIGHT + AUTO-NUMBERING
+  // The 4 columns (L/S/M/C) in a complaint row share one scroller
+  // (see .table-row-scroll) instead of each scrolling independently.
+  // Each column grows to match the tallest column in its row, and
+  // Enter auto-numbers lines (same pattern as the Follow-Up page's
+  // Medicine & Interpretation field).
+  // ============================================================
+  private autoGrowComplaintRow(row: Element): void {
+    const textareas = Array.from(row.querySelectorAll('textarea')) as HTMLTextAreaElement[];
+    if (!textareas.length) return;
+
+    textareas.forEach((t) => (t.style.height = 'auto'));
+    // +4px buffer: without it, clientHeight can round down 1px below
+    // scrollHeight, which makes the browser treat the textarea itself as
+    // scrollable — it then swallows mouse-wheel scrolls instead of letting
+    // them bubble to the row's shared scroller (.table-row-scroll).
+    const maxHeight = Math.max(220, ...textareas.map((t) => t.scrollHeight)) + 4;
+    textareas.forEach((t) => (t.style.height = `${maxHeight}px`));
+  }
+
+  autoGrowAllComplaintRows(): void {
+    setTimeout(() => {
+      document.querySelectorAll('.table-row').forEach((row) => this.autoGrowComplaintRow(row));
+    });
+  }
+
+  onComplaintInput(event: Event): void {
+    const textarea = event.target as HTMLTextAreaElement;
+    const row = textarea.closest('.table-row');
+    if (row) this.autoGrowComplaintRow(row);
+  }
+
+  // <textarea> elements have their own native scroll handling and don't
+  // reliably chain mouse-wheel scrolls up to a scrollable ancestor even when
+  // they have no overflow of their own — so scrolling the mouse wheel while
+  // hovering over the text would otherwise do nothing. Forward it manually.
+  onComplaintWheel(event: WheelEvent): void {
+    const textarea = event.target as HTMLTextAreaElement;
+    const wrapper = textarea.closest('.table-row-scroll') as HTMLElement | null;
+    if (!wrapper) return;
+
+    event.preventDefault();
+    wrapper.scrollTop += event.deltaY;
+  }
+
+  onComplaintFocus(event: FocusEvent, sectionKey: string, field: string): void {
+    if (this.isReadonly) return;
+    const textarea = event.target as HTMLTextAreaElement;
+    if (textarea.disabled || (textarea.value && textarea.value.trim())) return;
+
+    // Update the DOM synchronously (not via setTimeout) so the cursor lands
+    // in the right place before any further keystrokes can arrive — relying
+    // on Angular's async change detection alone here races with fast typing.
+    const seed = '1. ';
+    textarea.value = seed;
+    textarea.setSelectionRange(seed.length, seed.length);
+    this.medicalForm.get(['complaints', sectionKey, field])?.setValue(seed);
+
+    const row = textarea.closest('.table-row');
+    if (row) this.autoGrowComplaintRow(row);
+  }
+
+  onComplaintKeydown(event: KeyboardEvent, sectionKey: string, field: string): void {
+    if (event.key !== 'Enter' || this.isReadonly) return;
+    const textarea = event.target as HTMLTextAreaElement;
+    if (textarea.disabled) return;
+
+    event.preventDefault();
+
+    const cursorPos = textarea.selectionStart ?? textarea.value.length;
+    const value = textarea.value;
+    const before = value.slice(0, cursorPos);
+    const after = value.slice(cursorPos);
+
+    const lastNewline = before.lastIndexOf('\n');
+    const lineStart = lastNewline + 1;
+    const currentLine = before.slice(lineStart);
+    const match = currentLine.match(/^(\d+)\.\s?(.*)$/);
+
+    let newValue: string;
+    let newCursorPos: number;
+
+    if (match && match[2].trim() === '') {
+      // Empty numbered line — exit the list instead of adding another number
+      newValue = value.slice(0, lineStart) + after;
+      newCursorPos = lineStart;
+    } else if (match) {
+      const nextNumber = parseInt(match[1], 10) + 1;
+      const insertion = `\n${nextNumber}. `;
+      newValue = before + insertion + after;
+      newCursorPos = before.length + insertion.length;
+    } else if (currentLine.trim() === '') {
+      newValue = before + '\n' + after;
+      newCursorPos = before.length + 1;
+    } else {
+      const insertion = '\n1. ';
+      newValue = before + insertion + after;
+      newCursorPos = before.length + insertion.length;
+    }
+
+    if (newValue.length > 1000) {
+      newValue = newValue.slice(0, 1000);
+      newCursorPos = Math.min(newCursorPos, newValue.length);
+    }
+
+    // Update the DOM synchronously so the value + cursor are correct before
+    // any further keystrokes can arrive (see onComplaintFocus for why).
+    textarea.value = newValue;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
+    this.medicalForm.get(['complaints', sectionKey, field])?.setValue(newValue);
+
+    const row = textarea.closest('.table-row');
+    if (row) this.autoGrowComplaintRow(row);
+  }
+
+  // Pasted text (already numbered, or one point per line) is normalized into
+  // the same auto-numbered format used for typed entries.
+  onComplaintPaste(event: ClipboardEvent, sectionKey: string, field: string): void {
+    if (this.isReadonly) return;
+    const textarea = event.target as HTMLTextAreaElement;
+    if (textarea.disabled) return;
+
+    const pasted = event.clipboardData?.getData('text/plain');
+    if (!pasted || !pasted.trim()) return;
+
+    const items = this.splitIntoListItems(pasted);
+    if (!items.length) return;
+
+    event.preventDefault();
+
+    const value = textarea.value;
+    const isEmptyPlaceholder = value.trim() === '1.';
+
+    const cursorPos = isEmptyPlaceholder ? 0 : (textarea.selectionStart ?? value.length);
+    const selEnd = isEmptyPlaceholder ? 0 : (textarea.selectionEnd ?? cursorPos);
+
+    const before = isEmptyPlaceholder ? '' : value.slice(0, cursorPos);
+    const after = isEmptyPlaceholder ? '' : value.slice(selEnd);
+
+    // Continue numbering from the last numbered line before the cursor
+    const numberedLineRe = /^(\d+)\.\s/gm;
+    let lastNumber: number | null = null;
+    let lineMatch: RegExpExecArray | null;
+    while ((lineMatch = numberedLineRe.exec(before))) {
+      lastNumber = parseInt(lineMatch[1], 10);
+    }
+    const startNumber = lastNumber !== null ? lastNumber + 1 : 1;
+
+    const formatted = items.map((item, i) => `${startNumber + i}. ${item}`).join('\n');
+
+    const needsLeadingBreak = before.length > 0 && !before.endsWith('\n');
+    const needsTrailingBreak = after.length > 0 && !after.startsWith('\n');
+
+    let newValue =
+      before + (needsLeadingBreak ? '\n' : '') + formatted + (needsTrailingBreak ? '\n' : '') + after;
+
+    let newCursorPos = (before + (needsLeadingBreak ? '\n' : '') + formatted).length;
+
+    if (newValue.length > 1000) {
+      newValue = newValue.slice(0, 1000);
+      newCursorPos = Math.min(newCursorPos, newValue.length);
+    }
+
+    textarea.value = newValue;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
+    this.medicalForm.get(['complaints', sectionKey, field])?.setValue(newValue);
+
+    const row = textarea.closest('.table-row');
+    if (row) this.autoGrowComplaintRow(row);
+  }
+
+  // Splits pasted clipboard text into individual list items: prefers existing
+  // "1. " / "1) " numbering, falls back to one item per non-empty line.
+  private splitIntoListItems(text: string): string[] {
+    const normalized = text.replace(/\r\n/g, '\n').trim();
+    if (!normalized) return [];
+
+    const numberedSplit = normalized
+      .split(/\s*\d+[.)]\s+/)
+      .map((s) => s.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+
+    if (numberedSplit.length > 1) {
+      return numberedSplit;
+    }
+
+    const lineSplit = normalized
+      .split('\n')
+      .map((s) => s.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+
+    return lineSplit.length ? lineSplit : [normalized.replace(/\s+/g, ' ').trim()];
   }
 
   // ============================================================
@@ -375,7 +577,7 @@ isReadonly = false;
     g?.patchValue({ [key]: next }, { emitEvent: false });
     g?.markAsDirty();
   }
-  
+
   getBtnClass(key: string): string {
     const g = this.medicalForm.get('mentalState') as FormGroup;
     const v = (g?.get(key)?.value ?? '').toString().trim();
@@ -543,7 +745,7 @@ isReadonly = false;
       await this.toast('PatientId missing. Open patient in edit mode.');
       return;
     }
-    if (this.loading) return;
+    if (this.loading || this.initialLoading) return;
 
     const payload = this.buildClinicalCasePayload();
     this.loading = true;
@@ -575,7 +777,10 @@ isReadonly = false;
   // LOAD FROM API
   // ============================================================
   async loadClinicalCaseIfExists() {
-    if (!this.patientId) return;
+    if (!this.patientId) {
+      this.initialLoading = false;
+      return;
+    }
 
     try {
       const res: any = await firstValueFrom(
@@ -606,7 +811,8 @@ isReadonly = false;
       this.patchMedicalFormFromApi(data);
       this.medicalForm.markAsPristine();
       this.medicalExists = true;
-  
+      this.autoGrowAllComplaintRows();
+
 if (this.isReadonly) {
   this.medicalForm.disable({ emitEvent: false });
 }
@@ -617,6 +823,8 @@ if (this.isReadonly) {
       }
 
       this.medicalExists = false;
+    } finally {
+      this.initialLoading = false;
     }
   }
 

@@ -84,6 +84,12 @@ export class FollowupPage implements OnInit, OnDestroy {
   // ─── Auto-save ───────────────────────────────────────────────────────────
   private autosaveKey = '';
   private autosave$ = new Subject<void>();
+  private formDirty = false;
+  private beforeUnloadHandler = () => {
+    if (this.formDirty) {
+      this.saveDraft();
+    }
+  };
 
   // ─────────────────────────────────────────────────────────────────────────
   // FORM DEFINITION
@@ -182,9 +188,17 @@ export class FollowupPage implements OnInit, OnDestroy {
     // format: yyyy-MM-dd (IMPORTANT ⚠️)
     this.todayDate = today.toISOString().split('T')[0];
     this.setupAutosave();
+    window.addEventListener('beforeunload', this.beforeUnloadHandler);
   }
 
   ngOnDestroy() {
+    // Flush any pending debounced autosave immediately — otherwise a quick
+    // tab switch within the 1s debounce window drops the draft, since the
+    // debounce timer is cancelled by takeUntil(destroy$) below before it fires.
+    if (this.formDirty) {
+      this.saveDraft();
+    }
+    window.removeEventListener('beforeunload', this.beforeUnloadHandler);
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -238,6 +252,7 @@ export class FollowupPage implements OnInit, OnDestroy {
       if (this.existingFollowUpEntryId) {
         this.isFollowUpAlreadySaved = true;
         this.interpretation = res?.followUpEntry?.interpretation || '';
+        this.temporaryProblems = res?.followUpEntry?.temporaryProblems || '';
         this.consultationCharge = Number(res?.followUpEntry?.charge || 0);
         this.waveOffAmount = Number(res?.payment?.waveOffAmount || 0);
         this.waveOffSelected = this.waveOffAmount > 0;
@@ -1348,6 +1363,7 @@ export class FollowupPage implements OnInit, OnDestroy {
   // ─────────────────────────────────────────────────────────────────────────
   private clearDraft() {
     localStorage.removeItem(this.autosaveKey);
+    this.formDirty = false;
     console.log('Draft cleared from localStorage');
   }
 
@@ -1356,6 +1372,7 @@ export class FollowupPage implements OnInit, OnDestroy {
   // Call this from every field change
   // ─────────────────────────────────────────────────────────────────────────
   triggerAutosave() {
+    this.formDirty = true;
     this.autosave$.next();
   }
   onInterpretationChange(value: string) {
@@ -1398,11 +1415,13 @@ export class FollowupPage implements OnInit, OnDestroy {
     if (textarea.disabled) return;
 
     if (!this.interpretation || !this.interpretation.trim()) {
-      this.interpretation = '1. ';
-      setTimeout(() => {
-        const len = textarea.value.length;
-        textarea.setSelectionRange(len, len);
-      });
+      // Update the DOM synchronously (not via setTimeout) so the cursor lands
+      // in the right place before any further keystrokes can arrive — relying
+      // on Angular's async change detection alone here races with fast typing.
+      const seed = '1. ';
+      textarea.value = seed;
+      textarea.setSelectionRange(seed.length, seed.length);
+      this.interpretation = seed;
     }
   }
 
@@ -1449,10 +1468,12 @@ export class FollowupPage implements OnInit, OnDestroy {
       newCursorPos = Math.min(newCursorPos, newValue.length);
     }
 
+    // Update the DOM synchronously so the value + cursor are correct before
+    // any further keystrokes can arrive (see onInterpretationFocus for why).
+    textarea.value = newValue;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
     this.interpretation = newValue;
     this.triggerAutosave();
-
-    setTimeout(() => textarea.setSelectionRange(newCursorPos, newCursorPos));
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -1521,10 +1542,10 @@ export class FollowupPage implements OnInit, OnDestroy {
       newCursorPos = Math.min(newCursorPos, newValue.length);
     }
 
+    textarea.value = newValue;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
     this.interpretation = newValue;
     this.triggerAutosave();
-
-    setTimeout(() => textarea.setSelectionRange(newCursorPos, newCursorPos));
   }
 
   // Splits pasted clipboard text into individual list items: prefers existing

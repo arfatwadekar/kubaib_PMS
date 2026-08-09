@@ -1149,6 +1149,14 @@ textarea {
   }
 }
 
+/* Single shared scroller for the whole row — all 4 columns scroll together
+   as one unit instead of each having its own independent scrollbar. */
+.table-row-scroll {
+  max-height: 300px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .table-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1163,9 +1171,8 @@ textarea {
     font-family: inherit;
     line-height: 1.5;
     min-height: 220px;
-    max-height: 300px;
-    resize: vertical;
-    overflow: auto;
+    resize: none;
+    overflow: hidden;
     outline: none;
     background: #ffffff;
     transition: background 0.2s ease;

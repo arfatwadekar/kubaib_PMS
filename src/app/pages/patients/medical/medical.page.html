@@ -114,24 +114,50 @@
                     <div>C</div>
                   </div>
 
-                  <!-- Row -->
-                  <div class="table-row" [formGroupName]="section.key">
-                    <textarea
-                      formControlName="location"
-                      maxlength="1000"
-                    ></textarea>
-                    <textarea
-                      formControlName="sensation"
-                      maxlength="1000"
-                    ></textarea>
-                    <textarea
-                      formControlName="modality"
-                      maxlength="1000"
-                    ></textarea>
-                    <textarea
-                      formControlName="concomitant"
-                      maxlength="1000"
-                    ></textarea>
+                  <!-- Single shared scroller — the whole row scrolls together -->
+                  <div class="table-row-scroll">
+                    <div class="table-row" [formGroupName]="section.key">
+                      <textarea
+                        formControlName="location"
+                        maxlength="1000"
+                        placeholder="Press Enter for a new numbered point"
+                        (input)="onComplaintInput($event)"
+                        (focus)="onComplaintFocus($event, section.key, 'location')"
+                        (keydown)="onComplaintKeydown($event, section.key, 'location')"
+                        (paste)="onComplaintPaste($event, section.key, 'location')"
+                        (wheel)="onComplaintWheel($event)"
+                      ></textarea>
+                      <textarea
+                        formControlName="sensation"
+                        maxlength="1000"
+                        placeholder="Press Enter for a new numbered point"
+                        (input)="onComplaintInput($event)"
+                        (focus)="onComplaintFocus($event, section.key, 'sensation')"
+                        (keydown)="onComplaintKeydown($event, section.key, 'sensation')"
+                        (paste)="onComplaintPaste($event, section.key, 'sensation')"
+                        (wheel)="onComplaintWheel($event)"
+                      ></textarea>
+                      <textarea
+                        formControlName="modality"
+                        maxlength="1000"
+                        placeholder="Press Enter for a new numbered point"
+                        (input)="onComplaintInput($event)"
+                        (focus)="onComplaintFocus($event, section.key, 'modality')"
+                        (keydown)="onComplaintKeydown($event, section.key, 'modality')"
+                        (paste)="onComplaintPaste($event, section.key, 'modality')"
+                        (wheel)="onComplaintWheel($event)"
+                      ></textarea>
+                      <textarea
+                        formControlName="concomitant"
+                        maxlength="1000"
+                        placeholder="Press Enter for a new numbered point"
+                        (input)="onComplaintInput($event)"
+                        (focus)="onComplaintFocus($event, section.key, 'concomitant')"
+                        (keydown)="onComplaintKeydown($event, section.key, 'concomitant')"
+                        (paste)="onComplaintPaste($event, section.key, 'concomitant')"
+                        (wheel)="onComplaintWheel($event)"
+                      ></textarea>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -145,7 +171,7 @@
         <!-- <ion-accordion value="s2">
           <ion-item slot="header" lines="none" class="sec-header">
             <ion-label>SECTION 2: FAMILY HISTORY</ion-label>
-            
+
           </ion-item>
 
           <div slot="content" class="sec-body" formGroupName="familyHistory">
@@ -763,7 +789,7 @@
             <ion-label>SECTION 8: MENTAL STATE EVALUATION</ion-label>
           </ion-item>
 
-         
+
         </ion-accordion> -->
 
         <ion-accordion value="s8" (ionChange)="$event.stopPropagation()">
@@ -1397,10 +1423,10 @@ SECTION 10: INTELLECTUAL STATE
           type="button"
           class="btn-green"
           (click)="saveRecord()"
-          [disabled]="loading"
+          [disabled]="loading || initialLoading"
         >
-          {{ loading ? 'Saving...' : (medicalExists ? 'Update Record' : 'Save
-          Record') }}
+          {{ loading ? 'Saving...' : (initialLoading ? 'Loading...' :
+          (medicalExists ? 'Update Record' : 'Save Record')) }}
         </ion-button>
       </div>
     </form>
