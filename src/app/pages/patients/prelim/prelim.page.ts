@@ -83,7 +83,7 @@ export class PrelimPage implements OnInit, OnDestroy, CanComponentDeactivate {
     firstName:          ['', [Validators.required, Validators.minLength(2)]],
     lastName:           ['', [Validators.required, Validators.minLength(2)]],
     gender:             ['Male', Validators.required],
-    dateOfBirth:        ['', Validators.required],
+    dateOfBirth:        [''],
     age:                [{ value: '', disabled: true }],
     phoneNumber:        ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
     alternateNumber:    [''],
