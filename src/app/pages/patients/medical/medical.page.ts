@@ -29,6 +29,10 @@ type Complaint = {
   concomitant: string;
 };
 
+type ComplaintField = 'location' | 'sensation' | 'modality' | 'concomitant';
+type ComplaintRow = Record<ComplaintField, string>;
+type ComplaintSectionKey = 'chief' | 'associated' | 'past';
+
 @Component({
   selector: 'app-medical',
   templateUrl: './medical.page.html',
@@ -44,7 +48,7 @@ export class MedicalPage implements OnInit, OnDestroy {
   patientId: number | null = null;
   medicalExists = false;
   openSection: string = 's1';
-
+private onWindowResize = () => this.autoGrowAllComplaintRows();
   // ⭐ AUTO-SAVE STATE
   private isAutoSaving = false;
   private autoSaveInProgress = false;
@@ -54,6 +58,19 @@ export class MedicalPage implements OnInit, OnDestroy {
 
   role: 'Doctor' | 'Receptionist' = 'Receptionist';
 isReadonly = false;
+
+  // Complaints & History table — one row per complaint point, shared
+  // across all 4 columns (L/S/M/C) so they stay vertically in sync:
+  // whichever column's text wraps tallest sets the row height, and the
+  // shorter columns just get blank space before the next point.
+  complaintFields: ComplaintField[] = ['location', 'sensation', 'modality', 'concomitant'];
+  // Keyed loosely by string (not ComplaintSectionKey) so the template's
+  // inline `section.key` — which Angular widens to `string` — can index it.
+  complaintRows: Record<string, ComplaintRow[]> = {
+    chief: [this.emptyComplaintRow()],
+    associated: [this.emptyComplaintRow()],
+    past: [this.emptyComplaintRow()],
+  };
 
   // ============================================================
   // MEDICAL FORM
@@ -243,12 +260,16 @@ isReadonly = false;
     if (this.isReadonly) {
     this.medicalForm.disable({ emitEvent: false });
   }
+
+   // 👇 NEW — width change hone par bhi heights recalc ho
+  window.addEventListener('resize', this.onWindowResize);
   }
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
+    window.removeEventListener('resize', this.onWindowResize);
   }
 
   // ============================================================
@@ -322,175 +343,253 @@ isReadonly = false;
   }
 
   // ============================================================
-  // COMPLAINTS & HISTORY — SHARED ROW HEIGHT + AUTO-NUMBERING
-  // The 4 columns (L/S/M/C) in a complaint row share one scroller
-  // (see .table-row-scroll) instead of each scrolling independently.
-  // Each column grows to match the tallest column in its row, and
-  // Enter auto-numbers lines (same pattern as the Follow-Up page's
-  // Medicine & Interpretation field).
+  // COMPLAINTS & HISTORY — POINT-ROW TABLE
+  // Each complaint point is one row shared across all 4 columns
+  // (L/S/M/C). Using a real DOM row per point (instead of 4 independent
+  // free-text blobs) lets the browser sync each row's height to its
+  // tallest cell for free, so point 2 always starts at the same Y in
+  // every column even if only one column's point 1 wrapped. The row
+  // number is just the row's position (never stored inline); the flat
+  // "1. .../2. ..." strings the API expects are derived from the rows
+  // on every edit, and parsed back into rows on load.
   // ============================================================
-  private autoGrowComplaintRow(row: Element): void {
-    const textareas = Array.from(row.querySelectorAll('textarea')) as HTMLTextAreaElement[];
-    if (!textareas.length) return;
-
-    textareas.forEach((t) => (t.style.height = 'auto'));
-    // +4px buffer: without it, clientHeight can round down 1px below
-    // scrollHeight, which makes the browser treat the textarea itself as
-    // scrollable — it then swallows mouse-wheel scrolls instead of letting
-    // them bubble to the row's shared scroller (.table-row-scroll).
-    const maxHeight = Math.max(220, ...textareas.map((t) => t.scrollHeight)) + 4;
-    textareas.forEach((t) => (t.style.height = `${maxHeight}px`));
+  private emptyComplaintRow(): ComplaintRow {
+    return { location: '', sensation: '', modality: '', concomitant: '' };
   }
 
+  private parseNumberedField(value: string): Map<number, string> {
+    const map = new Map<number, string>();
+    (value || '').split('\n').forEach((line) => {
+      const m = line.match(/^(\d+)\.\s?(.*)$/);
+      if (m) {
+        const n = parseInt(m[1], 10);
+        if (n > 0) map.set(n - 1, m[2]);
+      }
+    });
+    return map;
+  }
+
+  private syncComplaintFormFromRows(sectionKey: string): void {
+    const rows = this.complaintRows[sectionKey];
+    const group = this.medicalForm.get(['complaints', sectionKey]) as FormGroup;
+
+    this.complaintFields.forEach((field) => {
+      let text = rows
+        .map((row, i) => ({ i, text: (row[field] || '').trim() }))
+        .filter((x) => x.text)
+        .map((x) => `${x.i + 1}. ${x.text}`)
+        .join('\n');
+
+      if (text.length > 1000) text = text.slice(0, 1000);
+      group.get(field)?.setValue(text, { emitEvent: false });
+    });
+
+    group.markAsDirty();
+  }
+
+  private buildComplaintRowsFromForm(sectionKey: string): void {
+    const group = this.medicalForm.get(['complaints', sectionKey]) as FormGroup;
+    const parsed = this.complaintFields.map((field) =>
+      this.parseNumberedField(group.get(field)?.value || ''),
+    );
+
+    let rowCount = 0;
+    parsed.forEach((map) => map.forEach((_v, i) => (rowCount = Math.max(rowCount, i + 1))));
+    if (rowCount === 0) rowCount = 1;
+
+    const rows: ComplaintRow[] = [];
+    for (let i = 0; i < rowCount; i++) {
+      const row = this.emptyComplaintRow();
+      this.complaintFields.forEach((field, fIdx) => (row[field] = parsed[fIdx].get(i) || ''));
+      rows.push(row);
+    }
+    this.complaintRows[sectionKey] = rows;
+  }
+
+  private buildAllComplaintRowsFromForm(): void {
+    (['chief', 'associated', 'past'] as ComplaintSectionKey[]).forEach((k) =>
+      this.buildComplaintRowsFromForm(k),
+    );
+  }
+
+private autoGrowRow(rowEl: Element): void {
+  const textareas = Array.from(rowEl.querySelectorAll('textarea')) as HTMLTextAreaElement[];
+  if (!textareas.length) return;
+
+  textareas.forEach((t) => (t.style.height = 'auto'));
+  const maxHeight = Math.max(40, ...textareas.map((t) => t.scrollHeight)) + 8;
+  textareas.forEach((t) => (t.style.height = `${maxHeight}px`));
+}
   autoGrowAllComplaintRows(): void {
     setTimeout(() => {
-      document.querySelectorAll('.table-row').forEach((row) => this.autoGrowComplaintRow(row));
+      document.querySelectorAll('.table-row').forEach((row) => this.autoGrowRow(row));
     });
-  }
-
-  onComplaintInput(event: Event): void {
-    const textarea = event.target as HTMLTextAreaElement;
-    const row = textarea.closest('.table-row');
-    if (row) this.autoGrowComplaintRow(row);
   }
 
   // <textarea> elements have their own native scroll handling and don't
   // reliably chain mouse-wheel scrolls up to a scrollable ancestor even when
   // they have no overflow of their own — so scrolling the mouse wheel while
   // hovering over the text would otherwise do nothing. Forward it manually.
-  onComplaintWheel(event: WheelEvent): void {
-    const textarea = event.target as HTMLTextAreaElement;
-    const wrapper = textarea.closest('.table-row-scroll') as HTMLElement | null;
-    if (!wrapper) return;
+  // onComplaintWheel(event: WheelEvent): void {
+  //   const textarea = event.target as HTMLTextAreaElement;
+  //   const wrapper = textarea.closest('.table-row-scroll') as HTMLElement | null;
+  //   if (!wrapper) return;
 
-    event.preventDefault();
-    wrapper.scrollTop += event.deltaY;
+  //   event.preventDefault();
+  //   wrapper.scrollTop += event.deltaY;
+  // }
+  
+  // Remove this — no longer needed once .table-row-scroll isn't scrollable
+onComplaintWheel(event: WheelEvent): void {
+  const textarea = event.target as HTMLTextAreaElement;
+  const wrapper = textarea.closest('.table-row-scroll') as HTMLElement | null;
+  if (!wrapper) return;
+
+  event.preventDefault();
+  wrapper.scrollTop += event.deltaY;
+}
+
+  // onComplaintRowInput(
+  //   event: Event,
+  //   sectionKey: string,
+  //   rowIndex: number,
+  //   field: ComplaintField,
+  // ): void {
+  //   const textarea = event.target as HTMLTextAreaElement;
+  //   this.complaintRows[sectionKey][rowIndex][field] = textarea.value;
+  //   this.syncComplaintFormFromRows(sectionKey);
+
+  //   const row = textarea.closest('.table-row');
+  //   if (row) this.autoGrowRow(row);
+  // }
+
+  onComplaintRowInput(
+  event: Event,
+  sectionKey: string,
+  rowIndex: number,
+  field: ComplaintField,
+): void {
+  const textarea = event.target as HTMLTextAreaElement;
+  this.complaintRows[sectionKey][rowIndex][field] = textarea.value;
+
+  // 👇 Agar user LAST row me type kar raha hai aur usme kuch text aa gaya
+  // hai, to ek naya blank row automatically end me add kar do — user ko
+  // Enter dabane ki zaroorat nahi, agli row apne aap ready mil jaati hai.
+  const rows = this.complaintRows[sectionKey];
+  const isLastRow = rowIndex === rows.length - 1;
+  const rowHasContent = this.complaintFields.some((f) => (rows[rowIndex][f] || '').trim());
+
+  if (isLastRow && rowHasContent) {
+    rows.push(this.emptyComplaintRow());
   }
 
-  onComplaintFocus(event: FocusEvent, sectionKey: string, field: string): void {
+  this.syncComplaintFormFromRows(sectionKey);
+
+  const row = textarea.closest('.table-row');
+  if (row) this.autoGrowRow(row);
+}
+
+  private focusComplaintCell(
+    sectionKey: string,
+    rowIndex: number,
+    field: ComplaintField,
+    atEnd = false,
+  ): void {
+    setTimeout(() => {
+      const el = document.querySelector(
+        `.table-wrap[data-section="${sectionKey}"] .table-row[data-row-index="${rowIndex}"] textarea[data-field="${field}"]`,
+      ) as HTMLTextAreaElement | null;
+      if (!el) return;
+
+      el.focus();
+      if (atEnd) el.setSelectionRange(el.value.length, el.value.length);
+
+      const row = el.closest('.table-row');
+      if (row) this.autoGrowRow(row);
+    });
+  }
+
+  onComplaintRowKeydown(
+    event: KeyboardEvent,
+    sectionKey: string,
+    rowIndex: number,
+    field: ComplaintField,
+  ): void {
     if (this.isReadonly) return;
     const textarea = event.target as HTMLTextAreaElement;
-    if (textarea.disabled || (textarea.value && textarea.value.trim())) return;
 
-    // Update the DOM synchronously (not via setTimeout) so the cursor lands
-    // in the right place before any further keystrokes can arrive — relying
-    // on Angular's async change detection alone here races with fast typing.
-    const seed = '1. ';
-    textarea.value = seed;
-    textarea.setSelectionRange(seed.length, seed.length);
-    this.medicalForm.get(['complaints', sectionKey, field])?.setValue(seed);
+    // if (event.key === 'Enter' && !event.shiftKey) {
+    //   event.preventDefault();
+    //   const rows = this.complaintRows[sectionKey];
+    //   rows.splice(rowIndex + 1, 0, this.emptyComplaintRow());
+    //   this.syncComplaintFormFromRows(sectionKey);
+    //   this.focusComplaintCell(sectionKey, rowIndex + 1, field);
+    //   return;
+    // }
 
-    const row = textarea.closest('.table-row');
-    if (row) this.autoGrowComplaintRow(row);
+    if (event.key === 'Enter' && !event.shiftKey) {
+  event.preventDefault();
+  const rows = this.complaintRows[sectionKey];
+
+  // 👇 Agar agli row already khaali hai (auto-add ne bana di thi jab is
+  // row me type kiya tha), to dobara nayi row mat banao — sirf usi
+  // khaali row pe focus kar do. Warna duplicate blank row ban jaati thi.
+  const nextRow = rows[rowIndex + 1];
+  const nextRowIsEmpty =
+    !!nextRow && this.complaintFields.every((f) => !nextRow[f]);
+
+  if (!nextRowIsEmpty) {
+    rows.splice(rowIndex + 1, 0, this.emptyComplaintRow());
+    this.syncComplaintFormFromRows(sectionKey);
   }
 
-  onComplaintKeydown(event: KeyboardEvent, sectionKey: string, field: string): void {
-    if (event.key !== 'Enter' || this.isReadonly) return;
-    const textarea = event.target as HTMLTextAreaElement;
-    if (textarea.disabled) return;
+  this.focusComplaintCell(sectionKey, rowIndex + 1, field);
+  return;
+}
 
-    event.preventDefault();
+    if (event.key === 'Backspace') {
+      const rows = this.complaintRows[sectionKey];
+      const row = rows[rowIndex];
+      const rowIsEmpty = this.complaintFields.every((f) => !row[f]);
+      const atStart = (textarea.selectionStart ?? 0) === 0 && (textarea.selectionEnd ?? 0) === 0;
 
-    const cursorPos = textarea.selectionStart ?? textarea.value.length;
-    const value = textarea.value;
-    const before = value.slice(0, cursorPos);
-    const after = value.slice(cursorPos);
-
-    const lastNewline = before.lastIndexOf('\n');
-    const lineStart = lastNewline + 1;
-    const currentLine = before.slice(lineStart);
-    const match = currentLine.match(/^(\d+)\.\s?(.*)$/);
-
-    let newValue: string;
-    let newCursorPos: number;
-
-    if (match && match[2].trim() === '') {
-      // Empty numbered line — exit the list instead of adding another number
-      newValue = value.slice(0, lineStart) + after;
-      newCursorPos = lineStart;
-    } else if (match) {
-      const nextNumber = parseInt(match[1], 10) + 1;
-      const insertion = `\n${nextNumber}. `;
-      newValue = before + insertion + after;
-      newCursorPos = before.length + insertion.length;
-    } else if (currentLine.trim() === '') {
-      newValue = before + '\n' + after;
-      newCursorPos = before.length + 1;
-    } else {
-      const insertion = '\n1. ';
-      newValue = before + insertion + after;
-      newCursorPos = before.length + insertion.length;
+      if (rowIsEmpty && atStart && rows.length > 1) {
+        event.preventDefault();
+        rows.splice(rowIndex, 1);
+        this.syncComplaintFormFromRows(sectionKey);
+        this.focusComplaintCell(sectionKey, Math.max(0, rowIndex - 1), field, true);
+      }
     }
-
-    if (newValue.length > 1000) {
-      newValue = newValue.slice(0, 1000);
-      newCursorPos = Math.min(newCursorPos, newValue.length);
-    }
-
-    // Update the DOM synchronously so the value + cursor are correct before
-    // any further keystrokes can arrive (see onComplaintFocus for why).
-    textarea.value = newValue;
-    textarea.setSelectionRange(newCursorPos, newCursorPos);
-    this.medicalForm.get(['complaints', sectionKey, field])?.setValue(newValue);
-
-    const row = textarea.closest('.table-row');
-    if (row) this.autoGrowComplaintRow(row);
   }
 
-  // Pasted text (already numbered, or one point per line) is normalized into
-  // the same auto-numbered format used for typed entries.
-  onComplaintPaste(event: ClipboardEvent, sectionKey: string, field: string): void {
+  // Pasted text (already numbered, or one point per line) becomes new rows,
+  // starting in the pasted-into field of the current row.
+  onComplaintPaste(
+    event: ClipboardEvent,
+    sectionKey: string,
+    rowIndex: number,
+    field: ComplaintField,
+  ): void {
     if (this.isReadonly) return;
-    const textarea = event.target as HTMLTextAreaElement;
-    if (textarea.disabled) return;
 
     const pasted = event.clipboardData?.getData('text/plain');
     if (!pasted || !pasted.trim()) return;
 
     const items = this.splitIntoListItems(pasted);
-    if (!items.length) return;
+    if (items.length <= 1) return; // let the default single-line paste happen
 
     event.preventDefault();
 
-    const value = textarea.value;
-    const isEmptyPlaceholder = value.trim() === '1.';
-
-    const cursorPos = isEmptyPlaceholder ? 0 : (textarea.selectionStart ?? value.length);
-    const selEnd = isEmptyPlaceholder ? 0 : (textarea.selectionEnd ?? cursorPos);
-
-    const before = isEmptyPlaceholder ? '' : value.slice(0, cursorPos);
-    const after = isEmptyPlaceholder ? '' : value.slice(selEnd);
-
-    // Continue numbering from the last numbered line before the cursor
-    const numberedLineRe = /^(\d+)\.\s/gm;
-    let lastNumber: number | null = null;
-    let lineMatch: RegExpExecArray | null;
-    while ((lineMatch = numberedLineRe.exec(before))) {
-      lastNumber = parseInt(lineMatch[1], 10);
-    }
-    const startNumber = lastNumber !== null ? lastNumber + 1 : 1;
-
-    const formatted = items.map((item, i) => `${startNumber + i}. ${item}`).join('\n');
-
-    const needsLeadingBreak = before.length > 0 && !before.endsWith('\n');
-    const needsTrailingBreak = after.length > 0 && !after.startsWith('\n');
-
-    let newValue =
-      before + (needsLeadingBreak ? '\n' : '') + formatted + (needsTrailingBreak ? '\n' : '') + after;
-
-    let newCursorPos = (before + (needsLeadingBreak ? '\n' : '') + formatted).length;
-
-    if (newValue.length > 1000) {
-      newValue = newValue.slice(0, 1000);
-      newCursorPos = Math.min(newCursorPos, newValue.length);
+    const rows = this.complaintRows[sectionKey];
+    rows[rowIndex][field] = items[0];
+    for (let k = 1; k < items.length; k++) {
+      const insertAt = rowIndex + k;
+      if (!rows[insertAt]) rows.splice(insertAt, 0, this.emptyComplaintRow());
+      rows[insertAt][field] = items[k];
     }
 
-    textarea.value = newValue;
-    textarea.setSelectionRange(newCursorPos, newCursorPos);
-    this.medicalForm.get(['complaints', sectionKey, field])?.setValue(newValue);
-
-    const row = textarea.closest('.table-row');
-    if (row) this.autoGrowComplaintRow(row);
+    this.syncComplaintFormFromRows(sectionKey);
+    this.autoGrowAllComplaintRows();
   }
 
   // Splits pasted clipboard text into individual list items: prefers existing
@@ -555,6 +654,11 @@ isReadonly = false;
     this.medicalForm.reset();
     this.openSection = 's1';
     this.medicalExists = false;
+    this.complaintRows = {
+      chief: [this.emptyComplaintRow()],
+      associated: [this.emptyComplaintRow()],
+      past: [this.emptyComplaintRow()],
+    };
   }
 
   // ============================================================
@@ -809,6 +913,7 @@ isReadonly = false;
       }
 
       this.patchMedicalFormFromApi(data);
+      this.buildAllComplaintRowsFromForm();
       this.medicalForm.markAsPristine();
       this.medicalExists = true;
       this.autoGrowAllComplaintRows();
@@ -977,8 +1082,11 @@ goPrevIdentity() {
     await a.present();
   }
 
-  onAccordionChange(event: any) {
+onAccordionChange(event: any) {
   event.preventDefault();
+  // Section open hote hi heights dobara calculate karo — collapsed
+  // accordion ke andar textarea ka scrollHeight galat/0 aata hai
+  this.autoGrowAllComplaintRows();
 }
 
 private loadRole() {

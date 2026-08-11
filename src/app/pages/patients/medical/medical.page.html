@@ -90,7 +90,7 @@
           </ion-item>
 
           <div slot="content" class="sec-body modern-body">
-            <div formGroupName="complaints">
+            <div>
               <!-- CARD -->
               <div
                 class="modern-card"
@@ -105,7 +105,7 @@
                 <span> (1000 characters)</span>
 
                 <!-- Table -->
-                <div class="table-wrap">
+                <div class="table-wrap" [attr.data-section]="section.key">
                   <!-- Header -->
                   <div class="table-head">
                     <div>L</div>
@@ -114,49 +114,26 @@
                     <div>C</div>
                   </div>
 
-                  <!-- Single shared scroller — the whole row scrolls together -->
+                  <!-- Single shared scroller — every point-row scrolls together -->
                   <div class="table-row-scroll">
-                    <div class="table-row" [formGroupName]="section.key">
-                      <textarea
-                        formControlName="location"
-                        maxlength="1000"
-                        placeholder="Press Enter for a new numbered point"
-                        (input)="onComplaintInput($event)"
-                        (focus)="onComplaintFocus($event, section.key, 'location')"
-                        (keydown)="onComplaintKeydown($event, section.key, 'location')"
-                        (paste)="onComplaintPaste($event, section.key, 'location')"
-                        (wheel)="onComplaintWheel($event)"
-                      ></textarea>
-                      <textarea
-                        formControlName="sensation"
-                        maxlength="1000"
-                        placeholder="Press Enter for a new numbered point"
-                        (input)="onComplaintInput($event)"
-                        (focus)="onComplaintFocus($event, section.key, 'sensation')"
-                        (keydown)="onComplaintKeydown($event, section.key, 'sensation')"
-                        (paste)="onComplaintPaste($event, section.key, 'sensation')"
-                        (wheel)="onComplaintWheel($event)"
-                      ></textarea>
-                      <textarea
-                        formControlName="modality"
-                        maxlength="1000"
-                        placeholder="Press Enter for a new numbered point"
-                        (input)="onComplaintInput($event)"
-                        (focus)="onComplaintFocus($event, section.key, 'modality')"
-                        (keydown)="onComplaintKeydown($event, section.key, 'modality')"
-                        (paste)="onComplaintPaste($event, section.key, 'modality')"
-                        (wheel)="onComplaintWheel($event)"
-                      ></textarea>
-                      <textarea
-                        formControlName="concomitant"
-                        maxlength="1000"
-                        placeholder="Press Enter for a new numbered point"
-                        (input)="onComplaintInput($event)"
-                        (focus)="onComplaintFocus($event, section.key, 'concomitant')"
-                        (keydown)="onComplaintKeydown($event, section.key, 'concomitant')"
-                        (paste)="onComplaintPaste($event, section.key, 'concomitant')"
-                        (wheel)="onComplaintWheel($event)"
-                      ></textarea>
+                    <div
+                      class="table-row"
+                      *ngFor="let row of complaintRows[section.key]; let i = index"
+                      [attr.data-row-index]="i"
+                    >
+                      <div class="cell" *ngFor="let field of complaintFields">
+                        <span class="pt-num">{{ i + 1 }}.</span>
+                        <textarea
+                          class="pt-input"
+                          [attr.data-field]="field"
+                          [value]="row[field]"
+                          placeholder="Type here"
+                          (input)="onComplaintRowInput($event, section.key, i, field)"
+                          (keydown)="onComplaintRowKeydown($event, section.key, i, field)"
+                          (paste)="onComplaintPaste($event, section.key, i, field)"
+                           (wheel)="onComplaintWheel($event)"
+                        ></textarea>
+                      </div>
                     </div>
                   </div>
                 </div>
