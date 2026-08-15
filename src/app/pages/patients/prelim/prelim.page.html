@@ -13,15 +13,16 @@
   <form class="card" [formGroup]="form" (ngSubmit)="submit()">
     <!-- ================= BASIC DETAILS ================= -->
     <div class="section">
-      <div class="section-title">Basic Details</div>
-
-      <!-- PID — shown only in edit mode when pid exists, always non-editable -->
-      <div class="form-group" *ngIf="form.get('pid')?.value">
-        <ion-label>Patient ID (PID)</ion-label>
-        <ion-item lines="none" class="input-item">
-          <ion-input formControlName="pid" [readonly]="true" class="disabled-field"></ion-input>
-        </ion-item>
+      <div class="section-title section-title-row">
+        <span>Basic Details</span>
+        <!-- PID — shown only in edit mode when pid exists, always non-editable -->
+        <span class="pid-row" *ngIf="form.get('pid')?.value">
+          <span class="pid-label">Patient ID (PID) :</span>
+          <span class="pid-value">{{ form.get('pid')?.value }}</span>
+          <input type="hidden" formControlName="pid" />
+        </span>
       </div>
+
       <ion-grid>
         <ion-row>
           <ion-col size="12" sizeMd="6">

@@ -73,6 +73,13 @@ ion-content {
   border-bottom: 1px solid var(--border);
 }
 
+.section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 /* =====================================================
    FORM LAYOUT
 ===================================================== */
@@ -102,6 +109,30 @@ ion-row {
 .req {
   color: var(--danger);
   margin-left: 4px;
+}
+
+/* =====================================================
+   PID DISPLAY
+===================================================== */
+
+.pid-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: normal;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.pid-label {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.pid-value {
+  font-weight: 600;
+  color: var(--text);
 }
 
 /* =====================================================

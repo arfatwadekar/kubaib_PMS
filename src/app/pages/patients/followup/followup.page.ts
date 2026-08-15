@@ -613,9 +613,14 @@ export class FollowupPage implements OnInit, OnDestroy {
       }
     });
 
-    // If nothing changed, notify user
+    // Nothing left to send — rows already persisted via per-row autosave on blur.
+    // Still confirm success and exit edit mode instead of leaving the user stuck.
     if (!createList.length && !updateList.length) {
-      this.showToast('No changes to save');
+      this.showToast('Symptoms saved successfully');
+      this.isSaved = true;
+      this.isEditMode = false;
+      // Reload to drop blank trailing rows the auto-expand listener added while editing
+      await this.loadCriteria();
       return;
     }
 
