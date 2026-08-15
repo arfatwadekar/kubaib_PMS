@@ -61,7 +61,7 @@
                   {{ ctrl.value || '–' }}
                 </span>
                 <input *ngIf="!isSaved || isEditMode" class="sym-input" type="text" [formControlName]="i"
-                  [placeholder]="'Enter symptom ' + (i + 1)" />
+                  [placeholder]="'Enter symptom ' + (i + 1)" (blur)="onSymptomBlur(i)" />
               </div>
 
               <div class="col-act">

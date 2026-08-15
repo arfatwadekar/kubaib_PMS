@@ -667,6 +667,90 @@ export class FollowupPage implements OnInit, OnDestroy {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
+  // AUTOSAVE A SINGLE SYMPTOM ROW TO THE BACKEND ON BLUR
+  // Fires when the doctor leaves a symptom box (e.g. to fill in medicines)
+  // without clicking "Save/Update Criteria" — persists just that row so
+  // nothing is lost, without disturbing the rest of the form.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  async onSymptomBlur(index: number) {
+    if (this.isReadonly) return;
+
+    const ctrl = this.fuSymptomsArr.at(index) as any;
+    const value = (ctrl.getRawValue() || '').trim();
+    if (!value) return;
+
+    const criteriaId = ctrl.criteriaId;
+
+    try {
+      if (criteriaId) {
+        const existing = this.existingCriteria.find(
+          (x: any) => x.patientFollowUpCriteriaId === criteriaId,
+        );
+
+        // Nothing changed since last save
+        if (!existing || existing.criteriaName === value) return;
+
+        await firstValueFrom(
+          this.api.updateCriteria({
+            patientFollowUpCriteriaId: criteriaId,
+            patientId: this.patientId,
+            criteriaName: value,
+          }),
+        );
+
+        existing.criteriaName = value;
+      } else {
+        // Already auto-saved this exact value — avoid creating a duplicate
+        if (ctrl.autosavedValue === value) return;
+
+        await firstValueFrom(
+          this.api.createCriteria({
+            patientId: this.patientId,
+            criteriaNames: [value],
+          }),
+        );
+
+        ctrl.autosavedValue = value;
+        this.isSaved = true;
+
+        // Recover the real criteriaId from the backend so a later edit
+        // updates this row instead of creating another one
+        await this.syncCriteriaIds();
+      }
+
+      this.showToast('Symptom saved');
+    } catch (err) {
+      console.error('Symptom autosave error:', err);
+      this.showToast(getErrorMessage(err, 'Auto-save failed for this symptom.'));
+    }
+  }
+
+  // Refreshes existingCriteria + backfills criteriaId onto controls without
+  // rebuilding the form array (so in-progress edits in other rows survive).
+  private async syncCriteriaIds() {
+    try {
+      const res: any = await firstValueFrom(
+        this.api.getCriteriaByPatient(this.patientId),
+      );
+      const list = Array.isArray(res) ? res : res?.data || [];
+      this.existingCriteria = [...list];
+
+      this.fuSymptomsArr.controls.forEach((ctrl: any) => {
+        if (ctrl.criteriaId) return;
+
+        const value = (ctrl.getRawValue() || '').trim();
+        if (!value) return;
+
+        const match = list.find((x: any) => x.criteriaName === value);
+        if (match) ctrl.criteriaId = match.patientFollowUpCriteriaId;
+      });
+    } catch (err) {
+      console.error('Sync criteria ids error:', err);
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   // LOAD MEDICINES
   // ─────────────────────────────────────────────────────────────────────────
 

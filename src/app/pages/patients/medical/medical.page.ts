@@ -47,7 +47,7 @@ export class MedicalPage implements OnInit, OnDestroy {
   initialLoading = false;
   patientId: number | null = null;
   medicalExists = false;
-  openSection: string = 's1';
+  openSections: string[] = ['s1'];
 private onWindowResize = () => this.autoGrowAllComplaintRows();
   // ⭐ AUTO-SAVE STATE
   private isAutoSaving = false;
@@ -239,7 +239,6 @@ isReadonly = false;
   // =====================
   ngOnInit(): void {
     this.loadRole();
-    this.initMedicalBmiAutoCalc();
 
     this.sub.add(
       this.route.queryParams.subscribe((qp) => {
@@ -615,44 +614,9 @@ onComplaintWheel(event: WheelEvent): void {
     return lineSplit.length ? lineSplit : [normalized.replace(/\s+/g, ' ').trim()];
   }
 
-  // ============================================================
-  // BMI AUTO CALC
-  // ============================================================
-  private initMedicalBmiAutoCalc() {
-    const pe = this.medicalForm.get('physicalExamination') as FormGroup;
-
-    const recalc = () => {
-      const h = Number(pe.controls['heightMeters']?.value || 0);
-      const w = Number(pe.controls['weightKg']?.value || 0);
-
-      if (!h || !w) {
-        pe.patchValue({ bmi: '', bmiCategory: '' }, { emitEvent: false });
-        return;
-      }
-
-      const bmi = w / (h * h);
-      const bmiStr = Number.isFinite(bmi) ? bmi.toFixed(2) : '';
-
-      let cat = '';
-      if (bmi < 18.5) cat = 'Underweight';
-      else if (bmi < 25) cat = 'Normal';
-      else if (bmi < 30) cat = 'Overweight';
-      else cat = 'Obese';
-
-      pe.patchValue({ bmi: bmiStr, bmiCategory: cat }, { emitEvent: false });
-    };
-
-    pe.controls['heightMeters'].valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(recalc);
-    pe.controls['weightKg'].valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(recalc);
-  }
-
   private resetMedicalForm() {
     this.medicalForm.reset();
-    this.openSection = 's1';
+    this.openSections = ['s1'];
     this.medicalExists = false;
     this.complaintRows = {
       chief: [this.emptyComplaintRow()],
