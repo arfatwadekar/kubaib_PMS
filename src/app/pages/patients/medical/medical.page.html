@@ -76,8 +76,9 @@
          ACCORDION GROUP
     ========================= -->
       <ion-accordion-group
-        [value]="openSection"
-        (ionChange)="openSection = $event.detail.value"
+        multiple="true"
+        [value]="openSections"
+        (ionChange)="openSections = $event.detail.value"
         class="me-acc"
       >
         <!-- =========================================================
@@ -90,7 +91,7 @@
           </ion-item>
 
           <div slot="content" class="sec-body modern-body">
-            <div formGroupName="complaints">
+            <div>
               <!-- CARD -->
               <div
                 class="modern-card"
@@ -105,7 +106,7 @@
                 <span> (1000 characters)</span>
 
                 <!-- Table -->
-                <div class="table-wrap">
+                <div class="table-wrap" [attr.data-section]="section.key">
                   <!-- Header -->
                   <div class="table-head">
                     <div>L</div>
@@ -114,24 +115,27 @@
                     <div>C</div>
                   </div>
 
-                  <!-- Row -->
-                  <div class="table-row" [formGroupName]="section.key">
-                    <textarea
-                      formControlName="location"
-                      maxlength="1000"
-                    ></textarea>
-                    <textarea
-                      formControlName="sensation"
-                      maxlength="1000"
-                    ></textarea>
-                    <textarea
-                      formControlName="modality"
-                      maxlength="1000"
-                    ></textarea>
-                    <textarea
-                      formControlName="concomitant"
-                      maxlength="1000"
-                    ></textarea>
+                  <!-- Single shared scroller — every point-row scrolls together -->
+                  <div class="table-row-scroll">
+                    <div
+                      class="table-row"
+                      *ngFor="let row of complaintRows[section.key]; let i = index"
+                      [attr.data-row-index]="i"
+                    >
+                      <div class="cell" *ngFor="let field of complaintFields">
+                        <span class="pt-num">{{ i + 1 }}.</span>
+                        <textarea
+                          class="pt-input"
+                          [attr.data-field]="field"
+                          [value]="row[field]"
+                          placeholder="Type here"
+                          (input)="onComplaintRowInput($event, section.key, i, field)"
+                          (keydown)="onComplaintRowKeydown($event, section.key, i, field)"
+                          (paste)="onComplaintPaste($event, section.key, i, field)"
+                           (wheel)="onComplaintWheel($event)"
+                        ></textarea>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -145,7 +149,7 @@
         <!-- <ion-accordion value="s2">
           <ion-item slot="header" lines="none" class="sec-header">
             <ion-label>SECTION 2: FAMILY HISTORY</ion-label>
-            
+
           </ion-item>
 
           <div slot="content" class="sec-body" formGroupName="familyHistory">
@@ -556,7 +560,7 @@
                     <ion-col size="12" sizeMd="3">
                       <div class="field-label">Height (Meters)</div>
                       <ion-input
-                        type="number"
+                        type="text"
                         formControlName="heightMeters"
                       ></ion-input>
                     </ion-col>
@@ -564,7 +568,7 @@
                     <ion-col size="12" sizeMd="3">
                       <div class="field-label">Weight (Kg)</div>
                       <ion-input
-                        type="number"
+                        type="text"
                         formControlName="weightKg"
                       ></ion-input>
                     </ion-col>
@@ -572,18 +576,20 @@
                     <ion-col size="12" sizeMd="3">
                       <div class="field-label">BMI</div>
                       <ion-input
-                        readonly
+                        type="text"
                         formControlName="bmi"
-                        placeholder="Auto"
                       ></ion-input>
                     </ion-col>
 
                     <ion-col size="12" sizeMd="3">
                       <div class="field-label">BMI Category</div>
-                      <ion-input
-                        readonly
-                        formControlName="bmiCategory"
-                      ></ion-input>
+                      <select class="native-select" formControlName="bmiCategory">
+                        <option value="" disabled>Select</option>
+                        <option value="Underweight">Underweight</option>
+                        <option value="Normal">Normal</option>
+                        <option value="Overweight">Overweight</option>
+                        <option value="Obese">Obese</option>
+                      </select>
                     </ion-col>
                   </ion-row>
                 </ion-grid>
@@ -763,7 +769,7 @@
             <ion-label>SECTION 8: MENTAL STATE EVALUATION</ion-label>
           </ion-item>
 
-         
+
         </ion-accordion> -->
 
         <ion-accordion value="s8" (ionChange)="$event.stopPropagation()">
@@ -1397,10 +1403,10 @@ SECTION 10: INTELLECTUAL STATE
           type="button"
           class="btn-green"
           (click)="saveRecord()"
-          [disabled]="loading"
+          [disabled]="loading || initialLoading"
         >
-          {{ loading ? 'Saving...' : (medicalExists ? 'Update Record' : 'Save
-          Record') }}
+          {{ loading ? 'Saving...' : (initialLoading ? 'Loading...' :
+          (medicalExists ? 'Update Record' : 'Save Record')) }}
         </ion-button>
       </div>
     </form>

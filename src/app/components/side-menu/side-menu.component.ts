@@ -3,18 +3,6 @@ import { Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
 import { AuthService, UserRole } from '../../services/auth.service';
 
-interface MenuItem {
-  title: string;
-  icon: string;
-  url: string;
-}
-
-interface MenuSection {
-  title: string;
-  roles: UserRole[];
-  items: MenuItem[];
-}
-
 @Component({
   selector: 'app-side-menu',
   templateUrl: './side-menu.component.html',
@@ -27,122 +15,6 @@ export class SideMenuComponent implements OnInit {
   clinicName = 'Mumbra Health Care';
   role: UserRole | null = null;
 
-  menuSections: MenuSection[] = [
-    {
-      title: 'DASHBOARD',
-      roles: ['Doctor', 'Receptionist'],
-      items: [{ title: 'Dashboard', icon: 'grid-outline', url: '/dashboard' }],
-    },
-    {
-      title: 'PATIENTS',
-      roles: ['Doctor', 'Receptionist'],
-      items: [
-        {
-          title: 'Search Patient',
-          icon: 'people-outline',
-          url: '/patients/list',
-        },
-        {
-          title: 'Create Patient ID',
-          icon: 'person-add-outline',
-          url: '/patients',
-        },
-      ],
-    },
-    {
-      title: 'DOCTOR WORKFLOW',
-      roles: ['Doctor'],
-      items: [
-        {
-          title: 'Follow Up',
-          icon: 'repeat-outline',
-          url: '/patients/follow-up',
-        },
-        {
-          title: 'Medical Examination',
-          icon: 'medkit-outline',
-          url: '/patients/medical-examination',
-        },
-      ],
-    },
-    {
-      title: 'APPOINTMENTS',
-      roles: ['Doctor'],
-      items: [
-        {
-          title: 'Search Appointment',
-          icon: 'calendar-outline',
-          url: '/SearchAppointments',
-        },
-      ],
-    },
-    {
-      title: 'MEDICINE INVENTORY',
-      roles: ['Doctor'],
-      items: [
-        {
-          title: 'Medicine Dashboard',
-          icon: 'medkit-outline',
-          url: '/medicines',
-        },
-        {
-          title: 'Create Medicine',
-          icon: 'add-circle-outline',
-          url: '/medicines/create',
-        },
-      ],
-    },
-    {
-      title: 'OTC MEDICINES',
-      roles: ['Doctor'],
-      items: [
-        {
-          title: 'OTC Medicines',
-          icon: 'receipt-outline',
-          url: '/otc-medicine',
-        },
-        {
-          title: 'Add OTC Entry',
-          icon: 'add-circle-outline',
-          url: '/otc-medicine/create',
-        },
-      ],
-    },
-    {
-      title: 'COMMUNICATION',
-      roles: ['Doctor'],
-      items: [
-        {
-          title: 'Notifications',
-          icon: 'notifications-outline',
-          url: '/notifications',
-        },
-        {
-          title: 'Announcements',
-          icon: 'megaphone-outline',
-          url: '/announcements',
-        },
-        { title: 'Add Reviews', icon: 'star-outline', url: '/reviews' },
-      ],
-    },
-    {
-      title: 'REPORTS',
-      roles: ['Doctor', 'Receptionist'],
-      items: [{ title: 'Reports', icon: 'bar-chart-outline', url: '/reports' }],
-    },
-    {
-      title: 'ANALYTICS',
-      roles: ['Doctor', 'Receptionist'],
-      items: [
-        {
-          title: 'Analytics Dashboard',
-          icon: 'analytics-outline',
-          url: '/analytics',
-        },
-      ],
-    },
-  ];
-
   constructor(
     private auth: AuthService,
     private router: Router,
@@ -151,13 +23,6 @@ export class SideMenuComponent implements OnInit {
 
   ngOnInit(): void {
     this.role = this.auth.getRole();
-  }
-
-  get visibleSections(): MenuSection[] {
-    if (!this.role) return [];
-    return this.menuSections.filter((section) =>
-      section.roles.includes(this.role!),
-    );
   }
 
   async go(url: string): Promise<void> {

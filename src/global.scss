@@ -45,3 +45,11 @@ input{
 .popover-item{
     color: black !important;
 }
+
+.input-label-placement-start.sc-ion-input-md-h .input-wrapper.sc-ion-input-md {
+    -ms-flex-direction: row;
+    flex-direction: row;
+       margin: 0 auto;
+    padding: 4px;
+    width:91%;
+}

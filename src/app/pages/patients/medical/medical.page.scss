@@ -565,7 +565,8 @@ textarea {
     }
   }
 
-  ion-input {
+  ion-input,
+  .native-select {
     --background: #ffffff;
     --padding-start: 12px;
     --padding-end: 12px;
@@ -581,6 +582,23 @@ textarea {
     @media (max-width: 767px) {
       width: 100%;
       font-size: 13px;
+    }
+  }
+
+  .native-select {
+    width: 100%;
+    padding: 10px 32px 10px 12px;
+    background: #ffffff
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%236b7280' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+      no-repeat right 12px center;
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+
+    &:focus {
+      outline: none;
+      border-color: #d7ddea;
+      box-shadow: none;
     }
   }
 
@@ -1149,49 +1167,85 @@ textarea {
   }
 }
 
+/* Shared scroller for the WHOLE section's rows — all 4 columns (L/S/M/C)
+   scroll together as one synced unit. Individual cells never scroll on
+   their own (.pt-input has overflow:hidden), only this outer wrapper does. */
+.table-row-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+// One row = one complaint point, shared across all 4 columns. Each cell
+// grows to fit its own text; the browser sizes the whole grid row to the
+// tallest cell, so a wrapped column pushes the *next* row down for every
+// column equally — the shorter columns just carry blank space until then.
 .table-row {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   min-width: 480px;
+  border-top: 1px solid #e5e7eb;
 
-  textarea {
-    border: none;
-    border-top: 1px solid #e5e7eb;
+  &:first-child {
+    border-top: none;
+  }
+
+  .cell {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 8px 12px;
     border-right: 1px solid #e5e7eb;
-    padding: 10px 12px; // consistent, no extra top gap
-    font-size: 14px;
-    font-family: inherit;
-    line-height: 1.5;
-    min-height: 220px;
-    max-height: 300px;
-    resize: vertical;
-    overflow: auto;
-    outline: none;
-    background: #ffffff;
-    transition: background 0.2s ease;
     box-sizing: border-box;
-    width: 100%;
-    display: block; // removes inline top gap
-    vertical-align: top;
-    -webkit-appearance: none;
-    appearance: none;
-    margin: 0; // browser default margin reset
 
     &:last-child {
       border-right: none;
     }
 
-    &::placeholder {
-      color: #9aa6b2;
-      opacity: 1;
-    }
-
     @media (max-width: 600px) {
-      font-size: 13px;
-      padding: 8px 10px;
-      min-height: 100px;
+      padding: 6px 10px;
     }
   }
+
+  .pt-num {
+    flex: 0 0 auto;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #64748b;
+    padding-top: 1px;
+    user-select: none;
+  }
+
+.pt-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  font-family: inherit;
+  line-height: 1.5;
+  resize: none;
+  overflow: hidden;   // 👈 add this — kills the per-cell scrollbar
+  outline: none;
+  background: transparent;
+  color: #111;
+  box-sizing: border-box;
+  width: 100%;
+  display: block;
+  vertical-align: top;
+  -webkit-appearance: none;
+  appearance: none;
+
+  &::placeholder {
+    color: #9aa6b2;
+    opacity: 1;
+  }
+
+  @media (max-width: 600px) {
+    font-size: 13px;
+  }
+}
 }
 
 /* GRID */
@@ -1519,7 +1573,7 @@ ion-accordion[value="s6"] {
 
   .rf-cell {
     padding: 10px;
-    border-right: 1px solid #e5e7eb;
+    // border-right: 1px solid #e5e7eb;
     border-bottom: 1px solid #e5e7eb;
     text-align: center;
     background: #fff;

@@ -104,7 +104,7 @@ ion-card-content {
 }
 
 .rep-item {
-  --background: var(--border-light);
+  // --background: var(--border-light);
   --border-color: var(--border);
   --padding-start: 0;
   --padding-end: 0;
@@ -112,7 +112,7 @@ ion-card-content {
   --inner-padding-end: 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  height: 40px;
+  // height: 40px;
 }
 
 .rep-item:focus-within {
@@ -500,7 +500,7 @@ ion-card-content {
   flex-direction: row;
   gap: 8px;
   width: 100%;
-      margin-bottom: -16px;
+      // margin-bottom: -16px;
 }
 
 /* 📱 Mobile fix */

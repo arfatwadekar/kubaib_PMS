@@ -53,6 +53,30 @@ export class PaymentService {
   }
 
   /* ===================================================
+      ADMIN UPDATE PAYMENT
+      PUT /api/Payment/admin-update
+      Partial update — only send the fields being changed;
+      backend recalculates later balances. Requires
+      waveOffPassword for admin authorization.
+  =================================================== */
+
+  adminUpdatePayment(payload: {
+    patientId: number;
+    paymentId: number;
+    consultationCharges?: number;
+    waveOffAmount?: number;
+    amountPaid?: number;
+    paymentMode?: string;
+    paymentDate?: string;
+    waveOffPassword?: string;
+  }): Observable<any> {
+    return this.http.put(
+      `${this.paymentUrl}/admin-update`,
+      payload
+    );
+  }
+
+  /* ===================================================
       GET PAYMENT BY ID
   =================================================== */
 

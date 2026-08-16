@@ -42,8 +42,6 @@ export class AnalyticsPage implements OnInit, OnDestroy {
   fromDateISO = '';
   toDateISO   = '';
 
-  selectedGender = 'All';
-
   // ======================================================
   // KPI VALUES — derived from /summary
   // ======================================================
@@ -60,6 +58,8 @@ export class AnalyticsPage implements OnInit, OnDestroy {
   otcDue            = 0;
   otcCollectionRate = 0;
   otcPendingRate    = 0;
+
+  waveOffAmount     = 0;
 
   // ======================================================
   // TABLE STATE
@@ -134,7 +134,7 @@ export class AnalyticsPage implements OnInit, OnDestroy {
 
   /**
    * Auto-sets fromDateISO / toDateISO based on the selected period type.
-   * Custom leaves the existing dates untouched.
+   * Custom initializes with today's date as a starting point.
    */
   private applyDateRangeForType(type: 'Daily' | 'Weekly' | 'Monthly' | 'Custom'): void {
     const today = new Date();
@@ -145,14 +145,14 @@ export class AnalyticsPage implements OnInit, OnDestroy {
       this.toDateISO   = this.toISO(today);
 
     } else if (type === 'Weekly') {
-      // Mon–Sun of the current week
-      const day  = today.getDay(); // 0 = Sun
-      const mon  = new Date(today);
-      mon.setDate(today.getDate() - ((day + 6) % 7));
-      const sun  = new Date(mon);
-      sun.setDate(mon.getDate() + 6);
-      this.fromDateISO = this.toISO(mon);
-      this.toDateISO   = this.toISO(sun);
+      // Sun–Sat of the current week
+      const day  = today.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+      const sun  = new Date(today);
+      sun.setDate(today.getDate() - day);
+      const sat  = new Date(sun);
+      sat.setDate(sun.getDate() + 6);
+      this.fromDateISO = this.toISO(sun);
+      this.toDateISO   = this.toISO(sat);
 
     } else if (type === 'Monthly') {
       const first = new Date(today.getFullYear(), today.getMonth(), 1);
@@ -160,8 +160,15 @@ export class AnalyticsPage implements OnInit, OnDestroy {
       this.fromDateISO = this.toISO(first);
       this.toDateISO   = this.toISO(last);
 
+    } else if (type === 'Custom') {
+      // Initialize custom with current month's date range if dates are empty
+      if (!this.fromDateISO || !this.toDateISO) {
+        const first = new Date(today.getFullYear(), today.getMonth(), 1);
+        const last  = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        this.fromDateISO = this.toISO(first);
+        this.toDateISO   = this.toISO(last);
+      }
     }
-    // Custom: leave fromDateISO / toDateISO as-is
   }
 
   /** Date → yyyy-MM-dd */
@@ -286,6 +293,9 @@ export class AnalyticsPage implements OnInit, OnDestroy {
     this.otcDue            = otcPending;
     this.otcCollectionRate = otcRate;
     this.otcPendingRate    = 100 - otcRate;
+
+    // ---- Wave Off ----
+    this.waveOffAmount = Math.max(0, data.patientPaymentsTotalWaveOffAmount || 0);
   }
 
   // ======================================================
@@ -293,17 +303,19 @@ export class AnalyticsPage implements OnInit, OnDestroy {
   // ======================================================
 
   private buildRequest(): AnalyticsFilterRequest {
+    // Backend expects "Week", not "Weekly" — UI label/state stays "Weekly"
+    const apiFilterType = this.filterType === 'Weekly' ? 'Week' : this.filterType;
     return {
-      filterType: this.filterType,
+      filterType: apiFilterType,
       fromDate:   this.fromDateISO || undefined,
       toDate:     this.toDateISO   || undefined,
-      gender:     this.selectedGender !== 'All' ? this.selectedGender : undefined,
     };
   }
 
   /** Period pill click — auto-sets dates then loads */
   setFilterType(type: 'Daily' | 'Weekly' | 'Monthly' | 'Custom'): void {
     this.filterType = type;
+    this.error = null;  // Clear any previous errors
     this.applyDateRangeForType(type);
     // For Custom don't auto-fire — user must click Apply
     if (type !== 'Custom') {
@@ -311,30 +323,38 @@ export class AnalyticsPage implements OnInit, OnDestroy {
     }
   }
 
+  /** Manually editing a date implies a custom range — highlight the Custom pill. */
   setStartDate(iso: string): void {
     this.fromDateISO = iso;
+    this.filterType  = 'Custom';
   }
 
   setEndDate(iso: string): void {
-    this.toDateISO = iso;
-  }
-
-  setGenderFilter(gender: string): void {
-    this.selectedGender = gender;
+    this.toDateISO  = iso;
+    this.filterType = 'Custom';
   }
 
   /** Only fires on button click */
   applyFilters(): void {
+    // Validate that at least one date is provided
+    if (!this.fromDateISO && !this.toDateISO) {
+      this.error = 'Please select at least a start or end date.';
+      return;
+    }
+
+    // If both dates are provided, ensure start is not after end
     if (this.fromDateISO && this.toDateISO && this.fromDateISO > this.toDateISO) {
       this.error = 'Start date cannot be after end date.';
       return;
     }
+
+    this.error = null;
     this.loadAll();
   }
 
   resetFilters(): void {
-    this.filterType     = 'Monthly';
-    this.selectedGender = 'All';
+    this.filterType = 'Monthly';
+    this.error      = null;
     this.applyDateRangeForType('Monthly');
     this.loadAll();
   }

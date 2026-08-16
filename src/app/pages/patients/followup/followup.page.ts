@@ -31,12 +31,13 @@ export class FollowupPage implements OnInit, OnDestroy {
   // ─────────────────────────────────────────────────────────────────────────
   showPasswordModal = false;
   interpretation = '';
-  temporaryProblems = '';
+  observationsAndSymptoms = '';
   waveOffSelected = false;
   symptomStatus: string[] = [];
 
   consultationCharge = 0;
   waveOffAmount = 0;
+  pendingBalance = 0; // balance carried over from previous visits
 
   nextAppointmentDate: string | null = null;
   nextAppointmentTime: string | null = null;
@@ -83,6 +84,12 @@ export class FollowupPage implements OnInit, OnDestroy {
   // ─── Auto-save ───────────────────────────────────────────────────────────
   private autosaveKey = '';
   private autosave$ = new Subject<void>();
+  private formDirty = false;
+  private beforeUnloadHandler = () => {
+    if (this.formDirty) {
+      this.saveDraft();
+    }
+  };
 
   // ─────────────────────────────────────────────────────────────────────────
   // FORM DEFINITION
@@ -181,9 +188,17 @@ export class FollowupPage implements OnInit, OnDestroy {
     // format: yyyy-MM-dd (IMPORTANT ⚠️)
     this.todayDate = today.toISOString().split('T')[0];
     this.setupAutosave();
+    window.addEventListener('beforeunload', this.beforeUnloadHandler);
   }
 
   ngOnDestroy() {
+    // Flush any pending debounced autosave immediately — otherwise a quick
+    // tab switch within the 1s debounce window drops the draft, since the
+    // debounce timer is cancelled by takeUntil(destroy$) below before it fires.
+    if (this.formDirty) {
+      this.saveDraft();
+    }
+    window.removeEventListener('beforeunload', this.beforeUnloadHandler);
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -237,6 +252,8 @@ export class FollowupPage implements OnInit, OnDestroy {
       if (this.existingFollowUpEntryId) {
         this.isFollowUpAlreadySaved = true;
         this.interpretation = res?.followUpEntry?.interpretation || '';
+        this.observationsAndSymptoms =
+          res?.followUpEntry?.observationsAndSymptoms || '';
         this.consultationCharge = Number(res?.followUpEntry?.charge || 0);
         this.waveOffAmount = Number(res?.payment?.waveOffAmount || 0);
         this.waveOffSelected = this.waveOffAmount > 0;
@@ -263,6 +280,15 @@ export class FollowupPage implements OnInit, OnDestroy {
       }
     } catch (err) {
       console.error('Summary load error:', err);
+    }
+
+    try {
+      const balanceRes: any = await firstValueFrom(
+        this.api.getBalance(this.patientId),
+      );
+      this.pendingBalance = Math.max(0, Number(balanceRes?.pendingBalance ?? 0));
+    } catch (err) {
+      console.error('Balance load error:', err);
     }
   }
 
@@ -436,9 +462,10 @@ export class FollowupPage implements OnInit, OnDestroy {
 
     const consultation = parseFloat(String(this.consultationCharge)) || 0;
     const waveOff = parseFloat(String(this.waveOffAmount)) || 0;
+    const overallCharges = consultation + this.pendingBalance;
 
-    if (waveOff > consultation) {
-      this.showToast('Wave off cannot exceed consultation charges');
+    if (waveOff > overallCharges) {
+      this.showToast('Wave off cannot exceed overall charges');
       return;
     }
 
@@ -450,7 +477,7 @@ export class FollowupPage implements OnInit, OnDestroy {
         appointmentId: this.currentAppointmentId,
         followUpDate: new Date().toISOString(),
         interpretation: this.interpretation,
-        temporaryProblems: this.temporaryProblems,
+        observationsAndSymptoms: this.observationsAndSymptoms,
         charge: consultation,
         statusRecords: this.buildStatusRecords(),
       };
@@ -586,9 +613,14 @@ export class FollowupPage implements OnInit, OnDestroy {
       }
     });
 
-    // If nothing changed, notify user
+    // Nothing left to send — rows already persisted via per-row autosave on blur.
+    // Still confirm success and exit edit mode instead of leaving the user stuck.
     if (!createList.length && !updateList.length) {
-      this.showToast('No changes to save');
+      this.showToast('Symptoms saved successfully');
+      this.isSaved = true;
+      this.isEditMode = false;
+      // Reload to drop blank trailing rows the auto-expand listener added while editing
+      await this.loadCriteria();
       return;
     }
 
@@ -636,6 +668,90 @@ export class FollowupPage implements OnInit, OnDestroy {
       this.showToast(getErrorMessage(err, 'Save failed. Please try again.'));
     } finally {
       this.criteriaLoading = false;
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // AUTOSAVE A SINGLE SYMPTOM ROW TO THE BACKEND ON BLUR
+  // Fires when the doctor leaves a symptom box (e.g. to fill in medicines)
+  // without clicking "Save/Update Criteria" — persists just that row so
+  // nothing is lost, without disturbing the rest of the form.
+  // ─────────────────────────────────────────────────────────────────────────
+
+  async onSymptomBlur(index: number) {
+    if (this.isReadonly) return;
+
+    const ctrl = this.fuSymptomsArr.at(index) as any;
+    const value = (ctrl.getRawValue() || '').trim();
+    if (!value) return;
+
+    const criteriaId = ctrl.criteriaId;
+
+    try {
+      if (criteriaId) {
+        const existing = this.existingCriteria.find(
+          (x: any) => x.patientFollowUpCriteriaId === criteriaId,
+        );
+
+        // Nothing changed since last save
+        if (!existing || existing.criteriaName === value) return;
+
+        await firstValueFrom(
+          this.api.updateCriteria({
+            patientFollowUpCriteriaId: criteriaId,
+            patientId: this.patientId,
+            criteriaName: value,
+          }),
+        );
+
+        existing.criteriaName = value;
+      } else {
+        // Already auto-saved this exact value — avoid creating a duplicate
+        if (ctrl.autosavedValue === value) return;
+
+        await firstValueFrom(
+          this.api.createCriteria({
+            patientId: this.patientId,
+            criteriaNames: [value],
+          }),
+        );
+
+        ctrl.autosavedValue = value;
+        this.isSaved = true;
+
+        // Recover the real criteriaId from the backend so a later edit
+        // updates this row instead of creating another one
+        await this.syncCriteriaIds();
+      }
+
+      this.showToast('Symptom saved');
+    } catch (err) {
+      console.error('Symptom autosave error:', err);
+      this.showToast(getErrorMessage(err, 'Auto-save failed for this symptom.'));
+    }
+  }
+
+  // Refreshes existingCriteria + backfills criteriaId onto controls without
+  // rebuilding the form array (so in-progress edits in other rows survive).
+  private async syncCriteriaIds() {
+    try {
+      const res: any = await firstValueFrom(
+        this.api.getCriteriaByPatient(this.patientId),
+      );
+      const list = Array.isArray(res) ? res : res?.data || [];
+      this.existingCriteria = [...list];
+
+      this.fuSymptomsArr.controls.forEach((ctrl: any) => {
+        if (ctrl.criteriaId) return;
+
+        const value = (ctrl.getRawValue() || '').trim();
+        if (!value) return;
+
+        const match = list.find((x: any) => x.criteriaName === value);
+        if (match) ctrl.criteriaId = match.patientFollowUpCriteriaId;
+      });
+    } catch (err) {
+      console.error('Sync criteria ids error:', err);
     }
   }
 
@@ -1034,7 +1150,7 @@ export class FollowupPage implements OnInit, OnDestroy {
         appointmentId: this.currentAppointmentId,
         followUpDate: new Date().toISOString(),
         interpretation: this.interpretation,
-        temporaryProblems: this.temporaryProblems,
+        observationsAndSymptoms: this.observationsAndSymptoms,
         charge: this.consultationCharge,
         statusRecords: this.buildStatusRecords(),
       };
@@ -1099,12 +1215,13 @@ export class FollowupPage implements OnInit, OnDestroy {
 
       const consultation = parseFloat(String(this.consultationCharge)) || 0;
       const waveOff = parseFloat(String(this.waveOffAmount)) || 0;
+      const overallCharges = consultation + this.pendingBalance;
 
       console.log('CONSULTATION INPUT:', consultation);
       console.log('WAVE OFF INPUT:', waveOff);
 
-      if (waveOff > consultation) {
-        this.showToast('Wave off cannot exceed consultation charges');
+      if (waveOff > overallCharges) {
+        this.showToast('Wave off cannot exceed overall charges');
         return;
       }
 
@@ -1264,7 +1381,7 @@ export class FollowupPage implements OnInit, OnDestroy {
   private saveDraft() {
     const draft = {
       interpretation: this.interpretation,
-      temporaryProblems: this.temporaryProblems,
+      observationsAndSymptoms: this.observationsAndSymptoms,
       consultationCharge: this.consultationCharge,
       waveOffAmount: this.waveOffAmount,
       waveOffSelected: this.waveOffSelected,
@@ -1293,8 +1410,8 @@ export class FollowupPage implements OnInit, OnDestroy {
     try {
       const draft = JSON.parse(raw);
       this.interpretation = draft.interpretation ?? this.interpretation;
-      this.temporaryProblems =
-        draft.temporaryProblems ?? this.temporaryProblems;
+      this.observationsAndSymptoms =
+        draft.observationsAndSymptoms ?? this.observationsAndSymptoms;
       this.consultationCharge =
         draft.consultationCharge ?? this.consultationCharge;
       this.waveOffAmount = draft.waveOffAmount ?? this.waveOffAmount;
@@ -1336,6 +1453,7 @@ export class FollowupPage implements OnInit, OnDestroy {
   // ─────────────────────────────────────────────────────────────────────────
   private clearDraft() {
     localStorage.removeItem(this.autosaveKey);
+    this.formDirty = false;
     console.log('Draft cleared from localStorage');
   }
 
@@ -1344,6 +1462,7 @@ export class FollowupPage implements OnInit, OnDestroy {
   // Call this from every field change
   // ─────────────────────────────────────────────────────────────────────────
   triggerAutosave() {
+    this.formDirty = true;
     this.autosave$.next();
   }
   onInterpretationChange(value: string) {
@@ -1374,6 +1493,16 @@ export class FollowupPage implements OnInit, OnDestroy {
     this.triggerAutosave();
   }
 
+  onObservationsChange(value: string) {
+    if (this.isReadonly) return;
+    let cleaned = (value || '').replace(/[ \t]+$/gm, '');
+    if (cleaned.length > 2000) {
+      cleaned = cleaned.substring(0, 2000);
+    }
+    this.observationsAndSymptoms = cleaned;
+    this.triggerAutosave();
+  }
+
   // ─────────────────────────────────────────────────────────────────────────
   // MEDICINE & INTERPRETATION — AUTO NUMBERING
   // Pressing Enter continues the numbered list (1. 2. 3. …); pressing Enter
@@ -1386,11 +1515,13 @@ export class FollowupPage implements OnInit, OnDestroy {
     if (textarea.disabled) return;
 
     if (!this.interpretation || !this.interpretation.trim()) {
-      this.interpretation = '1. ';
-      setTimeout(() => {
-        const len = textarea.value.length;
-        textarea.setSelectionRange(len, len);
-      });
+      // Update the DOM synchronously (not via setTimeout) so the cursor lands
+      // in the right place before any further keystrokes can arrive — relying
+      // on Angular's async change detection alone here races with fast typing.
+      const seed = '1. ';
+      textarea.value = seed;
+      textarea.setSelectionRange(seed.length, seed.length);
+      this.interpretation = seed;
     }
   }
 
@@ -1437,10 +1568,12 @@ export class FollowupPage implements OnInit, OnDestroy {
       newCursorPos = Math.min(newCursorPos, newValue.length);
     }
 
+    // Update the DOM synchronously so the value + cursor are correct before
+    // any further keystrokes can arrive (see onInterpretationFocus for why).
+    textarea.value = newValue;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
     this.interpretation = newValue;
     this.triggerAutosave();
-
-    setTimeout(() => textarea.setSelectionRange(newCursorPos, newCursorPos));
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -1509,10 +1642,10 @@ export class FollowupPage implements OnInit, OnDestroy {
       newCursorPos = Math.min(newCursorPos, newValue.length);
     }
 
+    textarea.value = newValue;
+    textarea.setSelectionRange(newCursorPos, newCursorPos);
     this.interpretation = newValue;
     this.triggerAutosave();
-
-    setTimeout(() => textarea.setSelectionRange(newCursorPos, newCursorPos));
   }
 
   // Splits pasted clipboard text into individual list items: prefers existing

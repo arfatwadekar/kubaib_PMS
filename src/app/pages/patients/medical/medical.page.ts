@@ -29,6 +29,10 @@ type Complaint = {
   concomitant: string;
 };
 
+type ComplaintField = 'location' | 'sensation' | 'modality' | 'concomitant';
+type ComplaintRow = Record<ComplaintField, string>;
+type ComplaintSectionKey = 'chief' | 'associated' | 'past';
+
 @Component({
   selector: 'app-medical',
   templateUrl: './medical.page.html',
@@ -40,10 +44,11 @@ export class MedicalPage implements OnInit, OnDestroy {
   // STATE
   // =====================
   loading = false;
+  initialLoading = false;
   patientId: number | null = null;
   medicalExists = false;
-  openSection: string = 's1';
-
+  openSections: string[] = ['s1'];
+private onWindowResize = () => this.autoGrowAllComplaintRows();
   // ⭐ AUTO-SAVE STATE
   private isAutoSaving = false;
   private autoSaveInProgress = false;
@@ -53,6 +58,19 @@ export class MedicalPage implements OnInit, OnDestroy {
 
   role: 'Doctor' | 'Receptionist' = 'Receptionist';
 isReadonly = false;
+
+  // Complaints & History table — one row per complaint point, shared
+  // across all 4 columns (L/S/M/C) so they stay vertically in sync:
+  // whichever column's text wraps tallest sets the row height, and the
+  // shorter columns just get blank space before the next point.
+  complaintFields: ComplaintField[] = ['location', 'sensation', 'modality', 'concomitant'];
+  // Keyed loosely by string (not ComplaintSectionKey) so the template's
+  // inline `section.key` — which Angular widens to `string` — can index it.
+  complaintRows: Record<string, ComplaintRow[]> = {
+    chief: [this.emptyComplaintRow()],
+    associated: [this.emptyComplaintRow()],
+    past: [this.emptyComplaintRow()],
+  };
 
   // ============================================================
   // MEDICAL FORM
@@ -221,7 +239,6 @@ isReadonly = false;
   // =====================
   ngOnInit(): void {
     this.loadRole();
-    this.initMedicalBmiAutoCalc();
 
     this.sub.add(
       this.route.queryParams.subscribe((qp) => {
@@ -230,6 +247,7 @@ isReadonly = false;
         if (id > 0) {
           this.patientId = id;
           this.medicalExists = false;
+          this.initialLoading = true;
           void this.loadClinicalCaseIfExists();
         } else {
           this.patientId = null;
@@ -241,12 +259,16 @@ isReadonly = false;
     if (this.isReadonly) {
     this.medicalForm.disable({ emitEvent: false });
   }
+
+   // 👇 NEW — width change hone par bhi heights recalc ho
+  window.addEventListener('resize', this.onWindowResize);
   }
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
+    window.removeEventListener('resize', this.onWindowResize);
   }
 
   // ============================================================
@@ -280,7 +302,12 @@ isReadonly = false;
    * Auto-save before navigation with silent success
    */
   private async autoSaveBeforeNavigation(): Promise<void> {
-    if (!this.patientId || this.autoSaveInProgress || !this.medicalForm?.dirty) {
+    if (
+      !this.patientId ||
+      this.autoSaveInProgress ||
+      !this.medicalForm?.dirty ||
+      this.initialLoading
+    ) {
       return;
     }
 
@@ -315,44 +342,287 @@ isReadonly = false;
   }
 
   // ============================================================
-  // BMI AUTO CALC
+  // COMPLAINTS & HISTORY — POINT-ROW TABLE
+  // Each complaint point is one row shared across all 4 columns
+  // (L/S/M/C). Using a real DOM row per point (instead of 4 independent
+  // free-text blobs) lets the browser sync each row's height to its
+  // tallest cell for free, so point 2 always starts at the same Y in
+  // every column even if only one column's point 1 wrapped. The row
+  // number is just the row's position (never stored inline); the flat
+  // "1. .../2. ..." strings the API expects are derived from the rows
+  // on every edit, and parsed back into rows on load.
   // ============================================================
-  private initMedicalBmiAutoCalc() {
-    const pe = this.medicalForm.get('physicalExamination') as FormGroup;
+  private emptyComplaintRow(): ComplaintRow {
+    return { location: '', sensation: '', modality: '', concomitant: '' };
+  }
 
-    const recalc = () => {
-      const h = Number(pe.controls['heightMeters']?.value || 0);
-      const w = Number(pe.controls['weightKg']?.value || 0);
-
-      if (!h || !w) {
-        pe.patchValue({ bmi: '', bmiCategory: '' }, { emitEvent: false });
-        return;
+  private parseNumberedField(value: string): Map<number, string> {
+    const map = new Map<number, string>();
+    (value || '').split('\n').forEach((line) => {
+      const m = line.match(/^(\d+)\.\s?(.*)$/);
+      if (m) {
+        const n = parseInt(m[1], 10);
+        if (n > 0) map.set(n - 1, m[2]);
       }
+    });
+    return map;
+  }
 
-      const bmi = w / (h * h);
-      const bmiStr = Number.isFinite(bmi) ? bmi.toFixed(2) : '';
+  private syncComplaintFormFromRows(sectionKey: string): void {
+    const rows = this.complaintRows[sectionKey];
+    const group = this.medicalForm.get(['complaints', sectionKey]) as FormGroup;
 
-      let cat = '';
-      if (bmi < 18.5) cat = 'Underweight';
-      else if (bmi < 25) cat = 'Normal';
-      else if (bmi < 30) cat = 'Overweight';
-      else cat = 'Obese';
+    this.complaintFields.forEach((field) => {
+      let text = rows
+        .map((row, i) => ({ i, text: (row[field] || '').trim() }))
+        .filter((x) => x.text)
+        .map((x) => `${x.i + 1}. ${x.text}`)
+        .join('\n');
 
-      pe.patchValue({ bmi: bmiStr, bmiCategory: cat }, { emitEvent: false });
-    };
+      if (text.length > 1000) text = text.slice(0, 1000);
+      group.get(field)?.setValue(text, { emitEvent: false });
+    });
 
-    pe.controls['heightMeters'].valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(recalc);
-    pe.controls['weightKg'].valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(recalc);
+    group.markAsDirty();
+  }
+
+  private buildComplaintRowsFromForm(sectionKey: string): void {
+    const group = this.medicalForm.get(['complaints', sectionKey]) as FormGroup;
+    const parsed = this.complaintFields.map((field) =>
+      this.parseNumberedField(group.get(field)?.value || ''),
+    );
+
+    let rowCount = 0;
+    parsed.forEach((map) => map.forEach((_v, i) => (rowCount = Math.max(rowCount, i + 1))));
+    if (rowCount === 0) rowCount = 1;
+
+    const rows: ComplaintRow[] = [];
+    for (let i = 0; i < rowCount; i++) {
+      const row = this.emptyComplaintRow();
+      this.complaintFields.forEach((field, fIdx) => (row[field] = parsed[fIdx].get(i) || ''));
+      rows.push(row);
+    }
+    this.complaintRows[sectionKey] = rows;
+  }
+
+  private buildAllComplaintRowsFromForm(): void {
+    (['chief', 'associated', 'past'] as ComplaintSectionKey[]).forEach((k) =>
+      this.buildComplaintRowsFromForm(k),
+    );
+  }
+
+private autoGrowRow(rowEl: Element): void {
+  const textareas = Array.from(rowEl.querySelectorAll('textarea')) as HTMLTextAreaElement[];
+  if (!textareas.length) return;
+
+  textareas.forEach((t) => (t.style.height = 'auto'));
+  const maxHeight = Math.max(40, ...textareas.map((t) => t.scrollHeight)) + 8;
+  textareas.forEach((t) => (t.style.height = `${maxHeight}px`));
+}
+  autoGrowAllComplaintRows(): void {
+    setTimeout(() => {
+      document.querySelectorAll('.table-row').forEach((row) => this.autoGrowRow(row));
+    });
+  }
+
+  // <textarea> elements have their own native scroll handling and don't
+  // reliably chain mouse-wheel scrolls up to a scrollable ancestor even when
+  // they have no overflow of their own — so scrolling the mouse wheel while
+  // hovering over the text would otherwise do nothing. Forward it manually.
+  // onComplaintWheel(event: WheelEvent): void {
+  //   const textarea = event.target as HTMLTextAreaElement;
+  //   const wrapper = textarea.closest('.table-row-scroll') as HTMLElement | null;
+  //   if (!wrapper) return;
+
+  //   event.preventDefault();
+  //   wrapper.scrollTop += event.deltaY;
+  // }
+  
+  // Remove this — no longer needed once .table-row-scroll isn't scrollable
+onComplaintWheel(event: WheelEvent): void {
+  const textarea = event.target as HTMLTextAreaElement;
+  const wrapper = textarea.closest('.table-row-scroll') as HTMLElement | null;
+  if (!wrapper) return;
+
+  event.preventDefault();
+  wrapper.scrollTop += event.deltaY;
+}
+
+  // onComplaintRowInput(
+  //   event: Event,
+  //   sectionKey: string,
+  //   rowIndex: number,
+  //   field: ComplaintField,
+  // ): void {
+  //   const textarea = event.target as HTMLTextAreaElement;
+  //   this.complaintRows[sectionKey][rowIndex][field] = textarea.value;
+  //   this.syncComplaintFormFromRows(sectionKey);
+
+  //   const row = textarea.closest('.table-row');
+  //   if (row) this.autoGrowRow(row);
+  // }
+
+  onComplaintRowInput(
+  event: Event,
+  sectionKey: string,
+  rowIndex: number,
+  field: ComplaintField,
+): void {
+  const textarea = event.target as HTMLTextAreaElement;
+  this.complaintRows[sectionKey][rowIndex][field] = textarea.value;
+
+  // 👇 Agar user LAST row me type kar raha hai aur usme kuch text aa gaya
+  // hai, to ek naya blank row automatically end me add kar do — user ko
+  // Enter dabane ki zaroorat nahi, agli row apne aap ready mil jaati hai.
+  const rows = this.complaintRows[sectionKey];
+  const isLastRow = rowIndex === rows.length - 1;
+  const rowHasContent = this.complaintFields.some((f) => (rows[rowIndex][f] || '').trim());
+
+  if (isLastRow && rowHasContent) {
+    rows.push(this.emptyComplaintRow());
+  }
+
+  this.syncComplaintFormFromRows(sectionKey);
+
+  const row = textarea.closest('.table-row');
+  if (row) this.autoGrowRow(row);
+}
+
+  private focusComplaintCell(
+    sectionKey: string,
+    rowIndex: number,
+    field: ComplaintField,
+    atEnd = false,
+  ): void {
+    setTimeout(() => {
+      const el = document.querySelector(
+        `.table-wrap[data-section="${sectionKey}"] .table-row[data-row-index="${rowIndex}"] textarea[data-field="${field}"]`,
+      ) as HTMLTextAreaElement | null;
+      if (!el) return;
+
+      el.focus();
+      if (atEnd) el.setSelectionRange(el.value.length, el.value.length);
+
+      const row = el.closest('.table-row');
+      if (row) this.autoGrowRow(row);
+    });
+  }
+
+  onComplaintRowKeydown(
+    event: KeyboardEvent,
+    sectionKey: string,
+    rowIndex: number,
+    field: ComplaintField,
+  ): void {
+    if (this.isReadonly) return;
+    const textarea = event.target as HTMLTextAreaElement;
+
+    // if (event.key === 'Enter' && !event.shiftKey) {
+    //   event.preventDefault();
+    //   const rows = this.complaintRows[sectionKey];
+    //   rows.splice(rowIndex + 1, 0, this.emptyComplaintRow());
+    //   this.syncComplaintFormFromRows(sectionKey);
+    //   this.focusComplaintCell(sectionKey, rowIndex + 1, field);
+    //   return;
+    // }
+
+    if (event.key === 'Enter' && !event.shiftKey) {
+  event.preventDefault();
+  const rows = this.complaintRows[sectionKey];
+
+  // 👇 Agar agli row already khaali hai (auto-add ne bana di thi jab is
+  // row me type kiya tha), to dobara nayi row mat banao — sirf usi
+  // khaali row pe focus kar do. Warna duplicate blank row ban jaati thi.
+  const nextRow = rows[rowIndex + 1];
+  const nextRowIsEmpty =
+    !!nextRow && this.complaintFields.every((f) => !nextRow[f]);
+
+  if (!nextRowIsEmpty) {
+    rows.splice(rowIndex + 1, 0, this.emptyComplaintRow());
+    this.syncComplaintFormFromRows(sectionKey);
+  }
+
+  this.focusComplaintCell(sectionKey, rowIndex + 1, field);
+  return;
+}
+
+    if (event.key === 'Backspace') {
+      const rows = this.complaintRows[sectionKey];
+      const row = rows[rowIndex];
+      const rowIsEmpty = this.complaintFields.every((f) => !row[f]);
+      const atStart = (textarea.selectionStart ?? 0) === 0 && (textarea.selectionEnd ?? 0) === 0;
+
+      if (rowIsEmpty && atStart && rows.length > 1) {
+        event.preventDefault();
+        rows.splice(rowIndex, 1);
+        this.syncComplaintFormFromRows(sectionKey);
+        this.focusComplaintCell(sectionKey, Math.max(0, rowIndex - 1), field, true);
+      }
+    }
+  }
+
+  // Pasted text (already numbered, or one point per line) becomes new rows,
+  // starting in the pasted-into field of the current row.
+  onComplaintPaste(
+    event: ClipboardEvent,
+    sectionKey: string,
+    rowIndex: number,
+    field: ComplaintField,
+  ): void {
+    if (this.isReadonly) return;
+
+    const pasted = event.clipboardData?.getData('text/plain');
+    if (!pasted || !pasted.trim()) return;
+
+    const items = this.splitIntoListItems(pasted);
+    if (items.length <= 1) return; // let the default single-line paste happen
+
+    event.preventDefault();
+
+    const rows = this.complaintRows[sectionKey];
+    rows[rowIndex][field] = items[0];
+    for (let k = 1; k < items.length; k++) {
+      const insertAt = rowIndex + k;
+      if (!rows[insertAt]) rows.splice(insertAt, 0, this.emptyComplaintRow());
+      rows[insertAt][field] = items[k];
+    }
+
+    this.syncComplaintFormFromRows(sectionKey);
+    this.autoGrowAllComplaintRows();
+  }
+
+  // Splits pasted clipboard text into individual list items: prefers existing
+  // "1. " / "1) " numbering, falls back to one item per non-empty line.
+  private splitIntoListItems(text: string): string[] {
+    const normalized = text.replace(/\r\n/g, '\n').trim();
+    if (!normalized) return [];
+
+    const numberedSplit = normalized
+      .split(/\s*\d+[.)]\s+/)
+      .map((s) => s.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+
+    if (numberedSplit.length > 1) {
+      return numberedSplit;
+    }
+
+    const lineSplit = normalized
+      .split('\n')
+      .map((s) => s.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+
+    return lineSplit.length ? lineSplit : [normalized.replace(/\s+/g, ' ').trim()];
   }
 
   private resetMedicalForm() {
     this.medicalForm.reset();
-    this.openSection = 's1';
+    this.openSections = ['s1'];
     this.medicalExists = false;
+    this.complaintRows = {
+      chief: [this.emptyComplaintRow()],
+      associated: [this.emptyComplaintRow()],
+      past: [this.emptyComplaintRow()],
+    };
   }
 
   // ============================================================
@@ -375,7 +645,7 @@ isReadonly = false;
     g?.patchValue({ [key]: next }, { emitEvent: false });
     g?.markAsDirty();
   }
-  
+
   getBtnClass(key: string): string {
     const g = this.medicalForm.get('mentalState') as FormGroup;
     const v = (g?.get(key)?.value ?? '').toString().trim();
@@ -543,7 +813,7 @@ isReadonly = false;
       await this.toast('PatientId missing. Open patient in edit mode.');
       return;
     }
-    if (this.loading) return;
+    if (this.loading || this.initialLoading) return;
 
     const payload = this.buildClinicalCasePayload();
     this.loading = true;
@@ -575,7 +845,10 @@ isReadonly = false;
   // LOAD FROM API
   // ============================================================
   async loadClinicalCaseIfExists() {
-    if (!this.patientId) return;
+    if (!this.patientId) {
+      this.initialLoading = false;
+      return;
+    }
 
     try {
       const res: any = await firstValueFrom(
@@ -604,9 +877,11 @@ isReadonly = false;
       }
 
       this.patchMedicalFormFromApi(data);
+      this.buildAllComplaintRowsFromForm();
       this.medicalForm.markAsPristine();
       this.medicalExists = true;
-  
+      this.autoGrowAllComplaintRows();
+
 if (this.isReadonly) {
   this.medicalForm.disable({ emitEvent: false });
 }
@@ -617,6 +892,8 @@ if (this.isReadonly) {
       }
 
       this.medicalExists = false;
+    } finally {
+      this.initialLoading = false;
     }
   }
 
@@ -769,8 +1046,11 @@ goPrevIdentity() {
     await a.present();
   }
 
-  onAccordionChange(event: any) {
+onAccordionChange(event: any) {
   event.preventDefault();
+  // Section open hote hi heights dobara calculate karo — collapsed
+  // accordion ke andar textarea ka scrollHeight galat/0 aata hai
+  this.autoGrowAllComplaintRows();
 }
 
 private loadRole() {
