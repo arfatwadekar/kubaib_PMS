@@ -78,6 +78,7 @@ ion-content {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 /* =====================================================
@@ -114,6 +115,13 @@ ion-row {
 /* =====================================================
    PID DISPLAY
 ===================================================== */
+
+.pid-info-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
 
 .pid-row {
   display: flex;

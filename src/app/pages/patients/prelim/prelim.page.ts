@@ -60,6 +60,8 @@ export class PrelimPage implements OnInit, OnDestroy, CanComponentDeactivate {
   successMode: 'create' | 'update' = 'create';
   successPatient: any = null;
 
+  createdOn: string | null = null;
+
   private currentPatient: any = null;
   private sub = new Subscription();
   private isSaved = false;
@@ -189,6 +191,7 @@ export class PrelimPage implements OnInit, OnDestroy, CanComponentDeactivate {
       next: (res: any) => {
         const p = res?.data ?? res;
         this.currentPatient = p;
+        this.createdOn = p.createdOn ?? null;
         this.form.patchValue({
           pid: safeStr(p.pid), 
           firstName:          safeStr(p.firstName),

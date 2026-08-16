@@ -15,11 +15,17 @@
     <div class="section">
       <div class="section-title section-title-row">
         <span>Basic Details</span>
-        <!-- PID — shown only in edit mode when pid exists, always non-editable -->
-        <span class="pid-row" *ngIf="form.get('pid')?.value">
-          <span class="pid-label">Patient ID (PID) :</span>
-          <span class="pid-value">{{ form.get('pid')?.value }}</span>
-          <input type="hidden" formControlName="pid" />
+        <span class="pid-info-group">
+          <!-- PID — shown only in edit mode when pid exists, always non-editable -->
+          <span class="pid-row" *ngIf="form.get('pid')?.value">
+            <span class="pid-label">Patient ID (PID) :</span>
+            <span class="pid-value">{{ form.get('pid')?.value }}</span>
+            <input type="hidden" formControlName="pid" />
+          </span>
+          <span class="pid-row" *ngIf="createdOn">
+            <span class="pid-label">Registered On :</span>
+            <span class="pid-value">{{ createdOn | date:'dd MMM yyyy, hh:mm a' }}</span>
+          </span>
         </span>
       </div>
 
