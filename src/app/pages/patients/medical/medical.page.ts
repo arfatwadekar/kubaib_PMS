@@ -233,7 +233,6 @@ isReadonly = false;
   // =====================
   ngOnInit(): void {
     this.loadRole();
-    this.initMedicalBmiAutoCalc();
     this.setupComplaintsAutoSave();
 
     this.sub.add(
@@ -389,41 +388,6 @@ isReadonly = false;
       this.isAutoSaving = false;
       this.autoSaveInProgress = false;
     }
-  }
-
-  // ============================================================
-  // BMI AUTO CALC
-  // ============================================================
-  private initMedicalBmiAutoCalc() {
-    const pe = this.medicalForm.get('physicalExamination') as FormGroup;
-
-    const recalc = () => {
-      const h = Number(pe.controls['heightMeters']?.value || 0);
-      const w = Number(pe.controls['weightKg']?.value || 0);
-
-      if (!h || !w) {
-        pe.patchValue({ bmi: '', bmiCategory: '' }, { emitEvent: false });
-        return;
-      }
-
-      const bmi = w / (h * h);
-      const bmiStr = Number.isFinite(bmi) ? bmi.toFixed(2) : '';
-
-      let cat = '';
-      if (bmi < 18.5) cat = 'Underweight';
-      else if (bmi < 25) cat = 'Normal';
-      else if (bmi < 30) cat = 'Overweight';
-      else cat = 'Obese';
-
-      pe.patchValue({ bmi: bmiStr, bmiCategory: cat }, { emitEvent: false });
-    };
-
-    pe.controls['heightMeters'].valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(recalc);
-    pe.controls['weightKg'].valueChanges
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(recalc);
   }
 
   private resetMedicalForm() {

@@ -587,7 +587,30 @@ textarea {
     }
   }
 
-  ion-input {
+  // ion-input,
+  // ion-select {
+  //   --background: #ffffff;
+  //   --padding-start: 12px;
+  //   --padding-end: 12px;
+  //   --padding-top: 10px;
+  //   --padding-bottom: 10px;
+
+  //   border: 1px solid #d7ddea;
+  //   border-radius: 10px;
+  //   min-height: 42px;
+  //   font-size: 14px;
+  //   color: #111827;
+  //   width: 100%;
+
+  //   @media (max-width: 767px) {
+  //     width: 100%;
+  //     font-size: 13px;
+  //   }
+  // }
+
+  
+  ion-input,
+  .native-select {
     --background: #ffffff;
     --padding-start: 12px;
     --padding-end: 12px;
@@ -606,8 +629,26 @@ textarea {
     }
   }
 
+  .native-select {
+    width: 100%;
+    padding: 10px 32px 10px 12px;
+    background: #ffffff
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%236b7280' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
+      no-repeat right 12px center;
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+
+    &:focus {
+      outline: none;
+      border-color: #d7ddea;
+      box-shadow: none;
+    }
+  }
+
   ion-item,
-  ion-input::part(native) {
+  ion-input::part(native),
+  ion-select::part(icon) {
     border: none !important;
     box-shadow: none !important;
   }
