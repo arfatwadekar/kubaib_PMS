@@ -133,21 +133,25 @@
   <textarea
     formControlName="location"
     maxlength="1000"
+    placeholder="Location"
     (input)="resizeComplaintRow($event)"
   ></textarea>
   <textarea
     formControlName="sensation"
     maxlength="1000"
+    placeholder="Sensation"
     (input)="resizeComplaintRow($event)"
   ></textarea>
   <textarea
     formControlName="modality"
     maxlength="1000"
+    placeholder="Modality"
     (input)="resizeComplaintRow($event)"
   ></textarea>
   <textarea
     formControlName="concomitant"
     maxlength="1000"
+    placeholder="Concomitant"
     (input)="resizeComplaintRow($event)"
   ></textarea>
 </div>
@@ -296,7 +300,11 @@
           ]"
                   >
                     <label>{{item.label}}</label>
-                    <input class="ps-input" [formControlName]="item.control" />
+                    <input
+                      class="ps-input"
+                      [formControlName]="item.control"
+                      [placeholder]="'Enter ' + item.label"
+                    />
                   </div>
                 </div>
               </div>
@@ -319,7 +327,11 @@
           ]"
                   >
                     <label>{{item.label}}</label>
-                    <input class="ps-input" [formControlName]="item.control" />
+                    <input
+                      class="ps-input"
+                      [formControlName]="item.control"
+                      [placeholder]="'Enter ' + item.label"
+                    />
                   </div>
                 </div>
               </div>
@@ -339,7 +351,11 @@
           ]"
                   >
                     <label>{{item.label}}</label>
-                    <input class="ps-input" [formControlName]="item.control" />
+                    <input
+                      class="ps-input"
+                      [formControlName]="item.control"
+                      [placeholder]="'Enter ' + item.label"
+                    />
                   </div>
                 </div>
               </div>
@@ -459,7 +475,11 @@
           ]"
                   >
                     <label>{{item.label}}</label>
-                    <input class="ps-input" [formControlName]="item.control" />
+                    <input
+                      class="ps-input"
+                      [formControlName]="item.control"
+                      [placeholder]="'Enter ' + item.label"
+                    />
                   </div>
                 </div>
               </div>
@@ -644,7 +664,10 @@
             ]"
                     >
                       <div class="field-label">{{item.label}}</div>
-                      <ion-input [formControlName]="item.control"></ion-input>
+                      <ion-input
+                        [formControlName]="item.control"
+                        [placeholder]="'Enter ' + item.label"
+                      ></ion-input>
                     </ion-col>
                   </ion-row>
                 </ion-grid>
@@ -669,7 +692,10 @@
             ]"
                     >
                       <div class="field-label">{{item.label}}</div>
-                      <ion-input [formControlName]="item.control"></ion-input>
+                      <ion-input
+                        [formControlName]="item.control"
+                        [placeholder]="'Enter ' + item.label"
+                      ></ion-input>
                     </ion-col>
                   </ion-row>
                 </ion-grid>
@@ -695,7 +721,10 @@
             ]"
                     >
                       <div class="field-label">{{item.label}}</div>
-                      <ion-input [formControlName]="item.control"></ion-input>
+                      <ion-input
+                        [formControlName]="item.control"
+                        [placeholder]="'Enter ' + item.label"
+                      ></ion-input>
                     </ion-col>
                   </ion-row>
                 </ion-grid>
@@ -721,7 +750,10 @@
             ]"
                     >
                       <div class="field-label">{{item.label}}</div>
-                      <ion-input [formControlName]="item.control"></ion-input>
+                      <ion-input
+                        [formControlName]="item.control"
+                        [placeholder]="'Enter ' + item.label"
+                      ></ion-input>
                     </ion-col>
                   </ion-row>
                 </ion-grid>
@@ -746,7 +778,10 @@
             ]"
                     >
                       <div class="field-label">{{item.label}}</div>
-                      <ion-input [formControlName]="item.control"></ion-input>
+                      <ion-input
+                        [formControlName]="item.control"
+                        [placeholder]="'Enter ' + item.label"
+                      ></ion-input>
                     </ion-col>
                   </ion-row>
                 </ion-grid>
@@ -773,7 +808,10 @@
             ]"
                     >
                       <div class="field-label">{{item.label}}</div>
-                      <ion-input [formControlName]="item.control"></ion-input>
+                      <ion-input
+                        [formControlName]="item.control"
+                        [placeholder]="'Enter ' + item.label"
+                      ></ion-input>
                     </ion-col>
                   </ion-row>
                 </ion-grid>
@@ -1181,7 +1219,11 @@ SECTION 9: BEHAVIORAL EVALUATION
           ]"
                   >
                     <label>{{item.label}}</label>
-                    <input class="ps-input" [formControlName]="item.control" />
+                    <input
+                      class="ps-input"
+                      [formControlName]="item.control"
+                      [placeholder]="'Enter ' + item.label"
+                    />
                   </div>
                 </div>
               </div>
@@ -1193,7 +1235,11 @@ SECTION 9: BEHAVIORAL EVALUATION
                 <div class="ps-grid">
                   <div class="ps-field">
                     <label>Speech</label>
-                    <input class="ps-input" formControlName="action_Speech" />
+                    <input
+                      class="ps-input"
+                      formControlName="action_Speech"
+                      placeholder="Enter speech pattern"
+                    />
                   </div>
 
                   <div class="ps-field">
@@ -1201,6 +1247,7 @@ SECTION 9: BEHAVIORAL EVALUATION
                     <input
                       class="ps-input"
                       formControlName="action_Behaviour"
+                      placeholder="Enter behaviour"
                     />
                   </div>
 
@@ -1209,6 +1256,7 @@ SECTION 9: BEHAVIORAL EVALUATION
                     <textarea
                       class="ps-input textarea"
                       formControlName="action_Description"
+                      placeholder="Describe the patient's actions..."
                     ></textarea>
                   </div>
                 </div>
@@ -1247,6 +1295,7 @@ SECTION 9: BEHAVIORAL EVALUATION
                   <textarea
                     class="ps-input textarea"
                     formControlName="block_Notes"
+                    placeholder="Write block notes..."
                   ></textarea>
                 </div>
               </div>
@@ -1266,7 +1315,11 @@ SECTION 9: BEHAVIORAL EVALUATION
           ]"
                   >
                     <label>{{item.label}}</label>
-                    <input class="ps-input" [formControlName]="item.control" />
+                    <input
+                      class="ps-input"
+                      [formControlName]="item.control"
+                      [placeholder]="'Enter ' + item.label + ' response'"
+                    />
                   </div>
                 </div>
               </div>
@@ -1281,6 +1334,7 @@ SECTION 9: BEHAVIORAL EVALUATION
                     <input
                       class="ps-input"
                       formControlName="miasmatic_Fundamental"
+                      placeholder="Enter fundamental miasm"
                     />
                   </div>
 
@@ -1289,6 +1343,7 @@ SECTION 9: BEHAVIORAL EVALUATION
                     <input
                       class="ps-input"
                       formControlName="miasmatic_Dominant"
+                      placeholder="Enter dominant miasm"
                     />
                   </div>
                 </div>
@@ -1304,6 +1359,7 @@ SECTION 9: BEHAVIORAL EVALUATION
                     <textarea
                       class="ps-input textarea"
                       formControlName="rubrics"
+                      placeholder="Enter rubrics..."
                     ></textarea>
                   </div>
 
@@ -1317,7 +1373,11 @@ SECTION 9: BEHAVIORAL EVALUATION
           ]"
                   >
                     <label>{{item.label}}</label>
-                    <input class="ps-input" [formControlName]="item.control" />
+                    <input
+                      class="ps-input"
+                      [formControlName]="item.control"
+                      [placeholder]="'Enter ' + item.label"
+                    />
                   </div>
                 </div>
               </div>

@@ -27,9 +27,30 @@ textarea {
   width: 100%;
 
   &::placeholder {
-    color: #9aa6b2;
+    color: #b3bac5;
     opacity: 1; // Firefox fix
   }
+}
+
+// ===== GLOBAL INPUT PLACEHOLDER (light color) =====
+input::placeholder {
+  color: #b3bac5;
+  opacity: 1; // Firefox fix
+}
+
+ion-input {
+  --placeholder-color: #b3bac5;
+  --placeholder-opacity: 1;
+}
+
+ion-select {
+  --placeholder-color: #b3bac5;
+  --placeholder-opacity: 1;
+}
+
+.native-select:invalid,
+.native-select option[value=""] {
+  color: #b3bac5;
 }
 
 // ===== TOP BAR =====
@@ -322,7 +343,8 @@ textarea {
     }
 
     &::placeholder {
-      color: #9aa6b2;
+      color: #b3bac5;
+      opacity: 1;
     }
 
     @media (max-width: 600px) {
@@ -1403,7 +1425,7 @@ textarea {
   color: #111;
 
   &::placeholder {
-    color: #9aa6b2;
+    color: #b3bac5;
     opacity: 1;
   }
 
