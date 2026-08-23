@@ -87,6 +87,18 @@
           <ion-item slot="header" lines="none" class="sec-header modern-header">
             <ion-icon name="document-text-outline"></ion-icon>
             <ion-label>Complaints & History</ion-label>
+            <span
+              class="autosave-indicator autosave-saving"
+              *ngIf="complaintsAutoSaveStatus === 'saving'"
+              (click)="$event.stopPropagation()"
+              >Saving…</span
+            >
+            <span
+              class="autosave-indicator autosave-saved"
+              *ngIf="complaintsAutoSaveStatus === 'saved'"
+              (click)="$event.stopPropagation()"
+              >Saved</span
+            >
           </ion-item>
 
           <div slot="content" class="sec-body modern-body">

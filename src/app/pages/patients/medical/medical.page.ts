@@ -2,7 +2,15 @@ import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertController, ToastController } from '@ionic/angular';
-import { Subject, Subscription, takeUntil, firstValueFrom } from 'rxjs';
+import {
+  Subject,
+  Subscription,
+  takeUntil,
+  firstValueFrom,
+  debounceTime,
+  distinctUntilChanged,
+  skip,
+} from 'rxjs';
 
 import {
   MedicalExaminationService,
@@ -47,6 +55,10 @@ export class MedicalPage implements OnInit, OnDestroy {
   // ⭐ AUTO-SAVE STATE
   private isAutoSaving = false;
   private autoSaveInProgress = false;
+
+  // ⭐ Section 1 (Complaints & History) auto-save status, shown inline in that section's header
+  complaintsAutoSaveStatus: 'idle' | 'saving' | 'saved' = 'idle';
+  private complaintsSavedPillTimer: any = null;
 
   private destroy$ = new Subject<void>();
   private sub = new Subscription();
@@ -222,6 +234,7 @@ isReadonly = false;
   ngOnInit(): void {
     this.loadRole();
     this.initMedicalBmiAutoCalc();
+    this.setupComplaintsAutoSave();
 
     this.sub.add(
       this.route.queryParams.subscribe((qp) => {
@@ -247,6 +260,70 @@ isReadonly = false;
     this.sub.unsubscribe();
     this.destroy$.next();
     this.destroy$.complete();
+    if (this.complaintsSavedPillTimer) {
+      clearTimeout(this.complaintsSavedPillTimer);
+    }
+  }
+
+  // ============================================================
+  // ⭐ SECTION 1 (COMPLAINTS & HISTORY) AUTO-SAVE
+  // ============================================================
+  /**
+   * Unlike the rest of the form (saved only via the "Save Record" button),
+   * Complaints & History auto-saves a short pause after typing stops.
+   */
+  private setupComplaintsAutoSave(): void {
+    const complaints = this.medicalForm.get('complaints');
+    if (!complaints) return;
+
+    complaints.valueChanges
+      .pipe(
+        skip(1), // ignore the initial emit on form construction
+        debounceTime(1200),
+        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
+        takeUntil(this.destroy$),
+      )
+      .subscribe(() => {
+        if (!this.patientId || this.isReadonly) return;
+        void this.autoSaveComplaintsSection();
+      });
+  }
+
+  private async autoSaveComplaintsSection(): Promise<void> {
+    if (!this.patientId || this.isReadonly) return;
+    if (this.autoSaveInProgress || this.loading) return;
+    if (!this.medicalForm.get('complaints')?.dirty) return;
+
+    this.isAutoSaving = true;
+    this.autoSaveInProgress = true;
+    this.complaintsAutoSaveStatus = 'saving';
+
+    try {
+      const payload = this.buildClinicalCasePayload();
+
+      if (this.medicalExists) {
+        await firstValueFrom(this.medicalExamApi.update(payload));
+      } else {
+        await firstValueFrom(this.medicalExamApi.create(payload));
+        this.medicalExists = true;
+      }
+
+      this.medicalForm.markAsPristine();
+      this.complaintsAutoSaveStatus = 'saved';
+
+      if (this.complaintsSavedPillTimer) {
+        clearTimeout(this.complaintsSavedPillTimer);
+      }
+      this.complaintsSavedPillTimer = setTimeout(() => {
+        this.complaintsAutoSaveStatus = 'idle';
+      }, 2500);
+    } catch (error: any) {
+      console.error('❌ Complaints auto-save failed:', error);
+      this.complaintsAutoSaveStatus = 'idle';
+    } finally {
+      this.isAutoSaving = false;
+      this.autoSaveInProgress = false;
+    }
   }
 
   // ============================================================
