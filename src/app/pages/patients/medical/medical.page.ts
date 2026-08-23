@@ -723,6 +723,26 @@ if (this.isReadonly) {
       },
       { emitEvent: false },
     );
+    setTimeout(() => this.resizeComplaintRows());
+  }
+
+  resizeComplaintRow(event: Event) {
+    const source = event.target as HTMLTextAreaElement;
+    const row = source.closest('.table-row') as HTMLElement | null;
+    if (!row) return;
+
+    row.style.height = '320px';
+    const contentHeight = Math.max(
+      ...Array.from(row.querySelectorAll('textarea')).map((textarea) => textarea.scrollHeight),
+    );
+    row.style.height = `${Math.max(320, contentHeight)}px`;
+  }
+
+  private resizeComplaintRows() {
+    document.querySelectorAll<HTMLElement>('.table-row').forEach((row) => {
+      const textarea = row.querySelector('textarea');
+      if (textarea) this.resizeComplaintRow({ target: textarea } as unknown as Event);
+    });
   }
 
   // ============================================================
@@ -780,4 +800,5 @@ private loadRole() {
   // ⭐ MAIN LOGIC
   this.isReadonly = this.role === 'Receptionist';
 }
+
 }

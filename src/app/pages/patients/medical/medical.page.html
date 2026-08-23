@@ -105,35 +105,42 @@
                 <span> (1000 characters)</span>
 
                 <!-- Table -->
-                <div class="table-wrap">
-                  <!-- Header -->
-                  <div class="table-head">
-                    <div>L</div>
-                    <div>S</div>
-                    <div>M</div>
-                    <div>C</div>
-                  </div>
+                <!-- Table -->
+<div class="table-wrap">
+  <!-- Header -->
+  <div class="table-head">
+    <div>L</div>
+    <div>S</div>
+    <div>M</div>
+    <div>C</div>
+  </div>
 
-                  <!-- Row -->
-                  <div class="table-row" [formGroupName]="section.key">
-                    <textarea
-                      formControlName="location"
-                      maxlength="1000"
-                    ></textarea>
-                    <textarea
-                      formControlName="sensation"
-                      maxlength="1000"
-                    ></textarea>
-                    <textarea
-                      formControlName="modality"
-                      maxlength="1000"
-                    ></textarea>
-                    <textarea
-                      formControlName="concomitant"
-                      maxlength="1000"
-                    ></textarea>
-                  </div>
-                </div>
+  <!-- Row -->
+  <div class="table-scroll">
+               <div class="table-row" [formGroupName]="section.key">
+  <textarea
+    formControlName="location"
+    maxlength="1000"
+    (input)="resizeComplaintRow($event)"
+  ></textarea>
+  <textarea
+    formControlName="sensation"
+    maxlength="1000"
+    (input)="resizeComplaintRow($event)"
+  ></textarea>
+  <textarea
+    formControlName="modality"
+    maxlength="1000"
+    (input)="resizeComplaintRow($event)"
+  ></textarea>
+  <textarea
+    formControlName="concomitant"
+    maxlength="1000"
+    (input)="resizeComplaintRow($event)"
+  ></textarea>
+</div>
+  </div>
+</div>
               </div>
             </div>
           </div>
