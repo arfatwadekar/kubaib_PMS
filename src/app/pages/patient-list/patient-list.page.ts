@@ -15,6 +15,7 @@ import {
   switchMap,
   of,
   catchError,
+  map,
 } from 'rxjs';
 
 import { PatientService } from 'src/app/services/patient.service';
@@ -94,6 +95,9 @@ export class PatientListPage implements OnInit, OnDestroy {
   // ── Private ───────────────────────────────────────────────────
   private subs = new Subscription();
   private search$ = new Subject<string>();
+  // Monotonic guard so a stale response (e.g. the list-reload fired by
+  // ionViewWillEnter) can never clobber a newer one (e.g. an in-flight search).
+  private reqId = 0;
 
   // ─────────────────────────────────────────────────────────────
   constructor(
@@ -118,6 +122,13 @@ export class PatientListPage implements OnInit, OnDestroy {
   }
 
   ionViewWillEnter(): void {
+    // Page is cached in the ion-router-outlet stack, so this fires every time
+    // we return (e.g. from the patient detail page) without re-running ngOnInit.
+    // Reset search state so we don't come back with isSearching/searchedOnce
+    // stuck from before navigating away.
+    this.searchText = '';
+    this.isSearching = false;
+    this.searchedOnce = false;
     this.loadPatients(true);
   }
 
@@ -136,12 +147,13 @@ export class PatientListPage implements OnInit, OnDestroy {
         distinctUntilChanged(),
         switchMap((query) => {
           const q = (query || '').trim();
+          const myId = ++this.reqId;
 
           if (!q) {
             this.isSearching = false;
             this.searchedOnce = false;
             this.page = 1;
-            return this.fetchPatients();
+            return this.fetchPatients().pipe(map((res) => ({ res, myId })));
           }
 
           this.isSearching = true;
@@ -150,14 +162,19 @@ export class PatientListPage implements OnInit, OnDestroy {
           this.page = 1;
 
           return this.patientService.searchPatients(q).pipe(
+            map((res) => ({ res, myId })),
             catchError((err) => {
               this.handleError(err, 'Search failed');
-              return of(null);
+              return of({ res: null, myId });
             }),
           );
         }),
       )
-      .subscribe((res) => {
+      .subscribe(({ res, myId }) => {
+        // Discard results from a search/reload that's since been superseded
+        // (e.g. by loadPatients() running from ionViewWillEnter).
+        if (myId !== this.reqId) return;
+
         if (!res) {
           this.loading = false;
           return;
@@ -208,15 +225,19 @@ export class PatientListPage implements OnInit, OnDestroy {
 
   loadPatients(reset = false): void {
     if (reset) this.page = 1;
+    const myId = ++this.reqId;
 
     this.fetchPatients().subscribe({
       next: (res) => {
+        if (myId !== this.reqId) return;
         if (!res) return;
         const list = this.extractArray(res);
         this.rows = this.mapRows(list, this.page);
         this.updatePagination(res, list);
       },
-      complete: () => (this.loading = false),
+      complete: () => {
+        if (myId === this.reqId) this.loading = false;
+      },
     });
   }
 
