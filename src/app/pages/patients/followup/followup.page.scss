@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 // ═══════════════════════════════════════════════════════════════════════════
 // DESIGN TOKENS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -798,7 +800,7 @@ select {
   &:hover {
     border-style: solid;
     border-color: $green;
-    background: darken($green-lt, 3%);
+    background: color.scale($green-lt, $lightness: -3%);
     transform: translateY(-1px);
   }
 

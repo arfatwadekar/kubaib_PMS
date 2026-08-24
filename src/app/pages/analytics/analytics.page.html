@@ -239,7 +239,7 @@
                 <ng-container *ngIf="paginatedHistoryData.length > 0; else emptyRows">
                   <tr *ngFor="let item of paginatedHistoryData" class="ledger-row">
                     <td class="date-cell">{{ formatDate(item.date) }}</td>
-                    <td class="num">{{ item.appointmentCount ?? 0 }}</td>
+                    <td class="num">{{ item.appointmentCount }}</td>
                     <td class="num col-blue">{{ formatINR(item.consultationCharges) }}</td>
                     <td class="num col-green">{{ formatINR(item.consultationReceived) }}</td>
                     <td class="num col-orange">{{ formatINR(item.pendingConsultation) }}</td>

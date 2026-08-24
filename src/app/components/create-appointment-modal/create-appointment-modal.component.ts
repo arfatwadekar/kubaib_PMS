@@ -115,7 +115,7 @@ export class CreateAppointmentModalComponent implements OnInit {
 
   private loadActiveAppointment(): void {
 
-    const patientId = Number(this.patient?.id);
+    const patientId = Number(this.patient.id);
     if (!patientId) return;
 
     this.loadingDetail = true;
@@ -170,7 +170,7 @@ export class CreateAppointmentModalComponent implements OnInit {
 
     const raw = this.form.getRawValue();
 
-    const patientId = Number(this.patient?.id);
+    const patientId = Number(this.patient.id);
     const appointmentDate = raw.appointmentDate as string;
 
     // 🔥 Time logic: optional but auto current time
