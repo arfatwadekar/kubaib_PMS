@@ -30,7 +30,7 @@ $bg-soft: #f9fafb;
   align-items: center;
   margin-bottom: 32px;
   gap: 20px;
-  // flex-wrap: wrap;
+  flex-wrap: wrap;
 }
 
 .header-left h1 {
@@ -90,6 +90,7 @@ $bg-soft: #f9fafb;
   font-weight: 600;
   cursor: pointer;
   transition: 0.2s ease;
+      width: 100%;
 }
 
 .btn-primary:hover {
@@ -145,9 +146,9 @@ $bg-soft: #f9fafb;
 
 /* ================= MOBILE CARDS ================= */
 
-.mobile-view {
-  display: none;
-}
+// .mobile-view {
+//   display: none;
+// }
 
 .medicine-card {
   background: white;
@@ -666,7 +667,7 @@ $bg-soft: #f9fafb;
 
 
 .filter-select {
-  width: 180px;
+  width: 100%;
   height: 44px;
   padding: 0 42px 0 16px;   /* right padding badhao */
   border: 1px solid #e5e7eb;

@@ -42,6 +42,16 @@ export class PatientPage implements OnInit {
       // If tab provided → use it
       if (tab && this.isTabAllowed(tab)) {
         this.activeTab = tab;
+
+        // Keep the router-outlet child route in sync with the tab query param.
+        // Without this, a direct/deep link like /patients?patientId=X&tab=medical
+        // highlights the right tab but the outlet still shows whatever child
+        // route the URL resolved to (the '' → 'prelim' redirect).
+        const currentPath = this.router.url.split('?')[0];
+        if (!currentPath.endsWith(`/${tab}`)) {
+          this.navigateToTab(tab);
+        }
+
         return;
       }
 

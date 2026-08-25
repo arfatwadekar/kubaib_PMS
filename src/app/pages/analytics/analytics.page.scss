@@ -2,6 +2,13 @@
 // ANALYTICS PAGE STYLES
 // =====================================================
 
+$primary: #22c55e;
+$primary-dark: #15803d;
+
+ion-content {
+  --background: linear-gradient(180deg, #f8fafc, #eef2f7);
+}
+
 .analytics-container {
   padding: 16px;
   max-width: 1400px;
@@ -21,10 +28,10 @@
   flex-wrap: wrap;
   gap: 10px 14px;
   background: #ffffff;
-  border: 1px solid #E8ECF4;
-  border-radius: 10px;
+  border: 1.5px solid #eaf0ff;
+  border-radius: 14px;
   padding: 12px 18px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .filter-group {
@@ -74,10 +81,10 @@
     transition: all 0.15s ease;
 
     &.active {
-      background: #0F8B8D;
+      background: linear-gradient(135deg, #{$primary}, #{$primary-dark});
       color: #ffffff;
       font-weight: 600;
-      box-shadow: 0 1px 4px rgba(15, 139, 141, 0.3);
+      box-shadow: 0 2px 8px rgba(34, 197, 94, 0.35);
     }
 
     &:not(.active):hover {
@@ -100,7 +107,7 @@
     cursor: pointer;
     transition: border-color 0.15s;
 
-    &:focus { border-color: #0F8B8D; }
+    &:focus { border-color: $primary; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); }
   }
 }
 
@@ -122,7 +129,7 @@
     cursor: pointer;
     transition: border-color 0.15s;
 
-    &:focus { border-color: #0F8B8D; }
+    &:focus { border-color: $primary; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); }
   }
 
   ion-icon {
@@ -136,33 +143,34 @@
 
 // Action buttons
 .apply-btn {
-  background: #0F8B8D;
+  background: linear-gradient(135deg, #{$primary}, #{$primary-dark});
   color: #ffffff;
   border: none;
-  border-radius: 7px;
+  border-radius: 8px;
   padding: 7px 18px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 3px 10px rgba(34, 197, 94, 0.3);
   white-space: nowrap;
 
-  &:hover { background: #0d7a7c; }
+  &:hover { transform: translateY(-1px); box-shadow: 0 5px 14px rgba(34, 197, 94, 0.35); }
 }
 
 .reset-btn {
-  background: transparent;
-  color: #5A6278;
-  border: 1px solid #E2E8F0;
-  border-radius: 7px;
+  background: #ecfdf5;
+  color: #{$primary-dark};
+  border: 1.5px solid #86efac;
+  border-radius: 8px;
   padding: 7px 14px;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: all 0.15s;
   white-space: nowrap;
 
-  &:hover { border-color: #8A97B2; color: #2D3748; }
+  &:hover { background: #dcfce7; border-color: #{$primary}; }
 }
 
 .icon-btn {
@@ -195,17 +203,17 @@
 
 .kpi-card {
   background: #ffffff;
-  border: 1px solid #E8ECF4;
+  border: 1.5px solid #eaf0ff;
   border-left: 4px solid transparent;
-  border-radius: 12px;
+  border-radius: 14px;
   padding: 18px 20px 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-  transition: box-shadow 0.2s;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  transition: box-shadow 0.15s, transform 0.12s;
 
-  &:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+  &:hover { box-shadow: 0 4px 16px rgba(15, 23, 42, 0.1); transform: translateY(-1px); }
 
   &.border-blue    { border-left-color: #3B82F6; }
   &.border-green   { border-left-color: #10B981; }
@@ -213,6 +221,7 @@
   &.border-cyan    { border-left-color: #06B6D4; }
   &.border-emerald { border-left-color: #059669; }
   &.border-red     { border-left-color: #EF4444; }
+  &.border-purple  { border-left-color: #8B5CF6; }
 }
 
 .kpi-top {
@@ -237,6 +246,7 @@
   &.icon-cyan    { background: #ECFEFF; color: #06B6D4; }
   &.icon-emerald { background: #D1FAE5; color: #059669; }
   &.icon-red     { background: #FEF2F2; color: #EF4444; }
+  &.icon-purple  { background: #F5F3FF; color: #8B5CF6; }
 }
 
 .kpi-label {
@@ -278,6 +288,7 @@
   .tag-cyan    { background: #ECFEFF; color: #0891B2; }
   .tag-emerald { background: #D1FAE5; color: #047857; }
   .tag-red     { background: #FEF2F2; color: #DC2626; }
+  .tag-purple  { background: #F5F3FF; color: #7C3AED; }
 }
 
 // =====================================================
@@ -286,10 +297,10 @@
 
 .table-card {
   background: #ffffff;
-  border: 1px solid #E8ECF4;
-  border-radius: 12px;
+  border: 1.5px solid #eaf0ff;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
 }
 
 .table-header {
@@ -332,13 +343,13 @@
   padding: 6px 12px;
   transition: border-color 0.15s;
 
-  &:focus-within { border-color: #0F8B8D; }
+  &:focus-within { border-color: $primary; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); }
 
   ion-icon { color: #8A97B2; font-size: 15px; flex-shrink: 0; }
 
   input {
     border: none;
-    background: transparent;
+    background: transparent !important;
     outline: none;
     font-size: 13px;
     color: #2D3748;

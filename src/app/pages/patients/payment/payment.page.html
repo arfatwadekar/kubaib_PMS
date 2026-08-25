@@ -93,6 +93,13 @@
   </div> -->
   </div>
 
+  <!-- ================= MEDICINE & INTERPRETATION ================= -->
+  <div class="billing-card" *ngIf="!isPaymentDone">
+    <div class="card-title">Medicine &amp; Interpretation</div>
+    <textarea class="interpretation-view" [value]="interpretation" readonly
+      placeholder="No interpretation recorded"></textarea>
+  </div>
+
   <!-- ================= ADD PAYMENT BUTTON ================= -->
 
   <!-- <div class="add-payment-section" *ngIf="!isPaymentDone">
@@ -106,7 +113,7 @@
 
     <div class="form-grid">
       <div class="form-group">
-        <label>Date</label>
+        <label>Payment Date</label>
         <input type="date" [(ngModel)]="paymentDate" (change)="markDirty()" />
       </div>
 
@@ -187,22 +194,55 @@
             <th>Wave Off</th>
             <th>Amount Paid</th>
             <th>Mode</th>
-            <th>Date</th>
+            <th>PaymentDate</th>
           </tr>
         </thead>
 
         <tbody>
           <tr *ngFor="let p of paginatedPayments; let i = index">
             <td>{{ (currentPage - 1) * pageSize + i + 1 }}</td>
-            <td>₹ {{ p.consultationCharges }}</td>
-            <td>₹ {{ p.waveOffAmount }}</td>
-            <td class="amount">₹ {{ p.amountPaid }}</td>
+            <td class="consultation-cell">
+              <ng-container *ngIf="editingConsultationRow !== p; else editMode">
+                ₹ {{ p.consultationCharges }}
+                <button
+                  type="button"
+                  class="icon-btn edit-icon"
+                  title="Edit consultation charge"
+                  (click)="requestConsultationEdit(p)"
+                >✏️</button>
+              </ng-container>
+
+              <ng-template #editMode>
+                <input
+                  type="number"
+                  class="consultation-edit-input"
+                  [(ngModel)]="editedConsultationValue"
+                  (keydown.arrowup)="$event.preventDefault()"
+                  (keydown.arrowdown)="$event.preventDefault()"
+                  (wheel)="$event.preventDefault()"
+                />
+                <button
+                  type="button"
+                  class="icon-btn save-icon"
+                  title="Save"
+                  (click)="saveConsultationEdit(p)"
+                >✔️</button>
+                <button
+                  type="button"
+                  class="icon-btn cancel-icon"
+                  title="Cancel"
+                  (click)="cancelConsultationEdit()"
+                >✖️</button>
+              </ng-template>
+            </td>
+            <td>₹ {{ p.waveOffAmount ?? 0 }}</td>
+            <td class="amount">₹ {{ p.amountPaid ?? 0 }}</td>
             <td>
               <span class="mode-badge" [ngClass]="p.paymentMode?.toLowerCase()">
                 {{ p.paymentMode || '—' }}
               </span>
             </td>
-            <td>{{ p.paymentDate | date:'dd-MM-yyyy' }}</td>
+            <td>{{ p.paymentDate ? (p.paymentDate | date:'dd-MM-yyyy') : '—' }}</td>
           </tr>
         </tbody>
       </table>
@@ -235,3 +275,29 @@
 <!-- ================= LOADER ================= -->
 
 <div class="loading" *ngIf="loading">Loading payment data...</div>
+
+<!-- ================= ADMIN PASSWORD MODAL (Consultation Charge Edit) ================= -->
+
+<div class="modal-overlay" *ngIf="showConsultationPasswordModal">
+  <div class="modal-box">
+    <div class="modal-icon">🔐</div>
+    <h3 class="modal-title">Admin Verification</h3>
+    <p class="modal-sub">
+      Enter admin password to edit the consultation charge.
+    </p>
+    <input
+      type="password"
+      class="modal-input"
+      placeholder="Enter password"
+      [(ngModel)]="consultationPassword"
+    />
+    <div class="modal-actions">
+      <button class="btn-outline" (click)="closeConsultationPasswordModal()">
+        Cancel
+      </button>
+      <button class="btn-success" (click)="verifyConsultationPassword()">
+        Verify
+      </button>
+    </div>
+  </div>
+</div>

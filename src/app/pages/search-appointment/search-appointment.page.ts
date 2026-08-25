@@ -69,6 +69,15 @@ export class SearchAppointmentPage implements OnInit {
     { value: AppointmentStatus.Cancelled, label: 'Cancelled' },
   ];
 
+  // Display order: InPatient, Awaiting Payment, OutPatient, Cancelled, Pending last.
+  private readonly statusSortOrder: Record<number, number> = {
+    [AppointmentStatus.InPatient]: 0,
+    [AppointmentStatus.AwaitingPayment]: 1,
+    [AppointmentStatus.OutPatient]: 2,
+    [AppointmentStatus.Cancelled]: 3,
+    [AppointmentStatus.Pending]: 4,
+  };
+
   constructor(
     private api: SearchAppointmentService,
     private toastCtrl: ToastController,
@@ -116,6 +125,8 @@ export class SearchAppointmentPage implements OnInit {
           _saving: false
         }));
 
+        this.sortRows();
+
         this.apiTotalPages = res?.totalPages ?? 0;
         this.apiTotalCount = res?.totalCount ?? 0;
 
@@ -136,6 +147,14 @@ export class SearchAppointmentPage implements OnInit {
   /* =========================================================
      FILTER + PAGINATION
   ========================================================= */
+
+  private sortRows() {
+    this.rows.sort((a, b) => {
+      const orderA = this.statusSortOrder[Number(a.status)] ?? 99;
+      const orderB = this.statusSortOrder[Number(b.status)] ?? 99;
+      return orderA - orderB;
+    });
+  }
 
   applyFilter() {
     const temp = this.rows;
@@ -347,6 +366,7 @@ async saveEdit() {
 
           row._saving = false;
           this.toast('Status updated');
+          this.sortRows();
           this.applyFilter();
         },
         error: () => {

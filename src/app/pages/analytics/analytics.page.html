@@ -23,10 +23,10 @@
         </div>
       </div>
 
-      <div class="filter-divider"></div>
+      <div class="filter-divider" *ngIf="filterType === 'Custom'"></div>
 
       <!-- From -->
-      <div class="filter-group">
+      <div class="filter-group" *ngIf="filterType === 'Custom'">
         <span class="filter-label">FROM</span>
         <div class="date-input-box">
           <input
@@ -38,7 +38,7 @@
       </div>
 
       <!-- To -->
-      <div class="filter-group">
+      <div class="filter-group" *ngIf="filterType === 'Custom'">
         <span class="filter-label">TO</span>
         <div class="date-input-box">
           <input
@@ -49,30 +49,14 @@
         </div>
       </div>
 
-      <div class="filter-divider"></div>
-
-      <!-- Gender -->
-      <div class="filter-group">
-        <span class="filter-label">GENDER</span>
-        <div class="select-box">
-          <select [(ngModel)]="selectedGender" (change)="setGenderFilter(selectedGender)">
-            <option value="All">All</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-          </select>
-          <ion-icon name="chevron-down-outline"></ion-icon>
-        </div>
-      </div>
-
       <div class="filter-spacer"></div>
 
       <!-- Actions -->
       <button class="apply-btn" (click)="applyFilters()">Apply Filters</button>
       <button class="reset-btn" (click)="resetFilters()">Reset</button>
-      <button class="icon-btn"  (click)="refreshData()">
+      <!-- <button class="icon-btn"  (click)="refreshData()">
         <ion-icon name="refresh-outline"></ion-icon>
-      </button>
+      </button> -->
     </div>
 
     <!-- ===================== LOADING ===================== -->
@@ -183,6 +167,21 @@
           <div class="kpi-footer">
             <span class="foot-left">Medicine dues outstanding</span>
             <span class="foot-right tag-red">{{ otcPendingRate }}% pending</span>
+          </div>
+        </div>
+
+        <!-- 7. Waved Off Amount -->
+        <div class="kpi-card border-purple">
+          <div class="kpi-top">
+            <div class="kpi-icon icon-purple">
+              <ion-icon name="pricetag-outline"></ion-icon>
+            </div>
+            <div class="kpi-label">Waved Off Amount</div>
+          </div>
+          <div class="kpi-value">{{ waveOffAmount | currency:'INR':'symbol':'1.0-0' }}</div>
+          <div class="kpi-footer">
+            <span class="foot-left">Discounts given this period</span>
+            <span class="foot-right tag-purple">Consultation charges</span>
           </div>
         </div>
 

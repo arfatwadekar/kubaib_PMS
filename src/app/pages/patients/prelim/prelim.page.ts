@@ -60,6 +60,8 @@ export class PrelimPage implements OnInit, OnDestroy, CanComponentDeactivate {
   successMode: 'create' | 'update' = 'create';
   successPatient: any = null;
 
+  createdOn: string | null = null;
+
   private currentPatient: any = null;
   private sub = new Subscription();
   private isSaved = false;
@@ -83,7 +85,7 @@ export class PrelimPage implements OnInit, OnDestroy, CanComponentDeactivate {
     firstName:          ['', [Validators.required, Validators.minLength(2)]],
     lastName:           ['', [Validators.required, Validators.minLength(2)]],
     gender:             ['Male', Validators.required],
-    dateOfBirth:        ['', Validators.required],
+    dateOfBirth:        [''],
     age:                [{ value: '', disabled: true }],
     phoneNumber:        ['', [Validators.required, Validators.pattern(/^\d{10}$/)]],
     alternateNumber:    [''],
@@ -189,6 +191,7 @@ export class PrelimPage implements OnInit, OnDestroy, CanComponentDeactivate {
       next: (res: any) => {
         const p = res?.data ?? res;
         this.currentPatient = p;
+        this.createdOn = p.createdOn ?? null;
         this.form.patchValue({
           pid: safeStr(p.pid), 
           firstName:          safeStr(p.firstName),
@@ -233,33 +236,7 @@ export class PrelimPage implements OnInit, OnDestroy, CanComponentDeactivate {
       return;
     }
 
-    // Additional validation for duplicate phone number (only for create mode)
-    if (!this.isEditMode) {
-      this.checkDuplicatePhone(phone).then(isDuplicate => {
-        if (isDuplicate) {
-          this.toast('A patient with this phone number already exists.');
-          return;
-        }
-        this.performSubmit();
-      }).catch(() => {
-        // If duplicate check fails, proceed anyway
-        this.performSubmit();
-      });
-    } else {
-      this.performSubmit();
-    }
-  }
-
-  private async checkDuplicatePhone(phone: string): Promise<boolean> {
-    try {
-      const res: any = await this.patient.searchPatients(phone).toPromise();
-      const patients = res?.data || res || [];
-      return patients.length > 0;
-    } catch {
-      // If search fails, allow submission but log the issue
-      console.warn('Could not check for duplicate phone number');
-      return false;
-    }
+    this.performSubmit();
   }
 
   private performSubmit(retryCount = 0): void {
@@ -302,13 +279,7 @@ export class PrelimPage implements OnInit, OnDestroy, CanComponentDeactivate {
           return;
         }
 
-        // Conflict on patient create/update is almost always a duplicate phone number
-        const fallback =
-          err?.status === 409
-            ? 'Patient with this phone number already exists.'
-            : 'Operation failed. Please try again.';
-
-        this.toast(getErrorMessage(err, fallback));
+        this.toast(getErrorMessage(err));
       },
     });
   }

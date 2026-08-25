@@ -47,14 +47,14 @@ export type FollowUpStatusRecord = {
 };
 
 export type FollowUpCreatePayload = {
-  patientFollowUpEntryId: number;
-  patientId:              number;
-  appointmentId:          number;
-  followUpDate:           string;
-  interpretation:         string;
-  temporaryProblems?:     string;
-  charge:                 number;
-  statusRecords:          FollowUpStatusRecord[];
+  patientFollowUpEntryId:  number;
+  patientId:               number;
+  appointmentId:           number;
+  followUpDate:            string;
+  interpretation:          string;
+  observationsAndSymptoms: string;
+  charge:                  number;
+  statusRecords:           FollowUpStatusRecord[];
 };
 
 // ══════════════════════════════════════════
@@ -153,6 +153,7 @@ export class FollowUpService {
     PAYMENT_CREATE:                       `api/Payment`,
     PAYMENT_BY_ID:       (id: number)  => `api/Payment/${id}`,
     PAYMENT_BY_PATIENT:  (pid: number) => `api/Payment/patient/${pid}`,
+    PAYMENT_BALANCE:     (pid: number) => `api/Payment/patient/${pid}/balance`,
 
     // Discount code verify (replaces admin password for wave-off)
     VERIFY_ADMIN_PASSWORD: `api/Auth/verify-admin-password`,
@@ -263,6 +264,10 @@ export class FollowUpService {
 
   getPaymentsByPatient(patientId: number): Observable<any> {
     return this.http.get(this.url(this.EP.PAYMENT_BY_PATIENT(patientId)));
+  }
+
+  getBalance(patientId: number): Observable<any> {
+    return this.http.get(this.url(this.EP.PAYMENT_BALANCE(patientId)));
   }
 
   // ── Discount Code Verify (PRD: wave-off uses discount code, not admin pwd) ─
