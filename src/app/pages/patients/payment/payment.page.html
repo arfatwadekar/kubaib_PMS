@@ -133,7 +133,7 @@
           (input)="recalculateBalance()"
           (keydown.arrowup)="$event.preventDefault()"
           (keydown.arrowdown)="$event.preventDefault()"
-          (wheel)="$event.preventDefault()"
+          (wheel)="$event.target.blur()"
           placeholder="Enter amount"
         />
       </div>
@@ -219,7 +219,7 @@
                   [(ngModel)]="editedConsultationValue"
                   (keydown.arrowup)="$event.preventDefault()"
                   (keydown.arrowdown)="$event.preventDefault()"
-                  (wheel)="$event.preventDefault()"
+                  (wheel)="$event.target.blur()"
                 />
                 <button
                   type="button"

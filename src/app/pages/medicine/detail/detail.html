@@ -83,7 +83,8 @@
 
                 <input type="number" formControlName="stockQuantity" class="qty-input" placeholder="0" min="0"
                   (keydown.enter)="$event.preventDefault()"
-                  (keydown)=" $event.key === '-' ? $event.preventDefault() : null " [readonly]="mode === 'view'" />
+                  (keydown)=" $event.key === '-' ? $event.preventDefault() : null " (wheel)="$event.target.blur()"
+                  [readonly]="mode === 'view'" />
 
                 <button type="button" class="qty-btn" (click)="changeQuantity(1)" [disabled]="mode === 'view'">
                   +

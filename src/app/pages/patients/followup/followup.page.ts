@@ -1608,6 +1608,30 @@ export class FollowupPage implements OnInit, OnDestroy {
     const before = isEmptyPlaceholder ? '' : value.slice(0, cursorPos);
     const after = isEmptyPlaceholder ? '' : value.slice(selEnd);
 
+    // A single-line/plain paste landing mid-line (e.g. right after an existing
+    // "2. ") should continue that line, not spawn a brand-new numbered item —
+    // otherwise pasting into point 2 silently lands the text on point 3.
+    const lineStart = before.lastIndexOf('\n') + 1;
+    const lineBeforeCursor = before.slice(lineStart);
+    const pastingOnBlankLine = lineBeforeCursor.trim() === '';
+
+    if (items.length === 1 && !isEmptyPlaceholder && !pastingOnBlankLine) {
+      const insertText = items[0];
+      let newValue = before + insertText + after;
+      let newCursorPos = (before + insertText).length;
+
+      if (newValue.length > 2000) {
+        newValue = newValue.slice(0, 2000);
+        newCursorPos = Math.min(newCursorPos, newValue.length);
+      }
+
+      textarea.value = newValue;
+      textarea.setSelectionRange(newCursorPos, newCursorPos);
+      this.interpretation = newValue;
+      this.triggerAutosave();
+      return;
+    }
+
     // Continue numbering from the last numbered line before the cursor
     const numberedLineRe = /^(\d+)\.\s/gm;
     let lastNumber: number | null = null;

@@ -418,7 +418,7 @@
             <div class="form-section mb-0">
               <label class="field-label">Consultation Charges (₹)</label>
               <input type="number" class="fu-input no-spinner" [ngModel]="consultationCharge"
-                (ngModelChange)="onConsultationChange($event); triggerAutosave()" (wheel)="$event.preventDefault()"
+                (ngModelChange)="onConsultationChange($event); triggerAutosave()" (wheel)="$event.target.blur()"
                 min="0" placeholder="0" [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode" />
             </div>
 
@@ -443,7 +443,7 @@
           <div class="form-section">
             <label class="field-label">Wave Off Amount (₹)</label>
             <input type="number" class="fu-input no-spinner" [ngModel]="waveOffAmount"
-              (ngModelChange)="onWaveOffAmountChange($event); triggerAutosave()" (wheel)="$event.preventDefault()"
+              (ngModelChange)="onWaveOffAmountChange($event); triggerAutosave()" (wheel)="$event.target.blur()"
               placeholder="0.00" [disabled]="!waveOffVerified || (isFollowUpAlreadySaved && !isFollowUpEditMode)" />
           </div>
 

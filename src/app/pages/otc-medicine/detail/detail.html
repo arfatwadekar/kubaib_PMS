@@ -40,7 +40,7 @@
             <div class="form-group">
               <label>Amount Of Medicine (₹) *</label>
               <input type="number" formControlName="amountOfMedicine" [readonly]="mode === 'view'" min="0"
-                placeholder="Enter total amount" />
+                (wheel)="$event.target.blur()" placeholder="Enter total amount" />
             </div>
           </div>
 
@@ -56,7 +56,7 @@
             <div class="form-group">
               <label>Amount Paid (₹) *</label>
               <input type="number" formControlName="amountPaid" [readonly]="mode === 'view'" min="0"
-                placeholder="Enter paid amount" [class.input-error]="
+                (wheel)="$event.target.blur()" placeholder="Enter paid amount" [class.input-error]="
                   form.get('amountPaid')?.value >
                   form.get('amountOfMedicine')?.value &&
                   form.get('amountOfMedicine')?.value

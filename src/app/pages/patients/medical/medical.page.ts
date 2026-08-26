@@ -60,6 +60,10 @@ export class MedicalPage implements OnInit, OnDestroy {
   complaintsAutoSaveStatus: 'idle' | 'saving' | 'saved' = 'idle';
   private complaintsSavedPillTimer: any = null;
 
+  // ⭐ Mental / Emotional State auto-save status, shown inline in those sections' headers
+  mentalStateAutoSaveStatus: 'idle' | 'saving' | 'saved' = 'idle';
+  private mentalStateSavedPillTimer: any = null;
+
   private destroy$ = new Subject<void>();
   private sub = new Subscription();
 
@@ -185,10 +189,8 @@ isReadonly = false;
       mentalStateEvaluation: [''],
       angerSadnessTriangles_Remark: [''],
       fearAnxietyTriangles_Remark: [''],
-      remarkAngerSadness: [''],
+      spectrum_LaveHate_Remark: [''],
       remarkAttachments: [''],
-      remarkLoveHate: [''],
-      remarkFearAnxiety: [''],
     }),
 
     intellectualState: this.fb.group({
@@ -234,6 +236,7 @@ isReadonly = false;
   ngOnInit(): void {
     this.loadRole();
     this.setupComplaintsAutoSave();
+    this.setupMentalStateAutoSave();
 
     this.sub.add(
       this.route.queryParams.subscribe((qp) => {
@@ -261,6 +264,9 @@ isReadonly = false;
     this.destroy$.complete();
     if (this.complaintsSavedPillTimer) {
       clearTimeout(this.complaintsSavedPillTimer);
+    }
+    if (this.mentalStateSavedPillTimer) {
+      clearTimeout(this.mentalStateSavedPillTimer);
     }
   }
 
@@ -326,6 +332,69 @@ isReadonly = false;
   }
 
   // ============================================================
+  // ⭐ MENTAL / EMOTIONAL STATE AUTO-SAVE
+  // ============================================================
+  /**
+   * Mirrors setupComplaintsAutoSave: the Mental State Evaluation and
+   * Emotional State Evaluation sections both write into the same
+   * "mentalState" form group, so a debounced pause after typing there
+   * auto-saves it too, instead of requiring the manual "Update" button.
+   */
+  private setupMentalStateAutoSave(): void {
+    const mentalState = this.medicalForm.get('mentalState');
+    if (!mentalState) return;
+
+    mentalState.valueChanges
+      .pipe(
+        skip(1), // ignore the initial emit on form construction
+        debounceTime(1200),
+        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
+        takeUntil(this.destroy$),
+      )
+      .subscribe(() => {
+        if (!this.patientId || this.isReadonly) return;
+        void this.autoSaveMentalStateSection();
+      });
+  }
+
+  private async autoSaveMentalStateSection(): Promise<void> {
+    if (!this.patientId || this.isReadonly) return;
+    if (this.autoSaveInProgress || this.loading) return;
+    if (!this.medicalForm.get('mentalState')?.dirty) return;
+
+    this.isAutoSaving = true;
+    this.autoSaveInProgress = true;
+    this.mentalStateAutoSaveStatus = 'saving';
+
+    try {
+      const payload = this.buildClinicalCasePayload();
+
+      if (this.medicalExists) {
+        await firstValueFrom(this.medicalExamApi.update(payload));
+      } else {
+        await firstValueFrom(this.medicalExamApi.create(payload));
+        this.medicalExists = true;
+      }
+
+      this.medicalForm.markAsPristine();
+      this.mentalStateAutoSaveStatus = 'saved';
+
+      if (this.mentalStateSavedPillTimer) {
+        clearTimeout(this.mentalStateSavedPillTimer);
+      }
+      this.mentalStateSavedPillTimer = setTimeout(() => {
+        this.mentalStateAutoSaveStatus = 'idle';
+      }, 2500);
+    } catch (error: any) {
+      console.error('❌ Mental state auto-save failed:', error);
+      this.mentalStateAutoSaveStatus = 'idle';
+    } finally {
+      this.isAutoSaving = false;
+      this.autoSaveInProgress = false;
+    }
+  }
+
+  // ============================================================
   // ⭐ AUTO-SAVE ON NAVIGATION
   // ============================================================
   /**
@@ -356,7 +425,12 @@ isReadonly = false;
    * Auto-save before navigation with silent success
    */
   private async autoSaveBeforeNavigation(): Promise<void> {
-    if (!this.patientId || this.autoSaveInProgress || !this.medicalForm?.dirty) {
+    if (
+      !this.patientId ||
+      this.autoSaveInProgress ||
+      this.loading ||
+      !this.medicalForm?.dirty
+    ) {
       return;
     }
 
@@ -555,16 +629,7 @@ isReadonly = false;
 
       mentalState: {
         ...ms,
-        angerSadnessTriangles_Remark: this.s(
-          ms?.remarkAngerSadness || ms?.angerSadnessTriangles_Remark,
-        ),
-        fearAnxietyTriangles_Remark: this.s(
-          ms?.remarkFearAnxiety || ms?.fearAnxietyTriangles_Remark,
-        ),
         spectrum_LoveHate: safeNum(ms?.spectrum_LoveHate ?? 0),
-        spectrum_LaveHate_Remark: this.s(
-          ms?.remarkLoveHate || ms?.spectrum_LaveHate_Remark,
-        ),
         intellect_Value: safeNum(intel?.capacityPerformanceRatio),
         intellect_Perception: this.s(intel?.perception),
         intellect_Memory: this.s(intel?.memory),
@@ -584,7 +649,7 @@ isReadonly = false;
       await this.toast('PatientId missing. Open patient in edit mode.');
       return;
     }
-    if (this.loading) return;
+    if (this.loading || this.autoSaveInProgress) return;
 
     const payload = this.buildClinicalCasePayload();
     this.loading = true;
@@ -747,9 +812,6 @@ if (this.isReadonly) {
         },
         mentalState: {
           ...ms,
-          remarkLoveHate: ms?.spectrum_LaveHate_Remark || '',
-          remarkAngerSadness: ms?.angerSadnessTriangles_Remark || '',
-          remarkFearAnxiety: ms?.fearAnxietyTriangles_Remark || '',
         },
           // ✅ Added intellectualState restoration
     intellectualState: {

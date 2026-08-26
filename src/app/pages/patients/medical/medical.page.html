@@ -835,6 +835,18 @@
           <ion-item slot="header" lines="none" class="sec-header modern-header">
             <ion-icon name="pulse-outline"></ion-icon>
             <ion-label>MENTAL STATE EVALUATION</ion-label>
+            <span
+              class="autosave-indicator autosave-saving"
+              *ngIf="mentalStateAutoSaveStatus === 'saving'"
+              (click)="$event.stopPropagation()"
+              >Saving…</span
+            >
+            <span
+              class="autosave-indicator autosave-saved"
+              *ngIf="mentalStateAutoSaveStatus === 'saved'"
+              (click)="$event.stopPropagation()"
+              >Saved</span
+            >
           </ion-item>
 
           <div slot="content" class="sec-body" formGroupName="mentalState">
@@ -1130,6 +1142,18 @@
           <ion-item slot="header" lines="none" class="sec-header modern-header">
             <ion-icon name="heart-outline"></ion-icon>
             <ion-label>Emotional State Evaluation</ion-label>
+            <span
+              class="autosave-indicator autosave-saving"
+              *ngIf="mentalStateAutoSaveStatus === 'saving'"
+              (click)="$event.stopPropagation()"
+              >Saving…</span
+            >
+            <span
+              class="autosave-indicator autosave-saved"
+              *ngIf="mentalStateAutoSaveStatus === 'saved'"
+              (click)="$event.stopPropagation()"
+              >Saved</span
+            >
           </ion-item>
 
           <div
@@ -1143,10 +1167,10 @@
                   size="12"
                   sizeMd="6"
                   *ngFor="let item of [
-          {title:'Anger / Sadness Causes', img:'1.png', control:'remarkAngerSadness'},
-          {title:'Pt → Attachments', img:'2.png', control:'remarkAttachments'},
-          {title:'Love ↔ Hate', img:'3.png', control:'remarkLoveHate'},
-          {title:'Fear / Fright / Anxiety', img:'4.png', control:'remarkFearAnxiety'}
+          {title:'Anger / Sadness Causes', img:'2.png', control:'angerSadnessTriangles_Remark'},
+          {title:'Pt → Attachments', img:'1.png', control:'remarkAttachments'},
+          {title:'Love ↔ Hate', img:'3.png', control:'spectrum_LaveHate_Remark'},
+          {title:'Fear / Fright / Anxiety', img:'4.png', control:'fearAnxietyTriangles_Remark'}
         ]"
                 >
                   <div class="emo-card modern-emo-card">
