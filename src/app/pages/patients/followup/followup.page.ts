@@ -1466,25 +1466,14 @@ export class FollowupPage implements OnInit, OnDestroy {
     this.autosave$.next();
   }
   onInterpretationChange(value: string) {
-    if (!value) {
-      this.interpretation = '';
-      return;
-    }
+    // Do NOT trim or collapse whitespace here — this fires on every keystroke,
+    // and rewriting the textarea's value while the user is still typing (e.g.
+    // stripping the trailing space they just pressed) forces the DOM value to
+    // be overwritten mid-type, which dismisses the on-screen keyboard on
+    // mobile. Only enforce the length cap live; whitespace cleanup happens
+    // once on blur/save instead.
+    let cleaned = value || '';
 
-    // 1. Collapse blank lines (keeps single line breaks between medicines intact)
-    let cleaned = value.replace(/\n[ \t]*\n/g, '\n');
-
-    // 2. Replace repeated spaces/tabs within a line with a single space
-    cleaned = cleaned.replace(/[ \t]+/g, ' ');
-
-    // 3. Trim trailing spaces at end of each line, then trim start/end
-    cleaned = cleaned
-      .split('\n')
-      .map((line) => line.replace(/[ \t]+$/g, ''))
-      .join('\n')
-      .trim();
-
-    // 4. Enforce max length (extra safety)
     if (cleaned.length > 2000) {
       cleaned = cleaned.substring(0, 2000);
     }
@@ -1493,14 +1482,40 @@ export class FollowupPage implements OnInit, OnDestroy {
     this.triggerAutosave();
   }
 
+  // Cleans up blank lines / trailing whitespace once the field loses focus,
+  // instead of on every keystroke (see onInterpretationChange).
+  onInterpretationBlur() {
+    if (!this.interpretation) return;
+
+    let cleaned = this.interpretation.replace(/\n[ \t]*\n/g, '\n');
+    cleaned = cleaned.replace(/[ \t]+/g, ' ');
+    cleaned = cleaned
+      .split('\n')
+      .map((line) => line.replace(/[ \t]+$/g, ''))
+      .join('\n')
+      .trim();
+
+    this.interpretation = cleaned;
+  }
+
   onObservationsChange(value: string) {
     if (this.isReadonly) return;
-    let cleaned = (value || '').replace(/[ \t]+$/gm, '');
+    // Same reasoning as onInterpretationChange — don't strip trailing
+    // whitespace on every keystroke, it fights the user's live typing.
+    let cleaned = value || '';
     if (cleaned.length > 2000) {
       cleaned = cleaned.substring(0, 2000);
     }
     this.observationsAndSymptoms = cleaned;
     this.triggerAutosave();
+  }
+
+  onObservationsBlur() {
+    if (!this.observationsAndSymptoms) return;
+    this.observationsAndSymptoms = this.observationsAndSymptoms.replace(
+      /[ \t]+$/gm,
+      '',
+    ).trim();
   }
 
   // ─────────────────────────────────────────────────────────────────────────

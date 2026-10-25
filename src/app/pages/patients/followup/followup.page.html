@@ -201,6 +201,7 @@
             </div>
 
             <textarea [(ngModel)]="observationsAndSymptoms" (ngModelChange)="onObservationsChange($event)"
+              (blur)="onObservationsBlur()"
               [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode" maxlength="2000"
               placeholder="Enter clinical observations and symptoms…"
               style="
@@ -234,7 +235,7 @@
 
             <textarea [(ngModel)]="interpretation" (ngModelChange)="onInterpretationChange($event)"
               (focus)="onInterpretationFocus($event)" (keydown)="onInterpretationKeydown($event)"
-              (paste)="onInterpretationPaste($event)"
+              (paste)="onInterpretationPaste($event)" (blur)="onInterpretationBlur()"
               [disabled]="isFollowUpAlreadySaved && !isFollowUpEditMode" maxlength="2000"
               placeholder="Enter medicine details and clinical interpretation… (press Enter for a new numbered line)"
               style="
